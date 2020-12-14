@@ -1,0 +1,197 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			enabled heroes
+			{
+				Pharah
+			}
+		}
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Projectile Speed(Event Player, 0);
+		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
+		Start Camera(Event Player, Eye Position(Event Player) + Vector(0, 0, 2), Eye Position(Event Player), 0);
+		Create Effect(All Players(All Teams), Sphere, Color(White), Eye Position(Event Player), 0.100, Visible To Position and Radius);
+		Set Invisible(Event Player, All);
+		disabled Set Slow Motion(50);
+		Start Heal Over Time(Event Player, Event Player, 9999, 500);
+		Create HUD Text(All Players(All Teams), 100000 * Eye Position(Event Player), Null, Null, Left, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), 100000 * Distance Between(Eye Position(Event Player), Vector(0, 790.585 / 1000, 0)), Null,
+			Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Teleport(Event Player, Vector(-0.700, 0, 0));
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Ultimate Charge Percent(Event Player) != 100;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Projectile Speed(Event Player, 0);
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Wrecking Ball), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Global.B = 0.001 / 1;
+		Global.A = Vector(Global.B, 0, 0);
+	}
+}
+
+rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(2, Ignore Condition);
+		Press Button(Event Player, Button(Ability 1));
+		Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
+		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
+	}
+}
+
+rule("Rule 6")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Event Player) + Global.A);
+	}
+}
