@@ -1,0 +1,321 @@
+settings
+{
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Expanse
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			No Ammunition Requirement: On
+		}
+	}
+}
+
+variables
+{
+	global:
+		2: tesla_radius
+		3: tesla_halfangle
+		4: tesla_scale
+		5: loop_temp
+		6: tesla_cone_vert
+		7: scale_mode
+		8: camera_mode
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.A = 0.100 / 100;
+		Global.B = Vector(0, 0, Global.A);
+		Create Dummy Bot(Hero(Baptiste), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Global.tesla_cone_vert = Workshop Setting Integer(Custom String("Cone Display"), Custom String("Vertex (Lag >10)"), 8, 6, 16, 0);
+		Global.tesla_halfangle = 20;
+		Global.tesla_scale = 1;
+		Global.tesla_radius = 8;
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Server Load, Server Load Average, Server Load Peak), Null, Null, Top,
+			0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("bot init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Wait(3, Ignore Condition);
+		disabled Set Status(Event Player, Null, Knocked Down, 9999);
+		Start Heal Over Time(Event Player, Event Player, 9999, 200);
+		Add Health Pool To Player(Event Player, Shields, 8000, True, False);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 0.500, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1.500, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1.250, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 0.750, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+	}
+}
+
+rule("player init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("scale"), Global.tesla_scale), Null, Null, Left, 0, Color(
+			White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), 100000 * Update Every Frame(Position Of(Event Player)), Null, Null, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Color(Blue), Position Of(Event Player) + Vector(0, Global.tesla_scale, 0),
+			Global.tesla_radius * Global.tesla_scale / 0.985, Visible To Position and Radius);
+		For Global Variable(loop_temp, 0, Global.tesla_cone_vert, 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.tesla_scale, 0), Vector(0,
+				Global.tesla_scale, 0) + World Vector Of(Vector(Global.tesla_scale * Global.tesla_radius * Sine From Degrees(
+				Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert))
+				+ 30 * Total Time Elapsed), Dot Product(Vector(0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(
+				Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert))
+				+ 30 * Total Time Elapsed), Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0,
+				Cosine From Degrees(Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))),
+				Dot Product(Vector(0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(
+				Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
+				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
+				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
+				Rotation And Translation), Color(White), Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Vector(0, Global.tesla_scale, 0) + World Vector Of(Vector(
+				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once((
+				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed), Dot Product(Vector(0,
+				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once((
+				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
+				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, Cosine From Degrees(
+				Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Vector(
+				0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once((
+				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
+				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
+				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
+				Rotation And Translation), Vector(0, Global.tesla_scale, 0) + World Vector Of(Vector(
+				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once(
+				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed), Dot Product(Vector(0,
+				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(
+				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
+				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, Cosine From Degrees(
+				Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Vector(
+				0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(
+				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
+				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
+				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
+				Rotation And Translation), Color(White), Visible To Position and Radius);
+			Wait(0.032, Ignore Condition);
+		End;
+		Start Scaling Player(Event Player, Global.tesla_scale, True);
+	}
+}
+
+rule("scale mode")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Global.scale_mode = (Global.scale_mode + 1) % 4;
+	}
+}
+
+rule("scale mode mod 2")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.scale_mode % 2 == 0;
+	}
+
+	actions
+	{
+		Stop Chasing Global Variable(tesla_scale);
+	}
+}
+
+rule("scale mode 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.scale_mode == 1;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(tesla_scale, 20, 4, None);
+	}
+}
+
+rule("scale mode 3")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.scale_mode == 3;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(tesla_scale, 0.100, 4, None);
+	}
+}
+
+rule("cam mode")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Reload)) == True;
+	}
+
+	actions
+	{
+		Global.camera_mode = (Global.camera_mode + 1) % 3;
+	}
+}
+
+rule("cam mode 0")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.camera_mode == 0;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+	}
+}
+
+rule("cam mode 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.camera_mode == 1;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, World Vector Of(Vector(10 * Global.tesla_scale, 2 * Global.tesla_scale, 4 * Global.tesla_scale),
+			Event Player, Rotation And Translation), World Vector Of(Vector(0, 2 * Global.tesla_scale, 4 * Global.tesla_scale),
+			Event Player, Rotation And Translation), 100);
+	}
+}
+
+rule("cam mode 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.camera_mode == 2;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Vector(0, 1, 3) + Position Of(Players In Slot(0, Team 2)), Vector(0, 1, 0) + Position Of(
+			Players In Slot(0, Team 2)), 0);
+	}
+}
