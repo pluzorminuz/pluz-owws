@@ -29,6 +29,11 @@ settings
 			No Ammunition Requirement: On
 		}
 	}
+
+	workshop
+	{
+		Show Circle: On
+	}
 }
 
 variables
@@ -52,10 +57,10 @@ rule("init")
 
 	actions
 	{
-		Global.A = 0.100 / 100;
-		Global.B = Vector(0, 0, Global.A);
+		Global.A = Workshop Setting Toggle(Custom String("Cone Display"), Custom String("Show Circle"), False, 1);
 		Create Dummy Bot(Hero(Baptiste), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
-		Global.tesla_cone_vert = Workshop Setting Integer(Custom String("Cone Display"), Custom String("Vertex (Lag >10)"), 8, 6, 16, 0);
+		Global.tesla_cone_vert = Workshop Setting Integer(Custom String("Cone Display"), Custom String("Vertex (Laggy if too high)"), 8, 6,
+			48, 0);
 		Global.tesla_halfangle = 20;
 		Global.tesla_scale = 1;
 		Global.tesla_radius = 8;
@@ -122,41 +127,38 @@ rule("player init")
 		Create Effect(All Players(All Teams), Sphere, Color(Blue), Position Of(Event Player) + Vector(0, Global.tesla_scale, 0),
 			Global.tesla_radius * Global.tesla_scale / 0.985, Visible To Position and Radius);
 		For Global Variable(loop_temp, 0, Global.tesla_cone_vert, 1);
-			Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.tesla_scale, 0), Vector(0,
-				Global.tesla_scale, 0) + World Vector Of(Vector(Global.tesla_scale * Global.tesla_radius * Sine From Degrees(
-				Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert))
-				+ 30 * Total Time Elapsed), Dot Product(Vector(0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(
-				Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert))
-				+ 30 * Total Time Elapsed), Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0,
-				Cosine From Degrees(Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))),
-				Dot Product(Vector(0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(
-				Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
-				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
-				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
-				Rotation And Translation), Color(White), Visible To Position and Radius);
-			Create Beam Effect(All Players(All Teams), Grapple Beam, Vector(0, Global.tesla_scale, 0) + World Vector Of(Vector(
-				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once((
-				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed), Dot Product(Vector(0,
-				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once((
-				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
-				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, Cosine From Degrees(
-				Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Vector(
-				0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once((
-				1 + Global.loop_temp) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
-				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
-				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
-				Rotation And Translation), Vector(0, Global.tesla_scale, 0) + World Vector Of(Vector(
-				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Cosine From Degrees(Evaluate Once(
-				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed), Dot Product(Vector(0,
-				Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(
-				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
-				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, Cosine From Degrees(
-				Vertical Facing Angle Of(Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Vector(
-				0, Global.tesla_scale * Global.tesla_radius * Sine From Degrees(Global.tesla_halfangle) * Sine From Degrees(Evaluate Once(
-				Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed),
-				Global.tesla_scale * Global.tesla_radius * Cosine From Degrees(Global.tesla_halfangle)), Vector(0, 1 * Sine From Degrees(
-				Vertical Facing Angle Of(Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player,
-				Rotation And Translation), Color(White), Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.tesla_scale, 0), Position Of(
+				Event Player) + Vector(0, Global.tesla_scale, 0) + World Vector Of(Left, Event Player, Rotation)
+				* Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(Sine From Degrees(Global.tesla_halfangle))
+				* Cosine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed) + (
+				Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation) : (Vertical Facing Angle Of(
+				Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(Horizontal Facing Angle Of(
+				Event Player), Vertical Facing Angle Of(Event Player) - 90))) * Global.tesla_scale * Evaluate Once(Global.tesla_radius)
+				* Evaluate Once(Sine From Degrees(Global.tesla_halfangle)) * Sine From Degrees(Evaluate Once(Global.loop_temp * (
+				360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed) + Facing Direction Of(Event Player)
+				* Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(Cosine From Degrees(Global.tesla_halfangle)), Color(
+				White), Visible To Position and Radius);
+			If(Global.A == True);
+				Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.tesla_scale, 0)
+					+ World Vector Of(Left, Event Player, Rotation) * Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(
+					Sine From Degrees(Global.tesla_halfangle)) * Cosine From Degrees(Evaluate Once(Global.loop_temp * (
+					360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed) + (Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(
+					Backward, Event Player, Rotation) : (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Forward, Event Player,
+					Rotation) : Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90)))
+					* Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(Sine From Degrees(Global.tesla_halfangle))
+					* Sine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed)
+					+ Facing Direction Of(Event Player) * Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(
+					Cosine From Degrees(Global.tesla_halfangle)), Position Of(Event Player) + Vector(0, Global.tesla_scale, 0) + World Vector Of(
+					Left, Event Player, Rotation) * Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(Sine From Degrees(
+					Global.tesla_halfangle)) * Cosine From Degrees(Evaluate Once((Global.loop_temp + 1) * (360 / Global.tesla_cone_vert))
+					+ 30 * Total Time Elapsed) + (Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation)
+					: (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(
+					Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90))) * Global.tesla_scale * Evaluate Once(
+					Global.tesla_radius) * Evaluate Once(Sine From Degrees(Global.tesla_halfangle)) * Sine From Degrees(Evaluate Once((
+					Global.loop_temp + 1) * (360 / Global.tesla_cone_vert)) + 30 * Total Time Elapsed) + Facing Direction Of(Event Player)
+					* Global.tesla_scale * Evaluate Once(Global.tesla_radius) * Evaluate Once(Cosine From Degrees(Global.tesla_halfangle)), Color(
+					White), Visible To Position and Radius);
+			End;
 			Wait(0.032, Ignore Condition);
 		End;
 		Start Scaling Player(Event Player, Global.tesla_scale, True);
