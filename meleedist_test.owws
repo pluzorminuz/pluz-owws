@@ -1,0 +1,108 @@
+settings
+{
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.A = 0.100 / 100;
+		Global.B = Vector(0, 0, Global.A);
+		Create Dummy Bot(Hero(Baptiste), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("player init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), 100000 * Update Every Frame(Position Of(Event Player)), Null, Null, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Wait(3, Ignore Condition);
+		Teleport(Event Player, Vector(0, 0, -3.050));
+		Start Facing(Event Player, Vector(0, 0, 1), 10000, To World, Direction and Turn Rate);
+	}
+}
+
+rule("teleport")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Event Player) + Global.B);
+	}
+}
+
+rule("bot init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Wait(3, Ignore Condition);
+		disabled Set Status(Event Player, Null, Knocked Down, 9999);
+		Start Heal Over Time(Event Player, Event Player, 9999, 200);
+		Add Health Pool To Player(Event Player, Shields, 8000, True, False);
+	}
+}
