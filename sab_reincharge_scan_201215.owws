@@ -1,0 +1,296 @@
+settings
+{
+	lobby
+	{
+		Max Spectators: 1
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Reinhardt
+			{
+				Charge Knockback Scalar: 0%
+				Damage Dealt: 10%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: damage_dealer
+		1: damage_receiver
+		2: signal
+		3: hit_pin
+		4: hit_bounce
+		5: miss
+		6: loop
+		7: total
+
+	player:
+		0: has_pinned
+		1: has_damage
+		2: rolled_position
+}
+
+subroutines
+{
+	0: roll_and_tp
+	1: reset_var
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Set Match Time(3599);
+		Global.damage_dealer = Empty Array;
+		Global.damage_receiver = Empty Array;
+		Global.hit_pin = Empty Array;
+		Global.hit_bounce = Empty Array;
+		Global.miss = Empty Array;
+		Global.signal = False;
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+	}
+}
+
+rule("damage_dealer_init (rein)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Modify Global Variable(damage_dealer, Append To Array, Event Player);
+		Start Forcing Player Position(Event Player, Vector(5 * Slot Of(Event Player), 3, 0), False);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("rein"), Slot Of(Event Player), 10000 * Position Of(
+			Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("damage_receiver_init (bap)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Modify Global Variable(damage_receiver, Append To Array, Event Player);
+		Set Gravity(Event Player, 0);
+		Start Scaling Player(Event Player, 0.100, False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("loop")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		Press Button(Global.damage_dealer, Button(Ability 1));
+		Wait(0.960, Ignore Condition);
+		Set Status(Global.damage_dealer, Null, Hacked, 0.032);
+		Wait(0.032, Ignore Condition);
+		Global.signal = True;
+		Wait(0.032, Ignore Condition);
+		Global.signal = False;
+		Wait(0.032, Ignore Condition);
+		Global.total += 1;
+		Global.loop += 1;
+		If(Global.loop >= 16);
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Global.hit_pin = Empty Array;
+			Global.hit_bounce = Empty Array;
+			Global.miss = Empty Array;
+			Global.loop = 0;
+		End;
+		Loop;
+	}
+}
+
+rule("[sub] roll and tp")
+{
+	event
+	{
+		Subroutine;
+		roll_and_tp;
+	}
+
+	actions
+	{
+		Event Player.rolled_position = Vector(5 * Slot Of(Event Player) + Random Real(-1, 1), Random Real(3, 5), Random Real(-0.100,
+			2.100));
+		Teleport(Event Player, Event Player.rolled_position);
+	}
+}
+
+rule("damage_receiver_detect_bounce")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Has Status(Event Player, Stunned) == True;
+	}
+
+	actions
+	{
+		Event Player.has_pinned = True;
+	}
+}
+
+rule("damage_receiver_detect_damage")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Event Player.has_damage = True;
+	}
+}
+
+rule("damage_receiver_signal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Global.signal == True;
+	}
+
+	actions
+	{
+		If(Event Player.has_damage == True);
+			Modify Global Variable(hit_bounce, Append To Array, 100000 * Event Player.rolled_position);
+		Else If(Event Player.has_pinned == True);
+			Modify Global Variable(hit_pin, Append To Array, 100000 * Event Player.rolled_position);
+		Else;
+			Modify Global Variable(miss, Append To Array, 100000 * Event Player.rolled_position);
+		End;
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(reset_var);
+		Kill(Event Player, Null);
+		Wait(0.032, Ignore Condition);
+		Resurrect(Event Player);
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("[sub] reset var")
+{
+	event
+	{
+		Subroutine;
+		reset_var;
+	}
+
+	actions
+	{
+		Event Player.has_pinned = False;
+		Event Player.has_damage = False;
+	}
+}
