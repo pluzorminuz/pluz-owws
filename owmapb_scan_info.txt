@@ -1,0 +1,2 @@
+09 Nov, 2020 to 17 Nov, 2020 in build 74102, 1.53.0.0
+previous live patch is 29 Oct, 2020

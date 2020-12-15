@@ -1,0 +1,569 @@
+settings
+{
+	modes
+	{
+		Assault
+		{
+			enabled maps
+			{
+			}
+		}
+
+		Control
+		{
+			Capture Speed Modifier: 10%
+			Limit Valid Control Points: Third
+
+			enabled maps
+			{
+			}
+		}
+
+		Escort
+		{
+			enabled maps
+			{
+			}
+		}
+
+		Hybrid
+		{
+			Capture Speed Modifier: 10%
+
+			enabled maps
+			{
+				Blizzard World
+			}
+		}
+
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		General
+		{
+			Game Mode Start: Immediately
+			Limit Roles: 2 Of Each Role Per Team
+			Respawn Time Scalar: 0%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Mercy
+			{
+				Spawn With Ultimate Ready: On
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: this_map_data
+		2: i
+		3: effect_id
+		4: this_objective_index
+}
+
+subroutines
+{
+	0: load_map_databank
+	1: ljt
+	2: oas
+	3: nep
+	4: ilo
+	5: bus
+	6: bzw
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Disable Built-In Game Mode Completion;
+		Global.effect_id = Empty Array;
+		Global.this_objective_index = Objective Index;
+		Call Subroutine(load_map_databank);
+		For Global Variable(i, 0, Count Of(Global.this_map_data[Global.this_objective_index][1]), 1);
+			Create Beam Effect(All Players(All Teams), Good Beam, Global.this_map_data[Global.this_objective_index][0][Evaluate Once(
+				Global.this_map_data[Global.this_objective_index][1][Global.i][0])],
+				Global.this_map_data[Global.this_objective_index][0][Evaluate Once(
+				Global.this_map_data[Global.this_objective_index][1][Global.i][1])], Color(Gray), Visible To and Color);
+			Modify Global Variable(effect_id, Append To Array, Last Created Entity);
+		End;
+		For Global Variable(i, 0, Count Of(Global.this_map_data[Global.this_objective_index][3]), 1);
+			Create Beam Effect(All Players(All Teams), Good Beam, Global.this_map_data[Global.this_objective_index][2][Evaluate Once(
+				Global.this_map_data[Global.this_objective_index][3][Global.i][0])],
+				Global.this_map_data[Global.this_objective_index][2][Evaluate Once(
+				Global.this_map_data[Global.this_objective_index][3][Global.i][1])], Color(Green), Visible To and Color);
+			Modify Global Variable(effect_id, Append To Array, Last Created Entity);
+		End;
+		Enable Inspector Recording;
+		Log To Inspector(String("{0} {1}", Custom String("Number of beam effects created:"), Count Of(Global.effect_id)));
+		Disable Inspector Recording;
+	}
+}
+
+rule("[sub] data bank")
+{
+	event
+	{
+		Subroutine;
+		load_map_databank;
+	}
+
+	actions
+	{
+		If(Current Map == Map(Lijiang Tower));
+			Call Subroutine(ljt);
+		Else If(Current Map == Map(Oasis));
+			Call Subroutine(oas);
+		Else If(Current Map == Map(Nepal));
+			Call Subroutine(nep);
+		Else If(Current Map == Map(Ilios));
+			Call Subroutine(ilo);
+		Else If(Current Map == Map(Busan));
+			Call Subroutine(bus);
+		Else If(Current Map == Map(Blizzard World));
+			Call Subroutine(bzw);
+		End;
+	}
+}
+
+rule("player position")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Null, Position Of(Event Player), Eye Position(Event Player), Left, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("time skip hybrid")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Current Game Mode == Game Mode(Hybrid);
+	}
+
+	actions
+	{
+		Wait(2, Ignore Condition);
+		Set Match Time(0);
+		Wait(0.250, Ignore Condition);
+		Set Match Time(0);
+	}
+}
+
+rule("time skip koth")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Current Game Mode == Game Mode(Control);
+	}
+
+	actions
+	{
+		Wait(0.250, Ignore Condition);
+		Set Match Time(0);
+		Wait(0.250, Ignore Condition);
+		Set Match Time(0);
+		Wait(0.250, Ignore Condition);
+		Set Match Time(0);
+	}
+}
+
+rule("mercy rule")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Ultimate Charge Percent(Event Player) != 100;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("[data] ljt")
+{
+	event
+	{
+		Subroutine;
+		ljt;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(9.012, 13.193, -68.906), Vector(9.012, -2.171, -68.906), Vector(9, 13.193,
+			-53.123), Vector(9, -2.171, -53.123), Vector(-6.961, 13.193, -68.906), Vector(-6.961, -2.171, -68.906), Vector(-6.973, 13.193,
+			-53.123), Vector(-6.973, -2.171, -53.123)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7),
+			Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(9.012, -0.750, -68.906), Vector(9,
+			-0.750, -53.123), Vector(-6.961, -0.750, -68.906), Vector(-6.973, -0.750, -53.123), Vector(9.012, 8.500, -68.906), Vector(9,
+			8.500, -53.123), Vector(-6.961, 8.500, -68.906), Vector(-6.973, 8.500, -53.123), Vector(6.554, 13.193, -55.571), Vector(6.562,
+			13.193, -66.458), Vector(-4.523, 13.193, -55.571), Vector(-4.515, 13.193, -66.458)), Array(Array(1, 0), Array(3, 1), Array(2,
+			3), Array(0, 2), Array(5, 4), Array(7, 5), Array(6, 7), Array(4, 6), Array(8, 9), Array(10, 8), Array(11, 10), Array(9, 11))),
+			Array(Array(Vector(9.379, 102.860, 145.691), Vector(8.814, 102.860, 146.256), Vector(9.302, 102.860, 153.667), Vector(9.302,
+			102.860, 146.256), Vector(3.704, 102.860, 159.661), Vector(-3.814, 102.860, 159.661), Vector(3.853, 102.860, 159.205), Vector(
+			3.704, 102.860, 159.057), Vector(9.168, 102.860, 153.888), Vector(-3.814, 102.860, 159.182), Vector(8.947, 102.860, 153.667),
+			Vector(-3.814, 102.860, 140.339), Vector(3.704, 102.860, 140.339), Vector(-3.814, 102.860, 141.033), Vector(3.704, 102.860,
+			140.918), Vector(4.155, 102.860, 140.467), Vector(-4.246, 102.860, 140.601), Vector(-9.405, 102.860, 145.760), Vector(-9.049,
+			102.860, 146.256), Vector(-9.049, 102.860, 153.667), Vector(-8.909, 102.860, 146.256), Vector(-8.964, 102.860, 154.032),
+			Vector(-8.599, 102.860, 153.667), Vector(-9.405, 92.501, 145.760), Vector(-9.049, 92.501, 146.256), Vector(-9.049, 92.501,
+			153.667), Vector(-8.909, 92.501, 146.256), Vector(3.704, 92.501, 159.661), Vector(-3.814, 92.501, 159.661), Vector(3.853,
+			92.501, 159.205), Vector(3.704, 92.501, 159.057), Vector(-8.964, 92.501, 154.032), Vector(-3.814, 92.501, 159.182), Vector(
+			-8.599, 92.501, 153.667), Vector(-3.814, 92.501, 140.339), Vector(3.704, 92.501, 140.339), Vector(-3.814, 92.501, 141.033),
+			Vector(3.704, 92.501, 140.918), Vector(4.155, 92.501, 140.467), Vector(9.379, 92.501, 145.691), Vector(-4.246, 92.501,
+			140.601), Vector(8.814, 92.501, 146.256), Vector(9.302, 92.501, 153.667), Vector(9.302, 92.501, 146.256), Vector(9.168, 92.501,
+			153.888), Vector(8.947, 92.501, 153.667)), Array(Array(1, 0), Array(3, 2), Array(1, 3), Array(4, 5), Array(9, 5), Array(6, 7),
+			Array(8, 6), Array(7, 4), Array(9, 21), Array(2, 10), Array(10, 8), Array(11, 12), Array(13, 11), Array(14, 12), Array(14, 15),
+			Array(15, 0), Array(16, 17), Array(16, 13), Array(18, 20), Array(19, 18), Array(20, 17), Array(22, 21), Array(22, 19), Array(
+			23, 26), Array(24, 25), Array(26, 24), Array(27, 30), Array(28, 27), Array(29, 44), Array(30, 29), Array(31, 32), Array(32,
+			28), Array(33, 31), Array(25, 33), Array(34, 36), Array(35, 34), Array(37, 35), Array(38, 37), Array(39, 38), Array(36, 40),
+			Array(40, 23), Array(41, 39), Array(42, 43), Array(43, 41), Array(44, 45), Array(45, 42), Array(18, 24), Array(16, 40), Array(
+			10, 45), Array(44, 8), Array(12, 35), Array(27, 4), Array(3, 43), Array(7, 30), Array(15, 38), Array(13, 36), Array(21, 31),
+			Array(26, 20), Array(32, 9), Array(6, 29), Array(41, 1), Array(5, 28), Array(37, 14), Array(22, 33), Array(17, 23), Array(2,
+			42), Array(25, 19), Array(0, 39), Array(11, 34)), Array(Vector(9.379, 94.250, 145.691), Vector(8.814, 94.250, 146.256), Vector(
+			9.302, 94.250, 153.667), Vector(9.302, 94.250, 146.256), Vector(3.704, 94.250, 159.661), Vector(-3.814, 94.250, 159.661),
+			Vector(3.853, 94.250, 159.205), Vector(3.704, 94.250, 159.057), Vector(9.168, 94.250, 153.888), Vector(-3.814, 94.250,
+			159.182), Vector(8.947, 94.250, 153.667), Vector(-3.814, 94.250, 140.339), Vector(3.704, 94.250, 140.339), Vector(-3.814,
+			94.250, 141.033), Vector(3.704, 94.250, 140.918), Vector(4.155, 94.250, 140.467), Vector(-4.246, 94.250, 140.601), Vector(
+			-9.405, 94.250, 145.760), Vector(-9.049, 94.250, 146.256), Vector(-9.049, 94.250, 153.667), Vector(-8.909, 94.250, 146.256),
+			Vector(-8.964, 94.250, 154.032), Vector(-8.599, 94.250, 153.667), Vector(9.302, 98.400, 153.667), Vector(9.302, 98.400,
+			146.256), Vector(-9.049, 98.400, 146.256), Vector(-9.049, 98.400, 153.667), Vector(-3.061, 102.860, 142.609), Vector(-7.391,
+			102.860, 146.939), Vector(-7.391, 102.860, 153.061), Vector(-3.061, 102.860, 157.391), Vector(3.061, 102.860, 157.391), Vector(
+			7.391, 102.860, 153.061), Vector(7.391, 102.860, 146.939), Vector(3.061, 102.860, 142.609)), Array(Array(1, 0), Array(3, 2),
+			Array(1, 3), Array(4, 5), Array(9, 5), Array(6, 7), Array(8, 6), Array(7, 4), Array(9, 21), Array(2, 10), Array(10, 8), Array(
+			11, 12), Array(13, 11), Array(14, 12), Array(14, 15), Array(15, 0), Array(16, 17), Array(16, 13), Array(18, 20), Array(19, 18),
+			Array(20, 17), Array(22, 21), Array(22, 19), Array(24, 23), Array(26, 25), Array(28, 27), Array(29, 28), Array(30, 29), Array(
+			31, 30), Array(32, 31), Array(33, 32), Array(34, 33), Array(27, 34))), Array(Array(Vector(-8.486, 266.362, 283.379), Vector(
+			-8.486, 277.877, 283.379), Vector(-8.486, 266.362, 276.732), Vector(-8.486, 277.877, 276.732), Vector(8.594, 266.362, 283.379),
+			Vector(8.594, 277.877, 283.379), Vector(8.594, 266.362, 276.732), Vector(8.594, 277.877, 276.732), Vector(-8.494, 266.362,
+			276.149), Vector(-8.494, 278.006, 276.149), Vector(-3.791, 266.362, 271.446), Vector(-3.791, 278.006, 271.446), Vector(3.845,
+			266.362, 288.489), Vector(3.845, 278.006, 288.489), Vector(8.549, 266.362, 283.785), Vector(8.549, 278.006, 283.785), Vector(
+			3.963, 266.362, 271.505), Vector(3.963, 277.705, 271.505), Vector(8.664, 266.362, 276.206), Vector(8.664, 277.705, 276.206),
+			Vector(-8.485, 266.362, 283.953), Vector(-8.485, 277.705, 283.953), Vector(-3.786, 266.362, 288.651), Vector(-3.786, 277.705,
+			288.651), Vector(3.435, 266.362, 288.744), Vector(3.435, 277.556, 288.744), Vector(-3.215, 266.362, 288.744), Vector(-3.215,
+			277.556, 288.744), Vector(3.435, 266.362, 271.205), Vector(3.435, 277.556, 271.205), Vector(-3.215, 266.362, 271.205), Vector(
+			-3.215, 277.556, 271.205)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6),
+			Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1), Array(10, 8), Array(8, 9), Array(9, 11), Array(11, 10), Array(
+			14, 10), Array(11, 15), Array(15, 14), Array(12, 14), Array(15, 13), Array(13, 12), Array(8, 12), Array(13, 9), Array(18, 16),
+			Array(16, 17), Array(17, 19), Array(19, 18), Array(22, 18), Array(19, 23), Array(23, 22), Array(20, 22), Array(23, 21), Array(
+			21, 20), Array(16, 20), Array(21, 17), Array(26, 24), Array(24, 25), Array(25, 27), Array(27, 26), Array(30, 26), Array(27,
+			31), Array(31, 30), Array(28, 30), Array(31, 29), Array(29, 28), Array(24, 28), Array(29, 25)), Array(Vector(-8.494, 267.400,
+			276.149), Vector(3.845, 267.400, 288.489), Vector(-7.911, 267.400, 276.732), Vector(-3.215, 267.400, 288.744), Vector(3.435,
+			267.400, 288.744), Vector(3.435, 267.400, 288.078), Vector(-3.215, 267.400, 288.079), Vector(-7.910, 267.400, 283.379), Vector(
+			-3.786, 267.400, 288.651), Vector(-8.485, 267.400, 283.953), Vector(-8.486, 267.400, 283.379), Vector(-8.486, 267.400,
+			276.732), Vector(-3.791, 267.400, 271.446), Vector(8.549, 267.400, 283.785), Vector(8.142, 267.400, 283.379), Vector(-3.215,
+			267.400, 272.022), Vector(3.435, 267.400, 272.034), Vector(3.435, 267.400, 271.205), Vector(-3.215, 267.400, 271.205), Vector(
+			3.963, 267.400, 271.505), Vector(8.664, 267.400, 276.206), Vector(8.138, 267.400, 276.732), Vector(8.594, 267.400, 283.379),
+			Vector(8.594, 267.400, 276.732), Vector(-8.494, 270.250, 276.149), Vector(-7.911, 270.250, 276.732), Vector(-8.486, 270.250,
+			283.379), Vector(-8.486, 270.250, 276.732), Vector(-3.791, 270.250, 271.446), Vector(3.963, 270.250, 271.505), Vector(8.664,
+			270.250, 276.206), Vector(8.138, 270.250, 276.732), Vector(8.594, 270.250, 283.379), Vector(8.594, 270.250, 276.732), Vector(
+			-3.215, 268, 288.744), Vector(3.435, 268, 288.744)), Array(Array(1, 13), Array(0, 2), Array(4, 5), Array(6, 3), Array(1, 5),
+			Array(7, 9), Array(9, 8), Array(8, 6), Array(10, 7), Array(2, 11), Array(11, 10), Array(12, 0), Array(13, 14), Array(12, 15),
+			Array(16, 17), Array(17, 18), Array(18, 15), Array(19, 16), Array(20, 19), Array(21, 20), Array(22, 23), Array(23, 21), Array(
+			14, 22), Array(24, 25), Array(25, 27), Array(27, 26), Array(28, 24), Array(30, 29), Array(31, 30), Array(32, 33), Array(33,
+			31), Array(34, 35))));
+	}
+}
+
+rule("[data] oas")
+{
+	event
+	{
+		Subroutine;
+		oas;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(131.759, 0.600, 252.413), Vector(131.759, 8.406, 252.413), Vector(131.759, 0.600,
+			242.576), Vector(131.759, 8.406, 242.576), Vector(155.230, 0.600, 252.413), Vector(155.230, 8.406, 252.413), Vector(155.230,
+			0.600, 242.576), Vector(155.230, 8.406, 242.576), Vector(138.576, 0.600, 235.760), Vector(138.576, 8.406, 235.760), Vector(
+			148.413, 0.600, 235.760), Vector(148.413, 8.406, 235.760), Vector(138.576, 0.600, 259.230), Vector(138.576, 8.406, 259.230),
+			Vector(148.413, 0.600, 259.230), Vector(148.413, 8.406, 259.230), Vector(148.315, 0.600, 235.719), Vector(148.315, 8.406,
+			235.719), Vector(155.270, 0.600, 242.674), Vector(155.270, 8.406, 242.674), Vector(131.719, 0.600, 252.315), Vector(131.719,
+			8.406, 252.315), Vector(138.674, 0.600, 259.270), Vector(138.674, 8.406, 259.270), Vector(155.270, 0.600, 252.315), Vector(
+			155.270, 8.406, 252.315), Vector(148.315, 0.600, 259.271), Vector(148.315, 8.406, 259.271), Vector(138.674, 0.600, 235.718),
+			Vector(138.674, 8.406, 235.718), Vector(131.718, 0.600, 242.674), Vector(131.718, 8.406, 242.674)), Array(Array(2, 0), Array(0,
+			1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(
+			5, 1), Array(10, 8), Array(8, 9), Array(9, 11), Array(11, 10), Array(14, 10), Array(11, 15), Array(15, 14), Array(12, 14),
+			Array(15, 13), Array(13, 12), Array(8, 12), Array(13, 9), Array(18, 16), Array(16, 17), Array(17, 19), Array(19, 18), Array(22,
+			18), Array(19, 23), Array(23, 22), Array(20, 22), Array(23, 21), Array(21, 20), Array(16, 20), Array(21, 17), Array(26, 24),
+			Array(24, 25), Array(25, 27), Array(27, 26), Array(30, 26), Array(27, 31), Array(31, 30), Array(28, 30), Array(31, 29), Array(
+			29, 28), Array(24, 28), Array(29, 25)), Array(Vector(155.270, 2.250, 242.674), Vector(155.230, 2.250, 242.714), Vector(155.230,
+			2.250, 252.275), Vector(155.270, 2.250, 252.315), Vector(138.576, 2.250, 259.230), Vector(148.413, 2.250, 259.230), Vector(
+			138.634, 2.250, 259.230), Vector(138.674, 2.250, 259.270), Vector(138.714, 2.250, 259.230), Vector(138.576, 2.250, 259.172),
+			Vector(148.274, 2.250, 259.230), Vector(148.315, 2.250, 259.271), Vector(148.413, 2.250, 259.173), Vector(148.355, 2.250,
+			259.230), Vector(155.230, 2.250, 252.413), Vector(155.230, 2.250, 252.355), Vector(155.173, 2.250, 252.413), Vector(148.315,
+			2.250, 235.719), Vector(138.674, 2.250, 235.718), Vector(138.715, 2.250, 235.760), Vector(138.632, 2.250, 235.760), Vector(
+			148.413, 2.250, 235.760), Vector(148.356, 2.250, 235.760), Vector(148.274, 2.250, 235.760), Vector(138.576, 2.250, 235.760),
+			Vector(138.576, 2.250, 235.816), Vector(148.413, 2.250, 235.817), Vector(131.816, 2.250, 242.576), Vector(155.172, 2.250,
+			242.576), Vector(131.759, 2.250, 242.576), Vector(155.230, 2.250, 242.576), Vector(155.230, 2.250, 242.634), Vector(131.759,
+			2.250, 242.633), Vector(131.718, 2.250, 242.674), Vector(131.759, 2.250, 242.715), Vector(131.759, 2.250, 252.274), Vector(
+			131.719, 2.250, 252.315), Vector(131.759, 2.250, 252.356), Vector(131.759, 2.250, 252.413), Vector(131.817, 2.250, 252.413),
+			Vector(140.426, 8.406, 240.096), Vector(136.096, 8.406, 244.426), Vector(136.096, 8.406, 250.549), Vector(140.426, 8.406,
+			254.878), Vector(146.549, 8.406, 254.878), Vector(150.878, 8.406, 250.549), Vector(150.878, 8.406, 244.426), Vector(146.549,
+			8.406, 240.096)), Array(Array(0, 31), Array(1, 0), Array(2, 1), Array(3, 2), Array(12, 5), Array(4, 6), Array(6, 7), Array(7,
+			8), Array(8, 10), Array(9, 4), Array(10, 11), Array(5, 13), Array(11, 13), Array(14, 15), Array(3, 15), Array(14, 16), Array(
+			16, 12), Array(17, 23), Array(19, 18), Array(18, 20), Array(21, 22), Array(22, 17), Array(23, 19), Array(24, 20), Array(26,
+			21), Array(25, 24), Array(27, 25), Array(26, 28), Array(29, 32), Array(30, 28), Array(31, 30), Array(33, 32), Array(27, 29),
+			Array(33, 34), Array(34, 35), Array(35, 36), Array(36, 37), Array(37, 38), Array(38, 39), Array(9, 39), Array(41, 40), Array(
+			42, 41), Array(43, 42), Array(44, 43), Array(45, 44), Array(46, 45), Array(47, 46), Array(40, 47))), Array(Array(Vector(
+			105.440, 4.630, -228.497), Vector(105.440, 10.630, -228.497), Vector(119.981, 4.630, -243.038), Vector(119.981, 10.630,
+			-243.038), Vector(122.125, 4.630, -211.813), Vector(122.125, 10.630, -211.813), Vector(136.666, 4.630, -226.354), Vector(
+			136.666, 10.630, -226.354)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6),
+			Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(105.440, 6.700, -228.497), Vector(119.981,
+			6.700, -243.038), Vector(122.125, 6.700, -211.813), Vector(136.666, 6.700, -226.354), Vector(119.981, 10.630, -238.599),
+			Vector(109.879, 10.630, -228.497), Vector(132.227, 10.630, -226.354), Vector(122.125, 10.630, -216.252)), Array(Array(1, 0),
+			Array(3, 1), Array(2, 3), Array(0, 2), Array(5, 4), Array(4, 6), Array(6, 7), Array(7, 5))), Array(Array(Vector(-196.355,
+			14.444, 9.031), Vector(-196.355, 24.114, 9.031), Vector(-196.355, 14.444, -9.078), Vector(-196.355, 24.114, -9.078), Vector(
+			-180.474, 14.444, 9.031), Vector(-180.474, 24.114, 9.031), Vector(-180.474, 14.444, -9.078), Vector(-180.474, 24.114, -9.078)),
+			Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5),
+			Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(-196.355, 15.800, 9.031), Vector(-196.355, 15.800, -9.078), Vector(
+			-180.474, 15.800, 9.031), Vector(-180.474, 15.800, -9.078), Vector(-193.435, 24.114, 6.111), Vector(-193.435, 24.114, -6.158),
+			Vector(-183.394, 24.114, -6.158), Vector(-183.394, 24.114, 6.111), Vector(-188, 14.444, -2.177), Vector(-188.824, 14.444,
+			-2.013), Vector(-189.522, 14.444, -1.546), Vector(-189.989, 14.444, -0.848), Vector(-190.153, 14.444, -0.023), Vector(-189.989,
+			14.444, 0.801), Vector(-189.522, 14.444, 1.499), Vector(-188.824, 14.444, 1.966), Vector(-188, 14.444, 2.130), Vector(-187.175,
+			14.444, 1.966), Vector(-186.477, 14.444, 1.499), Vector(-186.010, 14.444, 0.801), Vector(-185.846, 14.444, -0.023), Vector(
+			-186.010, 14.444, -0.848), Vector(-186.477, 14.444, -1.546), Vector(-187.175, 14.444, -2.013)), Array(Array(1, 0), Array(4, 5),
+			Array(3, 1), Array(5, 6), Array(2, 3), Array(6, 7), Array(0, 2), Array(7, 4), Array(9, 8), Array(10, 9), Array(11, 10), Array(
+			12, 11), Array(13, 12), Array(14, 13), Array(15, 14), Array(16, 15), Array(17, 16), Array(18, 17), Array(19, 18), Array(20,
+			19), Array(21, 20), Array(22, 21), Array(23, 22), Array(8, 23))));
+	}
+}
+
+rule("[data] nepal")
+{
+	event
+	{
+		Subroutine;
+		nep;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(-200.998, -94.889, 6.282), Vector(-200.998, -89.483, 6.282), Vector(-200.998,
+			-94.889, -6.282), Vector(-200.998, -89.483, -6.282), Vector(-188.886, -94.889, 6.282), Vector(-188.886, -89.483, 6.282),
+			Vector(-188.886, -94.889, -6.282), Vector(-188.886, -89.483, -6.282)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3,
+			2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(
+			-200.998, -93.450, 6.282), Vector(-200.998, -93.450, -6.282), Vector(-188.886, -93.450, 6.282), Vector(-188.886, -93.450,
+			-6.282), Vector(-199.077, -89.483, 4.362), Vector(-199.077, -89.483, -4.362), Vector(-190.807, -89.483, -4.362), Vector(
+			-190.807, -89.483, 4.362)), Array(Array(1, 0), Array(4, 5), Array(3, 1), Array(5, 6), Array(2, 3), Array(6, 7), Array(0, 2),
+			Array(7, 4))), Array(Array(Vector(-58.487, 11.755, 8.375), Vector(-58.487, 19.739, 8.375), Vector(-58.487, 11.755, -8.396),
+			Vector(-58.487, 19.739, -8.396), Vector(-41.875, 11.755, 8.375), Vector(-41.875, 19.739, 8.375), Vector(-41.875, 11.755,
+			-8.396), Vector(-41.875, 19.739, -8.396), Vector(-45.505, 19.146, 8.840), Vector(-45.505, 22.137, 8.840), Vector(-58.894,
+			19.146, -4.549), Vector(-58.894, 22.137, -4.549), Vector(-41.210, 19.146, 4.545), Vector(-41.210, 22.137, 4.545), Vector(
+			-54.599, 19.146, -8.844), Vector(-54.599, 22.137, -8.844), Vector(-58.209, 19.377, 5.115), Vector(-58.209, 22.129, 5.115),
+			Vector(-44.853, 19.377, -8.242), Vector(-44.853, 22.129, -8.242), Vector(-55.090, 19.377, 8.234), Vector(-55.090, 22.129,
+			8.234), Vector(-41.733, 19.377, -5.122), Vector(-41.733, 22.129, -5.122), Vector(-55.564, 19.740, 8.775), Vector(-55.564,
+			22.120, 8.775), Vector(-55.564, 19.740, 4.445), Vector(-55.564, 22.120, 4.445), Vector(-44.595, 19.740, 8.775), Vector(-44.595,
+			22.120, 8.775), Vector(-44.595, 19.740, 4.445), Vector(-44.595, 22.120, 4.445), Vector(-45.269, 19.759, 5.365), Vector(-45.269,
+			22.139, 5.365), Vector(-45.269, 19.759, -5.405), Vector(-45.269, 22.139, -5.405), Vector(-41.391, 19.759, 5.365), Vector(
+			-41.391, 22.139, 5.365), Vector(-41.391, 19.759, -5.405), Vector(-41.391, 22.139, -5.405), Vector(-55.253, 19.751, -4.095),
+			Vector(-55.253, 22.140, -4.095), Vector(-55.253, 19.751, -8.635), Vector(-55.253, 22.140, -8.635), Vector(-44.765, 19.751,
+			-4.095), Vector(-44.765, 22.140, -4.095), Vector(-44.765, 19.751, -8.635), Vector(-44.765, 22.140, -8.635), Vector(-59.013,
+			19.709, 5.045), Vector(-59.013, 22.129, 5.045), Vector(-59.013, 19.709, -5.255), Vector(-59.013, 22.129, -5.255), Vector(
+			-54.154, 19.709, 5.045), Vector(-54.154, 22.129, 5.045), Vector(-54.154, 19.709, -5.255), Vector(-54.154, 22.129, -5.255)),
+			Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5),
+			Array(5, 4), Array(0, 4), Array(5, 1), Array(10, 8), Array(8, 9), Array(9, 11), Array(11, 10), Array(14, 10), Array(11, 15),
+			Array(15, 14), Array(12, 14), Array(15, 13), Array(13, 12), Array(8, 12), Array(13, 9), Array(18, 16), Array(16, 17), Array(17,
+			19), Array(19, 18), Array(22, 18), Array(19, 23), Array(23, 22), Array(20, 22), Array(23, 21), Array(21, 20), Array(16, 20),
+			Array(21, 17), Array(26, 24), Array(24, 25), Array(25, 27), Array(27, 26), Array(30, 26), Array(27, 31), Array(31, 30), Array(
+			28, 30), Array(31, 29), Array(29, 28), Array(24, 28), Array(29, 25), Array(34, 32), Array(32, 33), Array(33, 35), Array(35,
+			34), Array(38, 34), Array(35, 39), Array(39, 38), Array(36, 38), Array(39, 37), Array(37, 36), Array(32, 36), Array(37, 33),
+			Array(42, 40), Array(40, 41), Array(41, 43), Array(43, 42), Array(46, 42), Array(43, 47), Array(47, 46), Array(44, 46), Array(
+			47, 45), Array(45, 44), Array(40, 44), Array(45, 41), Array(50, 48), Array(48, 49), Array(49, 51), Array(51, 50), Array(54,
+			50), Array(51, 55), Array(55, 54), Array(52, 54), Array(55, 53), Array(53, 52), Array(48, 52), Array(53, 49)), Array(Vector(
+			-58.487, 13.250, 8.375), Vector(-58.487, 13.250, -8.396), Vector(-41.875, 13.250, 8.375), Vector(-41.875, 13.250, -8.396),
+			Vector(-45.269, 20.120, 0.486), Vector(-46.305, 20.120, -0.550), Vector(-45.269, 20.120, -1.587), Vector(-49.900, 20.120,
+			4.445), Vector(-50.600, 20.120, 3.745), Vector(-51.301, 20.120, 4.445), Vector(-48.999, 20.120, -4.095), Vector(-49.425,
+			20.120, -3.670), Vector(-49.850, 20.120, -4.095), Vector(-53.720, 20.120, 0.625), Vector(-54.154, 20.120, 1.060), Vector(
+			-54.154, 20.120, 0.191)), Array(Array(1, 0), Array(3, 1), Array(2, 3), Array(0, 2), Array(5, 4), Array(4, 6), Array(9, 7),
+			Array(8, 7), Array(9, 8), Array(6, 5), Array(10, 11), Array(11, 12), Array(12, 10), Array(13, 15), Array(14, 13), Array(15,
+			14))), Array(Array(Vector(80.024, 127.370, 7.775), Vector(80.024, 137.708, 7.775), Vector(80.024, 127.370, -7.800), Vector(
+			80.024, 137.708, -7.800), Vector(90.397, 127.370, 7.775), Vector(90.397, 137.708, 7.775), Vector(90.397, 127.370, -7.800),
+			Vector(90.397, 137.708, -7.800), Vector(77.024, 126.500, 4.895), Vector(77.024, 137.735, 4.895), Vector(77.024, 126.500,
+			-4.978), Vector(77.024, 137.735, -4.978), Vector(80.154, 126.500, 4.895), Vector(80.154, 137.735, 4.895), Vector(80.154,
+			126.500, -4.978), Vector(80.154, 137.735, -4.978)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2),
+			Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1), Array(10, 8), Array(8, 9), Array(9,
+			11), Array(11, 10), Array(14, 10), Array(11, 15), Array(15, 14), Array(12, 14), Array(15, 13), Array(13, 12), Array(8, 12),
+			Array(13, 9)), Array(Vector(90.397, 128.250, 7.775), Vector(80.024, 128.250, 7.775), Vector(80.024, 128.250, 4.895), Vector(
+			77.024, 128.250, 4.895), Vector(77.024, 128.250, -4.978), Vector(90.397, 128.250, -7.800), Vector(80.024, 128.250, -7.800),
+			Vector(80.024, 128.250, -4.978), Vector(90.397, 132.250, 7.775), Vector(90.397, 132.250, -7.800)), Array(Array(5, 0), Array(1,
+			0), Array(2, 3), Array(4, 3), Array(2, 1), Array(5, 6), Array(7, 4), Array(6, 7), Array(8, 9))));
+	}
+}
+
+rule("[data] ilios")
+{
+	event
+	{
+		Subroutine;
+		ilo;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(354.982, -26.628, -42.654), Vector(354.982, -19.662, -42.654), Vector(349.558,
+			-26.628, -55.748), Vector(349.558, -19.662, -55.748), Vector(366.417, -26.628, -47.391), Vector(366.417, -19.662, -47.391),
+			Vector(360.994, -26.628, -60.484), Vector(360.994, -19.662, -60.484), Vector(350.416, -27.080, -53.667), Vector(350.432,
+			-19.268, -53.628), Vector(349.128, -27.062, -56.776), Vector(349.144, -19.250, -56.738), Vector(357.698, -27.080, -56.683),
+			Vector(357.714, -19.268, -56.644), Vector(356.410, -27.062, -59.792), Vector(356.426, -19.250, -59.754), Vector(355.538,
+			-27.068, -41.210), Vector(355.651, -19.903, -40.937), Vector(354.031, -26.906, -44.847), Vector(354.144, -19.741, -44.574),
+			Vector(363.053, -27.068, -44.323), Vector(363.166, -19.903, -44.050), Vector(361.546, -26.906, -47.960), Vector(361.659,
+			-19.741, -47.687)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4,
+			6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1), Array(10, 8), Array(8, 9), Array(9, 11), Array(11, 10), Array(14, 10),
+			Array(11, 15), Array(15, 14), Array(12, 14), Array(15, 13), Array(13, 12), Array(8, 12), Array(13, 9), Array(18, 16), Array(16,
+			17), Array(17, 19), Array(19, 18), Array(22, 18), Array(19, 23), Array(23, 22), Array(20, 22), Array(23, 21), Array(21, 20),
+			Array(16, 20), Array(21, 17)), Array(Vector(356.414, -25.250, -59.783), Vector(356.836, -25.250, -58.762), Vector(366.417,
+			-25.250, -47.391), Vector(360.994, -25.250, -60.484), Vector(349.132, -25.250, -56.767), Vector(350.420, -25.250, -53.658),
+			Vector(354.093, -25.250, -44.799), Vector(350.423, -25.250, -53.659), Vector(354.057, -25.250, -44.784), Vector(354.414,
+			-25.250, -43.922), Vector(355.566, -25.250, -41.141), Vector(362.461, -25.250, -45.752), Vector(363.081, -25.250, -44.254),
+			Vector(356.157, -19.662, -51.750), Vector(358.005, -19.662, -52.516), Vector(358.770, -19.662, -50.668), Vector(356.565,
+			-19.662, -50.766), Vector(356.923, -19.662, -49.902)), Array(Array(0, 4), Array(1, 0), Array(2, 3), Array(3, 1), Array(4, 5),
+			Array(7, 5), Array(6, 7), Array(8, 9), Array(10, 9), Array(6, 8), Array(2, 11), Array(11, 12), Array(10, 12), Array(13, 14),
+			Array(15, 14), Array(13, 16), Array(17, 16), Array(17, 15))), Array(Array(Vector(-210.991, -1.140, -1.429), Vector(-210.991,
+			6.226, -1.429), Vector(-223.223, -1.140, -13.661), Vector(-223.223, 6.226, -13.661), Vector(-193.048, -1.140, -19.372), Vector(
+			-193.048, 6.226, -19.372), Vector(-205.280, -1.140, -31.604), Vector(-205.280, 6.226, -31.604)), Array(Array(2, 0), Array(0,
+			1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(
+			5, 1)), Array(Vector(-210.991, 1, -1.429), Vector(-223.223, 1, -13.661), Vector(-193.048, 1, -19.372), Vector(-205.280, 1,
+			-31.604), Vector(-208.661, -1.140, -21.258), Vector(-209.588, -1.140, -21.167), Vector(-210.479, -1.140, -20.896), Vector(
+			-211.300, -1.140, -20.457), Vector(-212.020, -1.140, -19.867), Vector(-212.611, -1.140, -19.147), Vector(-213.050, -1.140,
+			-18.326), Vector(-213.320, -1.140, -17.434), Vector(-213.411, -1.140, -16.508), Vector(-213.320, -1.140, -15.581), Vector(
+			-213.050, -1.140, -14.690), Vector(-212.611, -1.140, -13.869), Vector(-212.020, -1.140, -13.149), Vector(-211.300, -1.140,
+			-12.558), Vector(-210.479, -1.140, -12.119), Vector(-209.588, -1.140, -11.849), Vector(-208.661, -1.140, -11.758), Vector(
+			-207.734, -1.140, -11.849), Vector(-206.843, -1.140, -12.119), Vector(-206.022, -1.140, -12.558), Vector(-205.302, -1.140,
+			-13.149), Vector(-204.712, -1.140, -13.869), Vector(-204.273, -1.140, -14.690), Vector(-204.002, -1.140, -15.581), Vector(
+			-203.911, -1.140, -16.508), Vector(-204.002, -1.140, -17.434), Vector(-204.273, -1.140, -18.326), Vector(-204.712, -1.140,
+			-19.147), Vector(-205.302, -1.140, -19.867), Vector(-206.022, -1.140, -20.457), Vector(-206.843, -1.140, -20.896), Vector(
+			-207.734, -1.140, -21.167), Vector(-210.991, 6.226, -6.278), Vector(-218.374, 6.226, -13.661), Vector(-205.280, 6.226,
+			-26.755), Vector(-197.897, 6.226, -19.372)), Array(Array(0, 1), Array(1, 3), Array(3, 2), Array(2, 0), Array(5, 4), Array(6,
+			5), Array(7, 6), Array(8, 7), Array(9, 8), Array(10, 9), Array(11, 10), Array(12, 11), Array(13, 12), Array(14, 13), Array(15,
+			14), Array(16, 15), Array(17, 16), Array(18, 17), Array(19, 18), Array(20, 19), Array(21, 20), Array(22, 21), Array(23, 22),
+			Array(24, 23), Array(25, 24), Array(26, 25), Array(27, 26), Array(28, 27), Array(29, 28), Array(30, 29), Array(31, 30), Array(
+			32, 31), Array(33, 32), Array(34, 33), Array(35, 34), Array(4, 35), Array(36, 37), Array(37, 38), Array(38, 39), Array(39,
+			36))), Array(Array(Vector(19.746, 52.921, -150.294), Vector(19.746, 66.936, -150.294), Vector(19.746, 52.921, -164.661),
+			Vector(19.746, 66.936, -164.661), Vector(37.372, 52.921, -150.294), Vector(37.372, 66.936, -150.294), Vector(37.372, 52.921,
+			-164.661), Vector(37.372, 66.936, -164.661)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3,
+			7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(19.746, 57.600, -150.294),
+			Vector(37.372, 60.700, -164.661), Vector(37.372, 57.600, -150.294), Vector(19.746, 60.700, -164.661), Vector(19.746, 59.150,
+			-150.294), Vector(19.746, 59.150, -161), Vector(37.372, 59.150, -150.294), Vector(37.372, 59.150, -161), Vector(22.521, 66.936,
+			-153.069), Vector(22.521, 66.936, -161.886), Vector(34.597, 66.936, -161.886), Vector(34.597, 66.936, -153.069), Vector(19.746,
+			62, -150.294), Vector(19.746, 62, -164.661), Vector(37.372, 62, -150.294), Vector(37.372, 62, -164.661)), Array(Array(1, 3),
+			Array(8, 9), Array(6, 7), Array(9, 10), Array(1, 7), Array(3, 5), Array(10, 11), Array(5, 4), Array(0, 2), Array(11, 8), Array(
+			13, 12), Array(14, 15), Array(13, 15), Array(12, 14))));
+	}
+}
+
+rule("[data] busan")
+{
+	event
+	{
+		Subroutine;
+		bus;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(42.869, 5.200, -86.566), Vector(42.869, 9.844, -86.566), Vector(42.869, 5.200,
+			-99.350), Vector(42.869, 9.844, -99.350), Vector(61.061, 5.200, -86.566), Vector(61.061, 9.844, -86.566), Vector(61.061, 5.200,
+			-99.350), Vector(61.061, 9.844, -99.350)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7),
+			Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(42.869, 6.250, -86.566), Vector(
+			42.869, 6.250, -99.350), Vector(61.061, 8.250, -86.566), Vector(61.061, 6.250, -86.566), Vector(61.061, 6.250, -99.350),
+			Vector(42.869, 8.250, -86.566), Vector(45.986, 9.844, -89.683), Vector(45.986, 9.844, -96.233), Vector(57.944, 9.844, -96.233),
+			Vector(57.944, 9.844, -89.683)), Array(Array(1, 0), Array(4, 1), Array(5, 2), Array(3, 4), Array(0, 3), Array(6, 7), Array(7,
+			8), Array(8, 9), Array(9, 6))), Array(Array(Vector(-335.443, 7.275, 147.231), Vector(-335.443, 16.745, 147.231), Vector(
+			-335.443, 7.275, 133.915), Vector(-335.443, 16.745, 133.915), Vector(-321.357, 7.275, 147.231), Vector(-321.357, 16.745,
+			147.231), Vector(-321.357, 7.275, 133.915), Vector(-321.357, 16.745, 133.915)), Array(Array(2, 0), Array(0, 1), Array(1, 3),
+			Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(
+			Vector(-335.443, 8.600, 147.231), Vector(-335.443, 8.600, 133.915), Vector(-321.357, 8.600, 147.231), Vector(-321.357, 8.600,
+			133.915), Vector(-332.766, 16.745, 144.554), Vector(-332.766, 16.745, 136.592), Vector(-324.034, 16.745, 136.592), Vector(
+			-324.034, 16.745, 144.554)), Array(Array(1, 0), Array(4, 5), Array(3, 1), Array(5, 6), Array(2, 3), Array(6, 7), Array(0, 2),
+			Array(7, 4))), Array(Array(Vector(217.985, 5.437, 251.320), Vector(217.985, 14.622, 251.320), Vector(212.046, 5.437, 237.539),
+			Vector(212.046, 14.622, 237.539), Vector(232.638, 5.437, 245.005), Vector(232.638, 14.622, 245.005), Vector(226.698, 5.437,
+			231.224), Vector(226.698, 14.622, 231.224)), Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3,
+			7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1)), Array(Vector(217.985, 10.250, 251.320),
+			Vector(212.046, 10.250, 237.539), Vector(232.638, 10.250, 245.005), Vector(226.698, 10.250, 231.224), Vector(220.027, 9.400,
+			250.440), Vector(230.596, 9.400, 245.885), Vector(219.352, 14.622, 247.882), Vector(215.484, 14.622, 238.906), Vector(225.331,
+			14.622, 234.662), Vector(229.200, 14.622, 243.638)), Array(Array(1, 0), Array(4, 5), Array(6, 7), Array(0, 4), Array(7, 8),
+			Array(3, 1), Array(2, 3), Array(8, 9), Array(5, 2), Array(9, 6))));
+	}
+}
+
+rule("[data] bli.zzard world")
+{
+	event
+	{
+		Subroutine;
+		bzw;
+	}
+
+	actions
+	{
+		Global.this_map_data = Array(Array(Array(Vector(-1.552, 5.270, 62.918), Vector(8.215, 5.270, 62.787), Vector(-3.043, 7.902,
+			78.191), Vector(-3.110, 7.902, 69.340), Vector(9.189, 7.902, 78.099), Vector(9.123, 7.902, 69.248), Vector(-3.787, 4.644,
+			64.912), Vector(-1.523, 4.644, 62.649), Vector(-3.961, 5.316, 80.595), Vector(-4.078, 5.316, 64.989), Vector(10.357, 5.316,
+			80.487), Vector(10.239, 5.316, 64.881), Vector(-3.712, 4.644, 64.986), Vector(9.860, 4.542, 64.884), Vector(9.123, 5.316,
+			69.248), Vector(9.189, 5.316, 78.099), Vector(-3.110, 5.316, 69.340), Vector(-3.043, 5.316, 78.191), Vector(-1.525, 5.270,
+			64.970), Vector(8.244, 5.270, 64.896), Vector(8.244, 4.542, 64.896), Vector(8.222, 4.542, 63.311), Vector(-1.552, 4.644,
+			62.918), Vector(-1.258, 4.644, 62.914), Vector(-1.525, 4.644, 64.970), Vector(9.860, 0.500, 64.884), Vector(10.239, 0.500,
+			64.881), Vector(10.357, 0.500, 80.487), Vector(-3.961, 0.500, 80.595), Vector(-1.258, 0.500, 62.914), Vector(-1.523, 0.500,
+			62.649), Vector(-3.787, 0.500, 64.912), Vector(8.222, 0.500, 63.311), Vector(8.215, 0.500, 62.787), Vector(-3.712, 0.500,
+			64.986), Vector(-4.078, 0.500, 64.989)), Array(Array(18, 0), Array(0, 1), Array(17, 2), Array(2, 3), Array(3, 5), Array(5, 4),
+			Array(4, 2), Array(12, 6), Array(6, 7), Array(28, 8), Array(8, 9), Array(9, 11), Array(11, 10), Array(10, 8), Array(24, 12),
+			Array(20, 13), Array(21, 13), Array(15, 14), Array(14, 16), Array(17, 15), Array(16, 17), Array(3, 16), Array(5, 14), Array(4,
+			15), Array(18, 19), Array(20, 21), Array(19, 20), Array(32, 21), Array(22, 23), Array(22, 24), Array(24, 18), Array(7, 23),
+			Array(0, 22), Array(1, 19), Array(32, 25), Array(26, 25), Array(27, 26), Array(27, 28), Array(29, 30), Array(30, 31), Array(32,
+			33), Array(33, 29), Array(34, 31), Array(35, 34), Array(35, 28), Array(12, 34), Array(6, 31), Array(13, 25), Array(9, 35),
+			Array(23, 29), Array(7, 30), Array(1, 33), Array(11, 26), Array(10, 27)), Array(Vector(9.860, 2.250, 64.884), Vector(10.239,
+			2.250, 64.881), Vector(10.357, 2.250, 80.487), Vector(-3.961, 2.250, 80.595), Vector(-1.258, 2.250, 62.914), Vector(-1.523,
+			2.250, 62.649), Vector(-3.787, 2.250, 64.912), Vector(8.222, 2.250, 63.311), Vector(8.215, 2.250, 62.787), Vector(-3.712,
+			2.250, 64.986), Vector(-4.078, 2.250, 64.989)), Array(Array(7, 0), Array(1, 0), Array(2, 1), Array(2, 3), Array(4, 5), Array(5,
+			6), Array(7, 8), Array(8, 4), Array(9, 6), Array(10, 9), Array(10, 3))));
+	}
+}
