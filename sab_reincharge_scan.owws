@@ -36,7 +36,7 @@ settings
 			Reinhardt
 			{
 				Charge Knockback Scalar: 0%
-				Damage Dealt: 10%
+				Damage Dealt: 200%
 			}
 		}
 	}
@@ -53,6 +53,8 @@ variables
 		5: miss
 		6: loop
 		7: total
+		8: hero_receiver
+		9: hero_dealer
 
 	player:
 		0: has_pinned
@@ -77,24 +79,26 @@ rule("init")
 	{
 		Disable Inspector Recording;
 		Set Match Time(3599);
+		Global.hero_receiver = Hero(Baptiste);
+		Global.hero_dealer = Hero(Reinhardt);
 		Global.damage_dealer = Empty Array;
 		Global.damage_receiver = Empty Array;
 		Global.hit_pin = Empty Array;
 		Global.hit_bounce = Empty Array;
 		Global.miss = Empty Array;
 		Global.signal = False;
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Baptiste), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
 	}
 }
 
@@ -196,8 +200,11 @@ rule("[sub] roll and tp")
 
 	actions
 	{
-		Event Player.rolled_position = Vector(5 * Slot Of(Event Player) + Random Real(-1, 1), Random Real(3, 5), Random Real(-0.100,
+		disabled Event Player.rolled_position = Vector(5 * Slot Of(Event Player) + Random Real(-1, 1), Random Real(1, 5), Random Real(2.100,
+			2.800));
+		disabled Event Player.rolled_position = Vector(5 * Slot Of(Event Player) + Random Real(-1, 1), Random Real(3, 5), Random Real(-0.100,
 			2.100));
+		Event Player.rolled_position = Vector(5 * Slot Of(Event Player) + 0, Random Real(2.600, 5.300), Random Real(0, 0.200));
 		Teleport(Event Player, Event Player.rolled_position);
 	}
 }
@@ -265,6 +272,7 @@ rule("damage_receiver_signal")
 	{
 		If(Event Player.has_damage == True);
 			Modify Global Variable(hit_bounce, Append To Array, 100000 * Event Player.rolled_position);
+			Log To Inspector(String("{0} {1}", 1, 100000 * Event Player.rolled_position));
 		Else If(Event Player.has_pinned == True);
 			Modify Global Variable(hit_pin, Append To Array, 100000 * Event Player.rolled_position);
 		Else;
