@@ -117,7 +117,7 @@ rule("init")
 	{
 		Disable Inspector Recording;
 		Disable Built-In Game Mode Completion;
-		Global.cp_mode = Workshop Setting Integer(Custom String("Main"), Custom String("Use Control Point (2CP)"), 0, 0, 1);
+		Global.cp_mode = Workshop Setting Integer(Custom String("Main"), Custom String("Use Control Point (2CP)"), 0, 0, 1, 0);
 		disabled Global.baptiste_distance_z = Vector(0.541, 0.461, 0.613);
 		disabled Global.baptiste_distance_z = Vector(0.003, 1.359, 0.011);
 		Global.baptiste_distance_z = Vector(-0.453, 0.523, -0.219);
@@ -208,9 +208,9 @@ rule("bap bot init")
 		Disable Movement Collision With Environment(Event Player, True);
 		Start Forcing Player Position(Event Player, Event Player.self_pos_lock, True);
 		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Slot Of(Event Player), Event Player.current_dir, Position Of(
-			Event Player) * 10000), Null, Null, Left, 0, White, White, White, Visible To and String, Visible Always);
+			Event Player) * 10000), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Visible Always);
 		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Slot Of(Event Player), Event Player.time), Null, Null, Right, 0,
-			White, White, White, Visible To and String, Visible Always);
+			Color(White), Color(White), Color(White), Visible To and String, Visible Always);
 		disabled Start Scaling Player(Event Player, 0.100, False);
 	}
 }
@@ -321,14 +321,14 @@ rule("bap 0")
 
 	actions
 	{
-		Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player, Position Of(Event Player) + Vector(1, 0, 0), White,
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player, Position Of(Event Player) + Vector(1, 0, 0), Color(White),
 			Visible To Position and Radius);
-		Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player, Position Of(Event Player) + Vector(0, 0, 1), White,
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player, Position Of(Event Player) + Vector(0, 0, 1), Color(White),
 			Visible To Position and Radius);
 		Create In-World Text(All Players(All Teams), Custom String("+Z"), Position Of(Event Player) + Vector(0, 0, 1.300), 2, Do Not Clip,
-			Visible To Position and String, White, Visible Always);
+			Visible To Position and String, Color(White), Visible Always);
 		Create In-World Text(All Players(All Teams), Custom String("+X"), Position Of(Event Player) + Vector(1.300, 0, 0), 2, Do Not Clip,
-			Visible To Position and String, White, Visible Always);
+			Visible To Position and String, Color(White), Visible Always);
 	}
 }
 
@@ -375,11 +375,11 @@ rule("sub init global")
 		"lock x CW +y -z -y +z"
 		disabled Global.move_dir = Array(Vector(0, 1 * Global.step_resolution, 0), Vector(0, 0, -1 * Global.step_resolution), Vector(0,
 			-1 * Global.step_resolution, 0), Vector(0, 0, 1 * Global.step_resolution));
-		Create HUD Text(All Players(All Teams), Global.loop_count, Null, Null, Left, 0, White, White, White, Visible To and String,
+		Create HUD Text(All Players(All Teams), Global.loop_count, Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
 			Default Visibility);
-		Create HUD Text(All Players(All Teams), Global.total, Null, Null, Left, 0, White, White, White, Visible To and String,
+		Create HUD Text(All Players(All Teams), Global.total, Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
 			Default Visibility);
-		Create HUD Text(All Players(All Teams), Global.array_loop, Null, Null, Left, 0, White, White, White, Visible To and String,
+		Create HUD Text(All Players(All Teams), Global.array_loop, Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
 			Default Visibility);
 	}
 }
