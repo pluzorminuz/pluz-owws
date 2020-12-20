@@ -1,0 +1,278 @@
+settings
+{
+	lobby
+	{
+		Map Rotation: After A Game
+		Max Spectators: 1
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			Game Mode Start: Manual
+			Kill Cam: Off
+			Kill Feed: Off
+
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		Team 2
+		{
+			Reinhardt
+			{
+				Charge Knockback Scalar: 0%
+				Damage Dealt: 200%
+			}
+		}
+
+		General
+		{
+			Ability Cooldown Time: 0%
+		}
+	}
+
+	workshop
+	{
+		[Beam] Show Circle: On
+	}
+}
+
+variables
+{
+	global:
+		0: ability
+		1: damage
+		2: damage_bot
+		10: cone_beam_show_circle
+		11: cone_radius
+		12: cone_halfangle
+		13: cone_scale
+		14: loop_temp
+		15: cone_cone_vert
+		18: cone_use_beam
+		19: cone_use_sphere
+		20: cone_sphere_count
+}
+
+rule("cone init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.cone_use_beam = Workshop Setting Toggle(Custom String("Cone Display"), Custom String("Use Beam Display"), True, 0);
+		Global.cone_cone_vert = Workshop Setting Integer(Custom String("Cone Display"), Custom String("[Beam] Vertex Count"), 8, 6, 32, 1);
+		Global.cone_beam_show_circle = Workshop Setting Toggle(Custom String("Cone Display"), Custom String("[Beam] Show Circle"), False,
+			2);
+		Global.cone_use_sphere = Workshop Setting Toggle(Custom String("Cone Display"), Custom String("Use Sphere Display"), False, 10);
+		Global.cone_sphere_count = Workshop Setting Integer(Custom String("Cone Display"), Custom String("[Sphere] Sphere Count"), 8, 4,
+			48, 11);
+		Global.cone_halfangle = 15;
+		Global.cone_scale = 1;
+		Global.cone_radius = 2;
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("cone display")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Color(Blue), Position Of(Event Player) + Vector(0, Global.cone_scale, 0),
+			Global.cone_radius * Global.cone_scale / 0.985, Visible To Position and Radius);
+		If(Global.cone_use_beam == True);
+			For Global Variable(loop_temp, 0, Global.cone_cone_vert, 1);
+				Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.cone_scale, 0), Position Of(
+					Event Player) + Vector(0, Global.cone_scale, 0) + World Vector Of(Left, Event Player, Rotation)
+					* Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(Sine From Degrees(Global.cone_halfangle))
+					* Cosine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.cone_cone_vert)) + 30 * Total Time Elapsed) + (
+					Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation) : (Vertical Facing Angle Of(
+					Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(Horizontal Facing Angle Of(
+					Event Player), Vertical Facing Angle Of(Event Player) - 90))) * Global.cone_scale * Evaluate Once(Global.cone_radius)
+					* Evaluate Once(Sine From Degrees(Global.cone_halfangle)) * Sine From Degrees(Evaluate Once(Global.loop_temp * (
+					360 / Global.cone_cone_vert)) + 30 * Total Time Elapsed) + Facing Direction Of(Event Player)
+					* Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(Cosine From Degrees(Global.cone_halfangle)), Color(
+					White), Visible To Position and Radius);
+				If(Global.cone_beam_show_circle == True);
+					Create Beam Effect(All Players(All Teams), Grapple Beam, Position Of(Event Player) + Vector(0, Global.cone_scale, 0)
+						+ World Vector Of(Left, Event Player, Rotation) * Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(
+						Sine From Degrees(Global.cone_halfangle)) * Cosine From Degrees(Evaluate Once(Global.loop_temp * (360 / Global.cone_cone_vert))
+						+ 30 * Total Time Elapsed) + (Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation)
+						: (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(
+						Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90))) * Global.cone_scale * Evaluate Once(
+						Global.cone_radius) * Evaluate Once(Sine From Degrees(Global.cone_halfangle)) * Sine From Degrees(Evaluate Once(
+						Global.loop_temp * (360 / Global.cone_cone_vert)) + 30 * Total Time Elapsed) + Facing Direction Of(Event Player)
+						* Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(Cosine From Degrees(Global.cone_halfangle)),
+						Position Of(Event Player) + Vector(0, Global.cone_scale, 0) + World Vector Of(Left, Event Player, Rotation)
+						* Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(Sine From Degrees(Global.cone_halfangle))
+						* Cosine From Degrees(Evaluate Once((Global.loop_temp + 1) * (360 / Global.cone_cone_vert)) + 30 * Total Time Elapsed) + (
+						Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation) : (Vertical Facing Angle Of(
+						Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(Horizontal Facing Angle Of(
+						Event Player), Vertical Facing Angle Of(Event Player) - 90))) * Global.cone_scale * Evaluate Once(Global.cone_radius)
+						* Evaluate Once(Sine From Degrees(Global.cone_halfangle)) * Sine From Degrees(Evaluate Once((Global.loop_temp + 1) * (
+						360 / Global.cone_cone_vert)) + 30 * Total Time Elapsed) + Facing Direction Of(Event Player)
+						* Global.cone_scale * Evaluate Once(Global.cone_radius) * Evaluate Once(Cosine From Degrees(Global.cone_halfangle)), Color(
+						White), Visible To Position and Radius);
+				End;
+				Wait(0.032, Ignore Condition);
+			End;
+		End;
+		If(Global.cone_use_sphere == True);
+			For Global Variable(loop_temp, 0, Global.cone_sphere_count, 1);
+				Create Effect(All Players(All Teams), Sphere, Color(Yellow), Position Of(Event Player) + Vector(0, Global.cone_scale, 0)
+					+ Facing Direction Of(Event Player) * (Evaluate Once(Global.loop_temp * Global.cone_radius)
+					* Global.cone_scale / Evaluate Once((Global.cone_sphere_count - 1) * Cosine From Degrees(Global.cone_halfangle))),
+					Global.cone_scale * Evaluate Once(Global.cone_radius * Global.loop_temp * Tangent From Degrees(Global.cone_halfangle) / (
+					Global.cone_sphere_count - 1)) / 0.985, Visible To Position and Radius);
+				Wait(0.032, Ignore Condition);
+			End;
+		End;
+		Start Scaling Player(Event Player, Global.cone_scale, True);
+		Create HUD Text(All Players(All Teams), Global.damage - Global.ability, Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Global.damage_bot - Global.ability, Null, Null, Left, 0, Color(Red), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("bot init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Wait(3, Ignore Condition);
+		disabled Set Status(Event Player, Null, Knocked Down, 9999);
+		Start Heal Over Time(Event Player, Event Player, 9999, 200);
+		Add Health Pool To Player(Event Player, Shields, 8000, True, False);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 0.500, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1.500, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 1.250, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), Position Of(Event Player) + Vector(0, 0.750, 0), 0.500 / 0.985,
+			Visible To Position and Radius);
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Teleport(All Players(Team 2), Vector(0, 5, 0));
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.ability = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Global.damage = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 7")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Status(Event Player, Stunned) == True;
+	}
+
+	actions
+	{
+		Global.damage_bot = 1000 * Total Time Elapsed;
+	}
+}
