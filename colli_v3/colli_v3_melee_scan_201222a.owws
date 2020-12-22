@@ -1,0 +1,357 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: target_hero
+		1: attacker_hero
+		2: facing
+		3: starting_pos_min
+		4: starting_pos_max
+		5: loop
+		6: all_hero
+		7: signal
+		8: hero_index
+		9: reset_signal
+		10: log_slot
+		11: attacker_hori_pos
+
+	player:
+		0: self_fac
+		1: self_min
+		2: self_max
+		3: hit_melee
+		4: eval_pos
+		5: prev_eval
+}
+
+subroutines
+{
+	0: reset_attacker
+}
+
+rule("no knockback")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Knockback Dealt(Event Player, 0);
+		Set Knockback Received(Event Player, 0);
+	}
+}
+
+rule("global init 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.attacker_hori_pos = -1;
+		Global.all_hero = All Heroes;
+		Global.target_hero = Hero(Ana);
+		Global.attacker_hero = Hero(Winston);
+		Global.facing = Array(Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, -1, 0));
+		disabled Global.starting_pos_min = Array(Vector(0, -0.750, -2.500), Vector(-2.500, -0.750, 0), Vector(0, -0.750, 2.500), Vector(2.500,
+			-0.750, 0), Vector(0, -3, 0), Vector(0, 3, 0));
+		disabled Global.starting_pos_max = Array(Vector(0, -0.750, -3.500), Vector(-3.500, -0.750, 0), Vector(0, -0.750, 3.500), Vector(3.500,
+			-0.750, 0), Vector(0, -5, 0), Vector(0, 5, 0));
+		disabled Global.starting_pos_min = Array(Vector(0, -0.500, -2.500), Vector(-2.500, -0.500, 0), Vector(0, -0.500, 2.500), Vector(2.500,
+			-0.500, 0), Vector(0, -2, 0), Vector(0, 1, 0));
+		disabled Global.starting_pos_max = Array(Vector(0, -0.500, -3.500), Vector(-3.500, -0.500, 0), Vector(0, -0.500, 3.500), Vector(3.500,
+			-0.500, 0), Vector(0, -6, 0), Vector(0, 5, 0));
+		Global.starting_pos_min = Array(Vector(0, Global.attacker_hori_pos, -2.500), Vector(-2.500, Global.attacker_hori_pos, 0), Vector(0,
+			Global.attacker_hori_pos, 2.500), Vector(2.500, Global.attacker_hori_pos, 0), Vector(0, -2, 0), Vector(0, 1, 0));
+		Global.starting_pos_max = Array(Vector(0, Global.attacker_hori_pos, -3.500), Vector(-3.500, Global.attacker_hori_pos, 0), Vector(0,
+			Global.attacker_hori_pos, 3.500), Vector(3.500, Global.attacker_hori_pos, 0), Vector(0, -6, 0), Vector(0, 5, 0));
+	}
+}
+
+rule("dummy spawn")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"the target"
+		Create Dummy Bot(Global.target_hero, Team 1, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 2, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 3, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 4, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Global.attacker_hero, Team 2, 5, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("melee cooldown 0")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Meleeing(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.032, Ignore Condition);
+		Cancel Primary Action(Event Player);
+		Set Ability Cooldown(Event Player, Button(Melee), 0);
+	}
+}
+
+rule("team 1 slot 0 (target) init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Set Max Health(Event Player, 1000);
+		Start Heal Over Time(Event Player, Event Player, 9999, 500);
+		Wait(2, Ignore Condition);
+		Teleport(Event Player, Vector(0, 0, 0));
+	}
+}
+
+rule("team 2 (attacker) init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(reset_attacker);
+		Wait(0.250, Ignore Condition);
+		Set Gravity(Event Player, 0);
+		Wait(0.250, Ignore Condition);
+		Disable Movement Collision With Players(Event Player);
+		Disable Movement Collision With Environment(Event Player, True);
+		Start Facing(Event Player, Event Player.self_fac, 10000, To World, Direction and Turn Rate);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Slot Of(Event Player), 1000000 * Event Player.eval_pos,
+			100000 * Event Player.eval_pos), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
+			Visible Always);
+		Create Effect(All Players(All Teams), Sphere, Color(Blue), Eye Position(Event Player) + Event Player.self_fac * 1.500, 1 / 0.985,
+			Visible To Position and Radius);
+	}
+}
+
+rule("melee resolve")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.signal == True;
+		Team Of(Event Player) == Team 2;
+	}
+
+	actions
+	{
+		Event Player.eval_pos = (Event Player.self_min + Event Player.self_max) / 2;
+		Teleport(Event Player, Event Player.eval_pos);
+		Wait(0.064, Ignore Condition);
+		Press Button(Event Player, Button(Melee));
+		Wait(0.064, Ignore Condition);
+		"hit, set min = curr"
+		If(Event Player.hit_melee == True);
+			Event Player.self_min = Event Player.eval_pos;
+		"miss, set max = curr"
+		Else;
+			Event Player.self_max = Event Player.eval_pos;
+		End;
+		Event Player.hit_melee = False;
+		disabled Event Player.prev_eval = Event Player.eval_pos;
+	}
+}
+
+rule("melee hit")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.hit_melee = True;
+	}
+}
+
+rule("global loop")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		For Global Variable(hero_index, 0, Count Of(Global.all_hero), 1);
+			Start Forcing Player To Be Hero(Players In Slot(0, Team 1), Global.all_hero[Global.hero_index]);
+			Global.reset_signal = True;
+			Stop Holding Button(Players In Slot(0, Team 1), Button(Crouch));
+			Wait(2, Ignore Condition);
+			Start Holding Button(Players In Slot(0, Team 1), Button(Crouch));
+			Wait(4, Ignore Condition);
+			Global.reset_signal = False;
+			For Global Variable(loop, 0, 48, 1);
+				Global.signal = !Global.signal;
+				Wait(0.256, Ignore Condition);
+				Global.signal = !Global.signal;
+				Wait(0.256, Ignore Condition);
+			End;
+			Wait(4, Ignore Condition);
+			Enable Inspector Recording;
+			For Global Variable(log_slot, 0, 6, 1);
+				Log To Inspector(String("{0} : {1} : {2}", Global.log_slot, Global.all_hero[Global.hero_index], String("{0} : {1} : {2}",
+					1000000 * Players In Slot(Global.log_slot, Team 2).eval_pos, 100000 * Players In Slot(Global.log_slot, Team 2).eval_pos,
+					String("{0} : {1} : {2}", Players In Slot(Global.log_slot, Team 2).self_fac, 100000 * Position Of(Players In Slot(0, Team 1)),
+					String("{0} : {1} : {2}", 100000 * Eye Position(Players In Slot(0, Team 1)), 100000 * Facing Direction Of(Players In Slot(0,
+					Team 1)))))));
+			End;
+			Disable Inspector Recording;
+			Wait(1, Ignore Condition);
+		End;
+	}
+}
+
+rule("reset")
+{
+	event
+	{
+		Subroutine;
+		reset_attacker;
+	}
+
+	actions
+	{
+		Event Player.self_fac = Global.facing[Slot Of(Event Player)];
+		Event Player.self_min = Global.starting_pos_min[Slot Of(Event Player)];
+		Event Player.self_max = Global.starting_pos_max[Slot Of(Event Player)];
+		Event Player.hit_melee = False;
+		Event Player.eval_pos = (Event Player.self_min + Event Player.self_max) / 2;
+	}
+}
+
+rule("reset_signal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Global.reset_signal == True;
+	}
+
+	actions
+	{
+		Call Subroutine(reset_attacker);
+	}
+}
