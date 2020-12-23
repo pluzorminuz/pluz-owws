@@ -1,0 +1,303 @@
+settings
+{
+	lobby
+	{
+		Map Rotation: After A Game
+		Max Spectators: 1
+		Max Team 1 Players: 11
+		Max Team 2 Players: 1
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Kill Cam: Off
+			Kill Feed: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Reinhardt
+			{
+				Charge Knockback Scalar: 0%
+				Damage Dealt: 200%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: damage_dealer
+		1: damage_receiver
+		2: signal
+		8: hero_receiver
+		9: hero_dealer
+
+	player:
+		1: has_damage
+		2: rolled_position
+}
+
+subroutines
+{
+	0: roll_and_tp
+	1: reset_var
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Set Match Time(3599);
+		disabled Pause Match Time;
+		Global.hero_receiver = Hero(Winston);
+		Global.hero_dealer = Hero(Wrecking Ball);
+		Global.damage_dealer = Empty Array;
+		Global.damage_receiver = Empty Array;
+		Global.signal = False;
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, -1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_receiver, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+	}
+}
+
+rule("damage_dealer_init (ball)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Modify Global Variable(damage_dealer, Append To Array, Event Player);
+		Start Forcing Player Position(Event Player, Vector(5 * Slot Of(Event Player), 3, 0), False);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("rein"), Slot Of(Event Player), 10000 * Position Of(
+			Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		disabled Start Scaling Player(Event Player, 3, False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 9000);
+	}
+}
+
+rule("damage_receiver_init (bap)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Facing(Event Player, Vector(0, 0, 1), 10000, To World, Direction and Turn Rate);
+		Disable Movement Collision With Players(Event Player);
+		Modify Global Variable(damage_receiver, Append To Array, Event Player);
+		Set Gravity(Event Player, 0);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+		Call Subroutine(roll_and_tp);
+		Set Damage Dealt(Event Player, 10);
+	}
+}
+
+rule("[sub] roll and tp")
+{
+	event
+	{
+		Subroutine;
+		roll_and_tp;
+	}
+
+	actions
+	{
+		Event Player.rolled_position = Vector(Random Real(-2.200, 2.200), Random Real(0, 5), Random Real(-4, 1));
+		Teleport(Event Player, Event Player.rolled_position);
+	}
+}
+
+rule("damage_receiver_detect_damage (baptiste melee hit)")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Event Player.has_damage = True;
+	}
+}
+
+rule("damage_receiver_signal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Melee));
+		Wait(0.064, Ignore Condition);
+		If(Event Player.has_damage == True);
+			Enable Inspector Recording;
+			Log To Inspector(String("{0} : {1} : {2}", 100000 * Event Player.rolled_position, 1, 0));
+			Disable Inspector Recording;
+		Else;
+			Enable Inspector Recording;
+			Log To Inspector(String("{0} : {1} : {2}", 100000 * Event Player.rolled_position, 0, 0));
+			Disable Inspector Recording;
+		End;
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(reset_var);
+		Wait(0.032, Ignore Condition);
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(roll_and_tp);
+		Wait(0.032, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("[sub] reset var")
+{
+	event
+	{
+		Subroutine;
+		reset_var;
+	}
+
+	actions
+	{
+		Event Player.has_damage = False;
+	}
+}
+
+disabled rule("set match time rep")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(3599);
+		Wait(60, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("no knockback")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Knockback Dealt(Event Player, 0);
+		Set Knockback Received(Event Player, 0);
+	}
+}
+
+rule("melee reset")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Meleeing(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.032, Ignore Condition);
+		Cancel Primary Action(Event Player);
+		Set Ability Cooldown(Event Player, Button(Melee), 0);
+	}
+}
