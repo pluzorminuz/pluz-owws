@@ -1,0 +1,354 @@
+settings
+{
+
+	main
+	{
+		Description: "by pluzorminuz. Last Update: 2020 Dec 24, improved the precision and rewritten the data structure."
+	}
+	
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Respawn Time Scalar: 40%
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: all_mhb
+		1: loop_i
+		2: arr_temp
+		3: hero_mhb_indexmatrix
+		4: mhb_dimensions
+		5: global_knockback_disable
+
+	player:
+		0: self_mhb
+		1: self_mhb_temp
+		2: loop_j
+		3: player_hero
+		4: mhb_target
+}
+
+subroutines
+{
+	0: init_div
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.global_knockback_disable = Workshop Setting Toggle(Custom String("Global"), Custom String("Disable Knockback?"), True, 0);
+		"melee hitbox dimensions [0]r [1]dist_from_eye"
+		Global.mhb_dimensions = Array(1, 1.500);
+		Global.hero_mhb_indexmatrix = Array(Array(0, 0, 0), Array(0, 6, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 5, 0), Array(1, 1, 1),
+			Array(0, 0, 0), Array(1, 2, 1), Array(0, 0, 0), Array(1, 1, 1), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(1, 1, 1),
+			Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(1, 0, 1), Array(0, 3, 0), Array(0, 4, 0),
+			Array(1, 1, 1), Array(0, 0, 0), Array(1, 1, 1), Array(0, 0, 0), Array(0, 0, 0), Array(2, 0, 3), Array(0, 0, 0), Array(0, 0, 0),
+			Array(0, 0, 0), Array(1, 2, 2));
+		Global.all_mhb = Empty Array;
+		"mhb radius"
+		Global.arr_temp = Array(500, 699.707, 949.707);
+		Call Subroutine(init_div);
+		Modify Global Variable(all_mhb, Append To Array, Array(Global.arr_temp));
+		"mhb standing height"
+		Global.arr_temp = Array(1999.020, 2298.830, 2499.020, 1968.750, 1885.740, 1548.830, 1992.190);
+		Call Subroutine(init_div);
+		Modify Global Variable(all_mhb, Append To Array, Array(Global.arr_temp));
+		"mhb ducking height"
+		Global.arr_temp = Array(1298.830, 1718.750, 2048.830, 1999.020);
+		Call Subroutine(init_div);
+		Modify Global Variable(all_mhb, Append To Array, Array(Global.arr_temp));
+	}
+}
+
+rule("Dummy Bot Test")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(D.Va), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Torbjörn), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Sigma), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Sigma), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("player_change_hero_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.player_hero != Hero Of(Event Player);
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.player_hero = Hero Of(Event Player);
+		Event Player.self_mhb_temp = Global.hero_mhb_indexmatrix[Index Of Array Value(All Heroes, Hero Of(Event Player))];
+		For Player Variable(Event Player, loop_j, 0, Count Of(Event Player.self_mhb_temp), 1);
+			Event Player.self_mhb_temp[Event Player.loop_j] = Global.all_mhb[Event Player.loop_j][Event Player.self_mhb_temp[Event Player.loop_j]];
+		End;
+		Event Player.self_mhb = Array(Event Player.self_mhb_temp[0], Vector(0, Event Player.self_mhb_temp[0], 0), Vector(0,
+			Event Player.self_mhb_temp[1] - Event Player.self_mhb_temp[0], 0), Null, Vector(0,
+			Event Player.self_mhb_temp[1] - Event Player.self_mhb_temp[0], 0), Vector(0,
+			Event Player.self_mhb_temp[2] - Event Player.self_mhb_temp[0], 0));
+		Event Player.self_mhb[3] = Event Player.self_mhb[2] - Event Player.self_mhb[1];
+	}
+}
+
+rule("player_init_once")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		"create melee hurtbox"
+		For Player Variable(Event Player, loop_j, 0, 4, 1);
+			Create Effect(All Players(Opposite Team Of(Team Of(Event Player))), Sphere, Color(Green), Position Of(Event Player) + (
+				1 - Evaluate Once(Event Player.loop_j) / 3) * Event Player.self_mhb[1] + Evaluate Once(Event Player.loop_j)
+				/ 3 * Event Player.self_mhb[2], Event Player.self_mhb[0] / 0.985, Visible To Position and Radius);
+		"end create melee hurtbox"
+		End;
+		"mhb looking at"
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Event Player,
+			Opposite Team Of(Team Of(Event Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Event Player, Opposite Team Of(
+			Team Of(Event Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		"mhb selected target"
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("[Interact] Selected"), Event Player.mhb_target,
+			Hero Icon String(Hero Of(Event Player.mhb_target))), Null, Null, Left, 1, Color(Blue), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		"melee predict"
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Melee Distance"), 100 * (Distance Between(Eye Position(
+			Event Player) + Global.mhb_dimensions[1] * Facing Direction Of(Event Player), Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] + Min(Max(Dot Product(Eye Position(Event Player)
+			+ Global.mhb_dimensions[1] * Facing Direction Of(Event Player) - Position Of(Event Player.mhb_target)
+			- Event Player.mhb_target.self_mhb[1], Event Player.mhb_target.self_mhb[3]) / Dot Product(Event Player.mhb_target.self_mhb[3],
+			Event Player.mhb_target.self_mhb[3]), 0), 1) * Event Player.mhb_target.self_mhb[3])
+			- Event Player.mhb_target.self_mhb[0] - Global.mhb_dimensions[0])), Null, Null, Left, 2, Color(Yellow), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("player_no_knockback")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.global_knockback_disable == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Knockback Dealt(Event Player, 0);
+		Set Knockback Received(Event Player, 0);
+	}
+}
+
+rule("player_crouch_true_mhb_switch")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Crouching(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.self_mhb[2] = Event Player.self_mhb[5];
+		Event Player.self_mhb[3] = Event Player.self_mhb[2] - Event Player.self_mhb[1];
+	}
+}
+
+rule("player_crouch_false_mhb_switch")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Crouching(Event Player) == False;
+	}
+
+	actions
+	{
+		Event Player.self_mhb[2] = Event Player.self_mhb[4];
+		Event Player.self_mhb[3] = Event Player.self_mhb[2] - Event Player.self_mhb[1];
+	}
+}
+
+rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+	}
+}
+
+rule("bot duck")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Button(Crouch));
+	}
+}
+
+rule("[sub] divide init array")
+{
+	event
+	{
+		Subroutine;
+		init_div;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 0, Count Of(Global.arr_temp), 1);
+			Global.arr_temp[Global.loop_i] /= 1000;
+		End;
+	}
+}
+
+disabled rule("random hero switch")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Start Forcing Player To Be Hero(All Players(Team 2), Random Value In Array(All Heroes));
+	}
+}
+
+rule("select_player_near_crosshair_mhb_target")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.mhb_target = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+	}
+}
+
+rule("damage_indicator_melee")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Small Message(All Players(All Teams), String("{0} {1} {2}", Custom String("damaged"), Victim, Event Damage));
+	}
+}

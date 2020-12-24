@@ -1,0 +1,391 @@
+settings
+{
+	main
+	{
+		Description: "by pluzorminuz. Last Update: 2020 Dec 11"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+	}
+
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: all_intrinsic
+
+	player:
+		0: intrinsic
+		1: target
+		2: melee_hitbox
+		3: loop_i
+		4: effect_colors
+		5: player_effects
+}
+
+rule("global_init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		disabled Disable Inspector Recording;
+		Global.all_intrinsic = Array(Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906,
+			0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0,
+			1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0,
+			498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000,
+			Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0,
+			0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000,
+			Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1052.734, 0)
+			/ 1000, Vector(0, 554.688, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1052.734, 0) / 1000, Vector(0, 498.047, 0)
+			/ 1000, Vector(0, 801.758, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(697.266 / 1000, Vector(0, 697.266,
+			0) / 1000, Vector(0, 1603.516, 0) / 1000, Vector(0, 906.250, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0)
+			/ 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(
+			498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047,
+			0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000,
+			Vector(0, 0, 0) / 1000), Array(697.266 / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1803.711, 0) / 1000, Vector(0, 1106.445,
+			0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1803.711, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1022.461, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1500, 0)
+			/ 1000, Vector(0, 1001.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1500, 0) / 1000, Vector(0, 498.047, 0) / 1000,
+			Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(697.266 / 1000, Vector(0, 697.266, 0)
+			/ 1000, Vector(0, 1603.516, 0) / 1000, Vector(0, 906.250, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0)
+			/ 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(
+			498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047,
+			0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000,
+			Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906,
+			0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 801.758, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0,
+			1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0,
+			498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(697.266 / 1000,
+			Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0) / 1000, Vector(0, 906.250, 0) / 1000, Vector(0, 697.266, 0) / 1000,
+			Vector(0, 1603.516, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0,
+			0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0)
+			/ 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0,
+			1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0,
+			498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000,
+			Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0,
+			0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000,
+			Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0)
+			/ 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0)
+			/ 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(697.266 / 1000, Vector(0, 697.266,
+			0) / 1000, Vector(0, 1302.734, 0) / 1000, Vector(0, 605.469, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1302.734, 0)
+			/ 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(
+			498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047,
+			0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000,
+			Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906,
+			0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(697.266 / 1000, Vector(0, 697.266, 0) / 1000, Vector(0,
+			1603.516, 0) / 1000, Vector(0, 906.250, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0) / 1000, Vector(0,
+			697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000,
+			Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0,
+			0) / 1000), Array(697.266 / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0) / 1000, Vector(0, 906.250, 0) / 1000,
+			Vector(0, 697.266, 0) / 1000, Vector(0, 1603.516, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1020.508, 0) / 1000,
+			Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0)
+			/ 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0)
+			/ 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047,
+			0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0)
+			/ 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(
+			679.688 / 1000, Vector(0, 679.688, 0) / 1000, Vector(0, 1789.063, 0) / 1000, Vector(0, 1109.375, 0) / 1000, Vector(0, 679.688,
+			0) / 1000, Vector(0, 1789.063, 0) / 1000, Vector(0, 679.688, 0) / 1000, Vector(0, 1041.748, 0) / 1000, Vector(0, 0, 0) / 1000,
+			Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906,
+			0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0)
+			/ 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000, Vector(0, 498.047, 0) / 1000, Vector(0,
+			1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0,
+			498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000), Array(498.047 / 1000,
+			Vector(0, 498.047, 0) / 1000, Vector(0, 1501.953, 0) / 1000, Vector(0, 1003.906, 0) / 1000, Vector(0, 498.047, 0) / 1000,
+			Vector(0, 1501.953, 0) / 1000, Vector(0, 498.047, 0) / 1000, Vector(0, 805.664, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0,
+			0) / 1000), Array(697.266 / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1803.711, 0) / 1000, Vector(0, 1106.445, 0) / 1000,
+			Vector(0, 697.266, 0) / 1000, Vector(0, 1803.711, 0) / 1000, Vector(0, 697.266, 0) / 1000, Vector(0, 1352.539, 0) / 1000,
+			Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(D.Va), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Torbjörn), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Sigma), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("player_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		"r a b ab sa sb da db ka kb (baptiste)"
+		disabled Event Player.intrinsic = Array(498.046 / 1000, Vector(0, 498.046, 0) / 1000, Vector(0, 1501.950, 0) / 1000, Vector(0, 1003.910, 0)
+			/ 1000, Vector(0, 498.046, 0) / 1000, Vector(0, 1501.950, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0, 0, 0) / 1000, Vector(0,
+			0, 0) / 1000, Vector(0, 0, 0) / 1000);
+		Event Player.player_effects = Empty Array;
+		"load hero intrinsic"
+		Event Player.intrinsic = Global.all_intrinsic[Index Of Array Value(All Heroes, Hero Of(Event Player))];
+		"melee"
+		Event Player.effect_colors = Array(Color(Blue));
+		"r dist"
+		Event Player.melee_hitbox = Array(1, 1.500);
+		For Player Variable(Event Player, loop_i, 0, 4, 1);
+			"collision hull"
+			Create Effect(All Players(Opposite Team Of(Team Of(Event Player))), Sphere, Color(Green), Position Of(Event Player) + (
+				1 - Evaluate Once(Event Player.loop_i) / 3) * Event Player.intrinsic[1] + Evaluate Once(Event Player.loop_i)
+				/ 3 * Event Player.intrinsic[2], Event Player.intrinsic[0] / 0.985, Visible To Position and Radius);
+			Modify Player Variable(Event Player, player_effects, Append To Array, Last Created Entity);
+		End;
+		"melee hitbox"
+		Create Effect(All Players(All Teams), Sphere, Event Player.effect_colors[0], Eye Position(Event Player)
+			+ Event Player.melee_hitbox[1] * Facing Direction Of(Event Player), Event Player.melee_hitbox[0] / 0.985,
+			Visible To Position Radius and Color);
+		Modify Player Variable(Event Player, player_effects, Append To Array, Last Created Entity);
+	}
+}
+
+rule("player_hud_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("looking at enemy"), Player Closest To Reticle(Event Player,
+			Opposite Team Of(Team Of(Event Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Event Player, Opposite Team Of(
+			Team Of(Event Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+		Modify Player Variable(Event Player, player_effects, Append To Array, Last Created Entity);
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("(press interact) selected enemy"), Event Player.target,
+			Hero Icon String(Hero Of(Event Player.target))), Null, Null, Left, 1, Color(Blue), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Modify Player Variable(Event Player, player_effects, Append To Array, Last Created Entity);
+		"melee predict"
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("distance from melee hitbox to selected enemy"), 100 * (
+			Distance Between(Eye Position(Event Player) + Event Player.melee_hitbox[1] * Facing Direction Of(Event Player), Position Of(
+			Event Player.target) + Event Player.target.intrinsic[1] + Min(Max(Dot Product(Eye Position(Event Player)
+			+ Event Player.melee_hitbox[1] * Facing Direction Of(Event Player) - Position Of(Event Player.target)
+			- Event Player.target.intrinsic[1], Event Player.target.intrinsic[3]) / Dot Product(Event Player.target.intrinsic[3],
+			Event Player.target.intrinsic[3]), 0), 1) * Event Player.target.intrinsic[3])
+			- Event Player.target.intrinsic[0] - Event Player.melee_hitbox[0])), Null, Null, Left, 2, Color(Yellow), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Modify Player Variable(Event Player, player_effects, Append To Array, Last Created Entity);
+	}
+}
+
+rule("select_player_near_crosshair")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.target = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+	}
+}
+
+rule("crouch_true_bankswitch")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Crouching(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.intrinsic[1] = Event Player.intrinsic[6];
+		Event Player.intrinsic[2] = Event Player.intrinsic[7];
+		Event Player.intrinsic[3] = Event Player.intrinsic[2] - Event Player.intrinsic[1];
+	}
+}
+
+rule("crouch_false_bankswitch")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Crouching(Event Player) == False;
+	}
+
+	actions
+	{
+		Event Player.intrinsic[1] = Event Player.intrinsic[4];
+		Event Player.intrinsic[2] = Event Player.intrinsic[5];
+		Event Player.intrinsic[3] = Event Player.intrinsic[2] - Event Player.intrinsic[1];
+	}
+}
+
+rule("bot random duck")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(3, Ignore Condition);
+		Start Holding Button(Event Player, Button(Crouch));
+		Wait(3, Ignore Condition);
+		Stop Holding Button(Event Player, Button(Crouch));
+		Loop;
+	}
+}
+
+rule("melee change melee_hitbox color")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Meleeing(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.effect_colors[0] = Color(Yellow);
+		Wait(0.176, Ignore Condition);
+		Event Player.effect_colors[0] = Color(Blue);
+	}
+}
+
+rule("kill self")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+	}
+}
+
+rule("kill effect by player")
+{
+	event
+	{
+		Player Left Match;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Destroy Effect(Event Player.player_effects);
+	}
+}
