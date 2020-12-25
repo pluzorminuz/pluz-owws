@@ -1,0 +1,300 @@
+settings
+{
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 11
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Respawn Time Scalar: 0%
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: sphere_data
+		1: i
+		2: color
+		3: sphere_color
+		4: player_scale
+		5: __EFFECT_SIZE_COMPENSATION
+		6: on
+		7: off
+		8: temp
+
+	player:
+		0: effect_id
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.__EFFECT_SIZE_COMPENSATION = 0.985;
+		Global.player_scale = 1;
+		Global.color = Array(Custom Color(0, 0, 255, 255), Custom Color(255, 255, 0, 255));
+		Global.sphere_data = Array(Array(Vector(-2, -0.300, 3), Vector(-1, -0.300, 1.500)), Array(Vector(-0.920, -0.300, 3), Vector(-0.460,
+			-0.300, 1.500)), Array(Vector(-0.280, -0.300, 3), Vector(-0.140, -0.300, 1.500), Global.color[0]), Array(Vector(0.360, -0.300,
+			3), Vector(0.180, -0.300, 1.500)), Array(Vector(1, -0.300, 3), Vector(0.500, -0.300, 1.500)), Array(Vector(1.640, -0.300, 3),
+			Vector(0.820, -0.300, 1.500)), Array(Vector(2, -0.300, 3), Vector(1, -0.300, 1.500)), Array(Vector(1.200, -0.300, 3), Vector(
+			0.600, -0.300, 1.500)), Array(Vector(0.560, -0.300, 3), Vector(0.280, -0.300, 1.500)), Array(Vector(-0.080, -0.300, 3), Vector(
+			-0.040, -0.300, 1.500)), Array(Vector(-0.720, -0.300, 3), Vector(-0.360, -0.300, 1.500), Global.color[0]), Array(Vector(-1.360,
+			-0.300, 3), Vector(-0.680, -0.300, 1.500)));
+		Global.sphere_color = Array(Global.color[0], Global.color[0], Global.color[0], Global.color[0], Global.color[0], Global.color[0],
+			Global.color[0], Global.color[0], Global.color[0], Global.color[0], Global.color[0], Global.color[0], Global.color[0]);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Server Load, Server Load Average, Server Load Peak), Null, Null,
+			Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("player_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.effect_id = Empty Array;
+		For Global Variable(i, 0, Count Of(Global.sphere_data), 1);
+			Create Effect(All Players(All Teams), Sphere, Global.sphere_color[Evaluate Once(Global.i)], Eye Position(Event Player)
+				- Position Of(Event Player) + World Vector Of(Vector(Dot Product(Global.sphere_data[Evaluate Once(Global.i)][0], Vector(1, 0,
+				0)), Dot Product(Global.sphere_data[Evaluate Once(Global.i)][0], Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+				Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Global.sphere_data[Evaluate Once(
+				Global.i)][0], Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)), Cosine From Degrees(
+				Vertical Facing Angle Of(Event Player))))) * Global.player_scale, Event Player, Rotation And Translation),
+				1 * Global.player_scale / Global.__EFFECT_SIZE_COMPENSATION, Position Radius and Color);
+			Modify Player Variable(Event Player, effect_id, Append To Array, Last Created Entity);
+			Create Effect(All Players(All Teams), Sphere, Global.sphere_color[Evaluate Once(Global.i)], Eye Position(Event Player)
+				- Position Of(Event Player) + World Vector Of(Vector(Dot Product(Global.sphere_data[Evaluate Once(Global.i)][1], Vector(1, 0,
+				0)), Dot Product(Global.sphere_data[Evaluate Once(Global.i)][1], Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+				Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(Global.sphere_data[Evaluate Once(
+				Global.i)][1], Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)), Cosine From Degrees(
+				Vertical Facing Angle Of(Event Player))))) * Global.player_scale, Event Player, Rotation And Translation),
+				0.500 * Global.player_scale / Global.__EFFECT_SIZE_COMPENSATION, Position Radius and Color);
+			Modify Player Variable(Event Player, effect_id, Append To Array, Last Created Entity);
+		End;
+		Set Slow Motion(10);
+		disabled Wait(5, Ignore Condition);
+		disabled Start Scaling Player(Event Player, Global.player_scale, True);
+		disabled Chase Global Variable At Rate(player_scale, 1, 0.100, Destination and Rate);
+	}
+}
+
+rule("hammer swing")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.432, Ignore Condition);
+		Global.sphere_color[0] = Global.color[1];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[1] = Global.color[1];
+		Global.sphere_color[0] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[2] = Global.color[1];
+		Global.sphere_color[1] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[3] = Global.color[1];
+		Global.sphere_color[2] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[4] = Global.color[1];
+		Global.sphere_color[3] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[5] = Global.color[1];
+		Global.sphere_color[4] = Global.color[0];
+		"33"
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[6] = Global.color[1];
+		Global.sphere_color[5] = Global.color[0];
+		Wait(0.416, Ignore Condition);
+		Global.sphere_color[6] = Global.color[0];
+		Wait(0.064, Ignore Condition);
+		Global.temp = 1000 * Total Time Elapsed;
+		Abort If Condition Is False;
+		Wait(0.352, Ignore Condition);
+		Global.sphere_color[6] = Global.color[1];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[7] = Global.color[1];
+		Global.sphere_color[6] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[8] = Global.color[1];
+		Global.sphere_color[7] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[9] = Global.color[1];
+		Global.sphere_color[8] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[10] = Global.color[1];
+		Global.sphere_color[9] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[11] = Global.color[1];
+		Global.sphere_color[10] = Global.color[0];
+		Wait(0.016, Ignore Condition);
+		Global.sphere_color[0] = Global.color[1];
+		Global.sphere_color[11] = Global.color[0];
+		Wait(0.248, Ignore Condition);
+		Global.sphere_color[0] = Global.color[0];
+	}
+}
+
+rule("start_top_camera")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Position Of(Event Player) + Vector(0, 8, 0) * Global.player_scale, Position Of(Event Player) + Vector(
+			0.100, 0, 0), 10);
+	}
+}
+
+rule("stop_camera")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Is Firing Primary(Event Player), Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Global.off, Global.on, Global.off - Global.on), Null, Null, Left,
+			0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("-> {0}", Global.temp), Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.on = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.off = 1000 * Total Time Elapsed;
+	}
+}

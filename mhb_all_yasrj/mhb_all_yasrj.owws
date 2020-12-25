@@ -45,6 +45,7 @@ variables
 		4: mhb_dimensions
 		5: global_knockback_disable
 		6: global_total_effect_count
+		7: global_total_hudtext_count
 
 	player:
 		0: self_mhb
@@ -56,6 +57,8 @@ variables
 		6: player_effect_id
 		7: player_scale
 		8: temp_arr
+		9: temp_arr2
+		10: player_hudtext_id
 }
 
 subroutines
@@ -85,6 +88,7 @@ rule("init")
 			Array(1, 1, 1), Array(0, 0, 0), Array(1, 1, 1), Array(0, 0, 0), Array(0, 0, 0), Array(2, 0, 3), Array(0, 0, 0), Array(0, 0, 0),
 			Array(0, 0, 0), Array(1, 2, 2));
 		Global.all_mhb = Empty Array;
+		Global.arr_temp = Empty Array;
 		"mhb radius"
 		disabled Global.arr_temp = Array(500, 699.707, 949.707);
 		"mhb radius 2"
@@ -108,7 +112,12 @@ rule("init")
 			"To minimize complexity, the edge cases of looking straight up or straight down is NOT considered"), Top, 1, Color(White),
 			Color(White), Color(Red), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("effect count"), Global.global_total_effect_count), Null,
-			Null, Top, 2, Color(White), Color(White), Color(Red), Visible To and String, Default Visibility);
+			Null, Right, 2, Color(Gray), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("hud text count"), Global.global_total_hudtext_count),
+			Null, Null, Right, 2.100, Color(Gray), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Server Load, Server Load Average, Server Load Peak), Null, Null,
+			Right, 1, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.global_total_hudtext_count += 4;
 	}
 }
 
@@ -148,8 +157,9 @@ rule("player_init_once")
 	actions
 	{
 		Event Player.temp_arr = Empty Array;
+		Event Player.temp_arr2 = Empty Array;
 		Event Player.player_effect_id = Empty Array;
-		Event Player.temp_arr = Empty Array;
+		Event Player.player_hudtext_id = Empty Array;
 		Event Player.player_scale = 1;
 		Call Subroutine(create_body_mhb);
 	}
@@ -421,19 +431,28 @@ rule("[sub] all hero body melee hurtbox")
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"end create melee hurtbox"
 		End;
-		"mhb looking at"
-		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Event Player,
-			Opposite Team Of(Team Of(Event Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Event Player, Opposite Team Of(
-			Team Of(Event Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), String, Default Visibility);
-		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Text ID);
-		"mhb selected target"
-		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("[Interact] Selected"), Event Player.mhb_target,
-			Hero Icon String(Hero Of(Event Player.mhb_target))), Null, Null, Left, 1, Color(Blue), Color(White), Color(White), String,
-			Default Visibility);
-		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Text ID);
-		Global.global_total_effect_count += 4;
+		"no need to create hud text for dummies"
+		If(Is Dummy Bot(Event Player) != True);
+			"mhb looking at"
+			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Event Player,
+				Opposite Team Of(Team Of(Event Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Event Player, Opposite Team Of(
+				Team Of(Event Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"mhb selected target"
+			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("[Interact] Selected"), Event Player.mhb_target,
+				Hero Icon String(Hero Of(Event Player.mhb_target))), Null, Null, Left, 1, Color(Blue), Color(White), Color(White), String,
+				Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+		End;
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
+		"player_effect_id[0] for mhb body"
 		Event Player.player_effect_id[0] = Event Player.temp_arr;
+		Event Player.player_hudtext_id[0] = Event Player.temp_arr2;
 		Event Player.temp_arr = Empty Array;
+		Event Player.temp_arr2 = Empty Array;
 	}
 }
 
@@ -447,16 +466,19 @@ rule("[sub] create melee hitbox quick + hud")
 
 	actions
 	{
-		"melee predict"
-		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Melee Distance"), 100 * (Distance Between(Eye Position(
-			Event Player) + Global.mhb_dimensions[1] * Facing Direction Of(Event Player), Position Of(Event Player.mhb_target)
-			+ Event Player.mhb_target.self_mhb[1] + Min(Max(Dot Product(Eye Position(Event Player)
-			+ Global.mhb_dimensions[1] * Facing Direction Of(Event Player) - Position Of(Event Player.mhb_target)
-			- Event Player.mhb_target.self_mhb[1], Event Player.mhb_target.self_mhb[3]) / Dot Product(Event Player.mhb_target.self_mhb[3],
-			Event Player.mhb_target.self_mhb[3]), 0), 1) * Event Player.mhb_target.self_mhb[3])
-			- Event Player.mhb_target.self_mhb[0] - Global.mhb_dimensions[0]), Custom String("cm")), Null, Null, Left, 2, Color(Yellow),
-			Color(White), Color(White), String, Default Visibility);
-		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Text ID);
+		"no need to create hud text for dummies"
+		If(Is Dummy Bot(Event Player) != True);
+			"melee predict"
+			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Melee Distance"), 100 * (Distance Between(Eye Position(
+				Event Player) + Global.mhb_dimensions[1] * Facing Direction Of(Event Player), Position Of(Event Player.mhb_target)
+				+ Event Player.mhb_target.self_mhb[1] + Min(Max(Dot Product(Eye Position(Event Player)
+				+ Global.mhb_dimensions[1] * Facing Direction Of(Event Player) - Position Of(Event Player.mhb_target)
+				- Event Player.mhb_target.self_mhb[1], Event Player.mhb_target.self_mhb[3]) / Dot Product(Event Player.mhb_target.self_mhb[3],
+				Event Player.mhb_target.self_mhb[3]), 0), 1) * Event Player.mhb_target.self_mhb[3])
+				- Event Player.mhb_target.self_mhb[0] - Global.mhb_dimensions[0]), Custom String("cm")), Null, Null, Left, 2, Color(Yellow),
+				Color(White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+		End;
 		"melee hitbox color"
 		Event Player.player_effect_colors = Array(Color(Blue));
 		"create melee hitbox"
@@ -465,9 +487,15 @@ rule("[sub] create melee hitbox quick + hud")
 			Visible To Position Radius and Color);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		disabled Event Player.player_effect_id[1] = Array(Event Player.temp_arr);
-		Global.global_total_effect_count += 1;
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
+		"player_effect_id[1] for melee"
 		Event Player.player_effect_id[1] = Event Player.temp_arr;
+		Event Player.player_hudtext_id[1] = Event Player.temp_arr2;
 		Event Player.temp_arr = Empty Array;
+		Event Player.temp_arr2 = Empty Array;
 	}
 }
 
@@ -503,12 +531,20 @@ rule("[sub] destory melee hitbox")
 	actions
 	{
 		Event Player.temp_arr = Event Player.player_effect_id[1];
+		Event Player.temp_arr2 = Event Player.player_hudtext_id[1];
+		Global.global_total_effect_count -= Count Of(Event Player.temp_arr);
+		Global.global_total_hudtext_count -= Count Of(Event Player.temp_arr2);
+		"destroy melee effect"
 		While(Event Player.temp_arr != Empty Array);
 			Destroy Effect(Event Player.temp_arr[0]);
-			Destroy HUD Text(Event Player.temp_arr[0]);
 			Modify Player Variable(Event Player, temp_arr, Remove From Array By Index, 0);
 		End;
-		Global.global_total_effect_count -= 1;
+		"destroy melee hud text"
+		While(Event Player.temp_arr2 != Empty Array);
+			Destroy HUD Text(Event Player.temp_arr2[0]);
+			Modify Player Variable(Event Player, temp_arr2, Remove From Array By Index, 0);
+		End;
 		Event Player.temp_arr = Empty Array;
+		Event Player.temp_arr2 = Empty Array;
 	}
 }
