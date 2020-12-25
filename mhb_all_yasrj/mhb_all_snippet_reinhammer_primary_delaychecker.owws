@@ -1,0 +1,112 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		6: on
+		7: off
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Is Firing Primary(Event Player), Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Global.off, Global.on, Global.off - Global.on), Null, Null, Left,
+			0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.on = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.off = 1000 * Total Time Elapsed;
+	}
+}
