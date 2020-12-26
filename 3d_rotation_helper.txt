@@ -1,9 +1,41 @@
+Formula:
 OFFSET + Lx + Uy + Fz
 
 L: World Vector Of(Left, Event Player, Rotation)
 U: Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90)
 F: Facing Direction Of(Event Player)
 
-considering straight U/D
+considering straight U/D, useful for hitscans and projectiles
 U: (Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Backward, Event Player, Rotation) : (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Forward, Event Player, Rotation) : Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90)))
 F : (Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Up, Event Player, Rotation) : (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Down, Event Player, Rotation) : Facing Direction Of(Event Player)))
+
+#################
+
+Original script fragment by trbz_#5054 on Elo Hell Workshops Discord
+https://discord.com/channels/570672959799164958/570725750647422979/783103860490633247
+
+Original text:
+
+Posting this here for future reference if anyone encounters this issue
+World Vector Of() does not account for vertical rotation.  As such, if you want to actually get the world vector of a player-local vector, including vertical rotation, you need to use a custom formula.  For this you will need to define a coordinate system based on where the player is facing.
+
+How to define a local coordinate system for the player
+We want a local "left", "up", and "forward" so we can multiply these by their component values to create world vectors from local coordinates.  Here's what your values should be:
+
+Local Left = Normalize( Cross Product( Facing Direction Of(Event Player), Down ) )
+The player's "left" will always lie in the horizontal plane because the player is always orientated vertically.  As such, we can simply do facing x down to get the left direction.  In OW, the player can never completely face straight up or down so we don't have to worry about getting a zero-vector result
+
+Local Up = Direction From Angles( Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90 )
+This is simply the facing direction of the event player, rotated up another 90 degrees
+
+Local Forward = Facing Direction Of(Event Player)
+duh
+
+How to find the world vector of a local vector
+The standard coordinates equivalent of a vector in local coordinates will simply be <(Local Left * local x coord), (Local Up * local y coord), (Local Forward * local z coord)>.
+
+So whenever you want to use local vectors, just make an array variable containing your local coordinate axes and your world vector components will be the coordinates multiplied by their respective local axis vectors.
+
+#################
+
+I make this text file to remind myself that I have a template to use lolxd

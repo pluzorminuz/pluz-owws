@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Visualizer by pluzorminuz. Last Update: 2020 Dec 25."
+		Description: "Melee Hitbox (MHB) Visualizer by pluzorminuz. Last Update: 2020 Dec 26."
 	}
 
 	lobby
@@ -135,7 +135,7 @@ rule("init")
 	{
 		disabled Disable Inspector Recording;
 		Global.settings = Array(Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Use Beams"), True, 0),
-			Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Show Circle"), False, 1), Workshop Setting Toggle(
+			Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Show Circle (lag warning!!!)"), False, 1), Workshop Setting Toggle(
 			Custom String("Display - Cone"), Custom String("Use Spheres"), False, 2), Workshop Setting Integer(Custom String(
 			"Display - Cone"), Custom String("Effect Count"), 8, 4, 16, 3), Workshop Setting Integer(Custom String("Display - Cone"),
 			Custom String("Animation Speed (deg/s)"), 30, 1, 360, 4));
