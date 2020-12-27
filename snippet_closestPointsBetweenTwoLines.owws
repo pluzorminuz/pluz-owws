@@ -1,0 +1,106 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Ana), Team 2, 0, Vector(3.231, 0, 12), Vector(0, 0, 0));
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Bad Beam, Update Every Frame(Eye Position(Event Player)) + Update Every Frame(
+			Facing Direction Of(Event Player)) * (Dot Product(Update Every Frame(Position Of(Players In Slot(0, Team 2)))
+			- Update Every Frame(Eye Position(Event Player)), Cross Product(Up, Cross Product(Update Every Frame(Facing Direction Of(
+			Event Player)), Up))) / Dot Product(Update Every Frame(Facing Direction Of(Event Player)), Cross Product(Up, Cross Product(
+			Update Every Frame(Facing Direction Of(Event Player)), Up)))), Update Every Frame(Position Of(Players In Slot(0, Team 2)))
+			+ Up * (Dot Product(Eye Position(Event Player) - Update Every Frame(Position Of(Players In Slot(0, Team 2))), Cross Product(
+			Update Every Frame(Facing Direction Of(Event Player)), Cross Product(Update Every Frame(Facing Direction Of(Event Player)),
+			Up))) / Dot Product(Up, Cross Product(Update Every Frame(Facing Direction Of(Event Player)), Cross Product(Update Every Frame(
+			Facing Direction Of(Event Player)), Up)))), Color(White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Update Every Frame(Eye Position(Event Player) + Facing Direction Of(
+			Event Player) * (Dot Product(Position Of(Players In Slot(0, Team 2)) - Eye Position(Event Player), Cross Product(Up,
+			Cross Product(Facing Direction Of(Event Player), Up))) / Dot Product(Facing Direction Of(Event Player), Cross Product(Up,
+			Cross Product(Facing Direction Of(Event Player), Up))))), Update Every Frame(Position Of(Players In Slot(0, Team 2)) + Up * (
+			Dot Product(Eye Position(Event Player) - Position Of(Players In Slot(0, Team 2)), Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player), Up))) / Dot Product(Up, Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player), Up))))), Color(White), Visible To Position and Radius);
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
