@@ -1,0 +1,431 @@
+settings
+{
+	lobby
+	{
+		Map Rotation: After A Game
+		Return To Lobby: After A Game
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+variables
+{
+	global:
+		1: hanzo_time
+		2: coords
+		3: ms
+		4: damage
+
+	player:
+		0: timeout
+		1: data_collect
+		2: arrow_launch
+		3: arrow_dir
+		4: ds1
+		5: ds2
+		6: dt
+		7: dummy
+		8: capsule_n
+		9: dc1
+		10: dc2
+		11: d
+		12: dconst
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		disabled Disable Inspector Recording;
+		disabled Global.coords = Empty Array;
+		disabled Global.ms = Empty Array;
+		disabled Global.damage = Empty Array;
+		Create Dummy Bot(Hero(Hanzo), Team 2, 0, Vector(0, 60, 0), Vector(0, 0, 1));
+		Create HUD Text(All Players(All Teams), Custom String("time"), Total Time Elapsed, Null, Left, 0, Color(Red), Color(White), Color(
+			White), Visible To and String, Visible Always);
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 0, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 1, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 2, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 3, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 4, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 5, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 6, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 7, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 8, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 9, Vector(0, 0, 0), Vector(0, 0, 1));
+		disabled Create Dummy Bot(Hero(Baptiste), Team 1, 10, Vector(0, 0, 0), Vector(0, 0, 1));
+	}
+}
+
+rule("hanzo_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Start Forcing Player Position(Event Player, Vector(0, 60, 0), False);
+		disabled Start Facing(Event Player, Direction From Angles(Total Time Elapsed * 549, Total Time Elapsed * 76), 10000, To World,
+			Direction and Turn Rate);
+		Event Player.capsule_n = 7;
+		For Player Variable(Event Player, dummy, 0, Event Player.capsule_n, 1);
+			Create Effect(All Players(All Teams), Sphere, Color(Blue), (1 - Evaluate Once(Event Player.dummy) / (Event Player.capsule_n - 1))
+				* (Event Player.ds1 + Event Player.dt * Event Player.arrow_dir) + Evaluate Once(Event Player.dummy) / (
+				Event Player.capsule_n - 1) * (Event Player.ds2 + Event Player.dt * Event Player.arrow_dir), 4 / 0.985,
+				Visible To Position and Radius);
+			Create Effect(All Players(All Teams), Sphere, Color(Red), (1 - Evaluate Once(Event Player.dummy) / (Event Player.capsule_n - 1))
+				* (Event Player.dc1 + Event Player.dt * Event Player.arrow_dir) + Evaluate Once(Event Player.dummy) / (
+				Event Player.capsule_n - 1) * (Event Player.dc2 + Event Player.dt * Event Player.arrow_dir), 2.400 / 0.985,
+				Visible To Position and Radius);
+		End;
+		Create Effect(All Players(All Teams), Sphere, Color(Yellow), Event Player.arrow_launch + -185.500 * Event Player.arrow_dir, 200,
+			Visible To Position and Radius);
+	}
+}
+
+rule("hanzo_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+		Total Time Elapsed > 10;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Slow Motion(10);
+		Set Ultimate Charge(Event Player, 100);
+		Press Button(Event Player, Button(Ultimate));
+		Global.hanzo_time = 1000 * Total Time Elapsed;
+		Wait(5, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("bap_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Disable Movement Collision With Players(Event Player);
+		disabled Disable Movement Collision With Environment(Event Player, True);
+		disabled Set Gravity(Event Player, 0);
+		Start Heal Over Time(Event Player, Event Player, 9999, 300);
+		Start Scaling Player(Event Player, 0.100, False);
+		disabled Event Player.data_collect = False;
+		disabled Chase Player Variable At Rate(Event Player, timeout, 999, 1, Destination and Rate);
+		disabled Set Max Health(Event Player, 300);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("last damage"), Event Player.O), Null, Null, Left, 0,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dist"), Distance Between(Position Of(Event Player),
+			Players In Slot(0, Team 2).arrow_launch)), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create Progress Bar HUD Text(Event Player, Dot Product(Players In Slot(0, Team 2).arrow_dir, Position Of(Event Player)
+			- Players In Slot(0, Team 2).arrow_launch) / 22 * 100, Dot Product(Players In Slot(0, Team 2).arrow_dir, Position Of(
+			Event Player) - Players In Slot(0, Team 2).arrow_launch), Top, 1, Color(White), Color(White), Visible To Values and Color,
+			Default Visibility);
+		Create Progress Bar HUD Text(Event Player, Distance Between(Players In Slot(0, Team 2).arrow_launch + Players In Slot(0, Team 2)
+			.arrow_dir * Dot Product(Position Of(Event Player) - Players In Slot(0, Team 2).arrow_launch, Players In Slot(0, Team 2)
+			.arrow_dir), Position Of(Event Player)) / 4.800 * 100, Distance Between(Players In Slot(0, Team 2)
+			.arrow_launch + Players In Slot(0, Team 2).arrow_dir * Dot Product(Position Of(Event Player) - Players In Slot(0, Team 2)
+			.arrow_launch, Players In Slot(0, Team 2).arrow_dir), Position Of(Event Player)), Top, 2, Color(White), Color(White),
+			Visible To Values and Color, Default Visibility);
+		Event Player.dconst = Empty Array;
+		Modify Player Variable(Event Player, dconst, Append To Array, Vector(0, 0.498, 0));
+		Modify Player Variable(Event Player, dconst, Append To Array, Vector(0, 1.502, 0));
+		Modify Player Variable(Event Player, dconst, Append To Array, 0.498);
+		Set Move Speed(Event Player, 218.200);
+	}
+}
+
+disabled rule("array_reset")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Count Of(Global.coords) > 30;
+	}
+
+	actions
+	{
+		Enable Inspector Recording;
+		Disable Inspector Recording;
+		Global.coords = Empty Array;
+		Global.ms = Empty Array;
+		Global.damage = Empty Array;
+	}
+}
+
+disabled rule("bap_tele_timeout")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+		Total Time Elapsed > 10;
+		Event Player.timeout > 0.500;
+	}
+
+	actions
+	{
+		disabled Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(56, 66), Random Real(0, 50)));
+		disabled Teleport(Event Player, Vector(Random Real(-1, 1), Random Real(60, 62), Random Real(0, 100)));
+		disabled Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(54, 66), Random Real(10, 20)));
+		Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(54, 66), Random Real(10, 55)));
+		Event Player.timeout = 0;
+	}
+}
+
+disabled rule("bap_damage_detect")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Event Player.timeout = 0;
+		Set Status(Event Player, Null, Phased Out, 0.400);
+		Modify Global Variable(coords, Append To Array, 10000 * Position Of(Event Player));
+		Modify Global Variable(ms, Append To Array, 1000 * Total Time Elapsed - Global.hanzo_time);
+		Modify Global Variable(damage, Append To Array, 10000 * Event Damage);
+		Wait(0.192, Ignore Condition);
+		disabled Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(56, 66), Random Real(0, 50)));
+		disabled Teleport(Event Player, Vector(Random Real(-1, 1), Random Real(60, 62), Random Real(0, 100)));
+		disabled Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(54, 66), Random Real(10, 20)));
+		Teleport(Event Player, Vector(Random Real(-5, 5), Random Real(54, 66), Random Real(10, 55)));
+	}
+}
+
+rule("effect_viz")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+		Team Of(Event Player) == Team 2;
+	}
+
+	actions
+	{
+		Stop Chasing Player Variable(Event Player, dt);
+		disabled Destroy All Effects;
+		Wait(1, Ignore Condition);
+		Event Player.arrow_launch = Eye Position(Event Player);
+		Event Player.arrow_dir = Facing Direction Of(Event Player);
+		Event Player.ds1 = Event Player.arrow_launch + 10 * Event Player.arrow_dir;
+		Event Player.ds2 = Event Player.arrow_launch + -20 * Event Player.arrow_dir;
+		Event Player.dc1 = Event Player.arrow_launch + 14 * Event Player.arrow_dir;
+		Event Player.dc2 = Event Player.arrow_launch + -24 * Event Player.arrow_dir;
+		disabled For Player Variable(Event Player, dummy, 0, Event Player.capsule_n, 1);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Aqua), (1 - Evaluate Once(Event Player.dummy) / (Event Player.capsule_n - 1))
+			* (Event Player.ds1 + Event Player.dt * Event Player.arrow_dir) + Evaluate Once(Event Player.dummy) / (
+			Event Player.capsule_n - 1) * (Event Player.ds2 + Event Player.dt * Event Player.arrow_dir), 4 / 0.985,
+			Visible To Position and Radius);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Red), (1 - Evaluate Once(Event Player.dummy) / (Event Player.capsule_n - 1))
+			* (Event Player.dc1 + Event Player.dt * Event Player.arrow_dir) + Evaluate Once(Event Player.dummy) / (
+			Event Player.capsule_n - 1) * (Event Player.dc2 + Event Player.dt * Event Player.arrow_dir), 2.400 / 0.985,
+			Visible To Position and Radius);
+		disabled End;
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Event Player.ds1 + Event Player.dt * Event Player.arrow_dir, 4,
+			Visible To Position and Radius);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Event Player.ds2 + Event Player.dt * Event Player.arrow_dir, 4,
+			Visible To Position and Radius);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Event Player.arrow_launch + -186 * Event Player.arrow_dir, 200,
+			Visible To);
+		"-16ms"
+		Wait(0.616, Ignore Condition);
+		Event Player.dt = 0;
+		Chase Player Variable At Rate(Event Player, dt, 240, 12, None);
+	}
+}
+
+disabled rule("Rule 9")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Players In Slot(0, Team 2), 100);
+		Press Button(Players In Slot(0, Team 2), Button(Ultimate));
+	}
+}
+
+rule("Rule 10")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Teleport(Players In Slot(0, Team 2), Position Of(Event Player));
+		Set Facing(Players In Slot(0, Team 2), Facing Direction Of(Event Player), To World);
+	}
+}
+
+rule("Rule 11")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Event Player.O = Event Damage;
+	}
+}
+
+rule("Rule 10")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("Rule 13")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.d = Empty Array;
+	}
+}
