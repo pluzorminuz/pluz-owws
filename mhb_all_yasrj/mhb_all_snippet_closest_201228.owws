@@ -1,0 +1,70 @@
+variables
+{
+	player:
+		0: self_mhb
+		4: mhb_target
+		7: player_scale
+}
+
+disabled rule("[debug] closest")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Create Beam Effect(All Players(All Teams), Good Beam, Update Every Frame(Eye Position(Event Player) + Facing Direction Of(
+			Event Player) * (Dot Product(Position Of(Event Player.mhb_target) + Event Player.mhb_target.self_mhb[1] - Eye Position(
+			Event Player), Cross Product(Event Player.mhb_target.self_mhb[3], Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3]))) / Dot Product(Facing Direction Of(Event Player), Cross Product(
+			Event Player.mhb_target.self_mhb[3], Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3]))))),
+			Update Every Frame(Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] + Event Player.mhb_target.self_mhb[3] * Min(Max(Dot Product(Eye Position(Event Player)
+			- (Position Of(Event Player.mhb_target) + Event Player.mhb_target.self_mhb[1]), Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3]))) / Dot Product(
+			Event Player.mhb_target.self_mhb[3], Cross Product(Facing Direction Of(Event Player), Cross Product(Facing Direction Of(
+			Event Player), Event Player.mhb_target.self_mhb[3]))), 0), 1)), Color(White), Visible To Position and Radius);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] + Event Player.mhb_target.self_mhb[3] * Min(Max(Dot Product(Eye Position(Event Player)
+			- (Position Of(Event Player.mhb_target) + Event Player.mhb_target.self_mhb[1]), Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3]))) / Dot Product(
+			Event Player.mhb_target.self_mhb[3], Cross Product(Facing Direction Of(Event Player), Cross Product(Facing Direction Of(
+			Event Player), Event Player.mhb_target.self_mhb[3]))), 0), 1)), Event Player.mhb_target.self_mhb[0] / 0.985,
+			Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Update Every Frame(Eye Position(Event Player) + Facing Direction Of(
+			Event Player) * (Dot Product(Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale - Eye Position(Event Player), Cross Product(
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))) / Dot Product(Facing Direction Of(Event Player),
+			Cross Product(Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(
+			Event Player), Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))))), Update Every Frame(Position Of(
+			Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale * Min(
+			Max(Dot Product(Eye Position(Event Player) - (Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale), Cross Product(Facing Direction Of(Event Player),
+			Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale)))
+			/ Dot Product(Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))), 0), 1)), Color(White),
+			Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale * Min(
+			Max(Dot Product(Eye Position(Event Player) - (Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale), Cross Product(Facing Direction Of(Event Player),
+			Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale)))
+			/ Dot Product(Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))), 0), 1)),
+			Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0] / 0.985, Visible To Position and Radius);
+	}
+}
