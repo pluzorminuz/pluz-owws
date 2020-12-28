@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Last Update: 2020 Dec 28. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon."
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Last Update: 2020 Dec 27. Supported Abilities: All melee (excl. Brig Flail and Torb Hammer), Blade, Charge, Tesla Cannon."
 	}
 
 	modes
@@ -42,6 +42,7 @@ settings
 
 	workshop
 	{
+		Center Zone Sphere Count representing the cylinder: 32
 		Sphere Count: 8
 	}
 }
@@ -60,7 +61,6 @@ variables
 		8: settings
 		9: color_global
 		10: color_settings
-		11: dragon_dimensions
 
 	player:
 		0: self_mhb
@@ -77,7 +77,7 @@ variables
 		11: temp_arr3
 		12: player_cone1_dimensions
 		13: player_dragon_t
-		14: player_dragon_var
+		14: player_dragon_dimensions
 }
 
 subroutines
@@ -156,9 +156,6 @@ rule("init")
 	actions
 	{
 		disabled Disable Inspector Recording;
-		"for hanzo dragon [0]r [1]center_r [2]plane_dist [3]vel [4]travel_len [5]center_display_count"
-		Global.dragon_dimensions = Array(4, 2.400, 11, 12, 240, Workshop Setting Integer(Custom String("Display - Dragon"), Custom String(
-			"Center Zone Sphere Count (representing the cylinder)"), 12, 8, 32, 2));
 		Global.color_settings = Array(Workshop Setting Combo(Custom String("Display - Body Melee Hurtbox"), Custom String("Color"), 1,
 			Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"),
 			Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 0), Workshop Setting Combo(
@@ -213,7 +210,7 @@ rule("init")
 		Call Subroutine(init_div);
 		Global.all_mhb[2] = Global.arr_temp;
 		Global.arr_temp = Empty Array;
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (201228)"), Custom String(
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (201227)"), Custom String(
 			"by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("effect count"), Global.global_total_effect_count), Null,
 			Null, Right, 2, Color(Gray), Color(White), Color(White), Visible To and String, Default Visibility);
@@ -268,8 +265,10 @@ rule("player_init_once")
 		Event Player.player_effect_id = Empty Array;
 		Event Player.player_hudtext_id = Empty Array;
 		Event Player.player_scale = 1;
-		"for hanzo dragon. [0]arrow_ro [1]arrow_rd [2]arrow_ro_temp [3]arrow_rd_temp"
-		Event Player.player_dragon_var = Array(Vector(0, -1000, 0), Down, Vector(0, -1000, 0), Down);
+		"for hanzo dragon. [0]r [1]center_r [2]plane_dist [3]vel [4]travel_len [5]arrow_ro [6]arrow_rd"
+		Event Player.player_dragon_dimensions = Array(4, 2.400, 11, 12, 240, Vector(0, -1000, 0), Down, Vector(0, -1000, 0), Down,
+			Workshop Setting Integer(Custom String("Display - Dragon"), Custom String(
+			"Center Zone Sphere Count (representing the cylinder)"), 12, 8, 32, 2));
 		Call Subroutine(create_body_mhb);
 	}
 }
@@ -1049,18 +1048,16 @@ rule("[HANZO] dragon_fire_set_variables")
 		"1 sec cast time"
 		Wait(1, Ignore Condition);
 		"set arrow launch pos and dir to temp [7] and [8]"
-		Event Player.player_dragon_var[2] = Eye Position(Event Player);
-		"account for straight U/D"
-		Event Player.player_dragon_var[3] = Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Up, Event Player, Rotation) : (
-			Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Down, Event Player, Rotation) : Facing Direction Of(
-			Event Player));
+		Event Player.player_dragon_dimensions[7] = Eye Position(Event Player);
+		Event Player.player_dragon_dimensions[8] = Facing Direction Of(Event Player);
 		"wait for the dragon to appear (38t -1t)"
 		Wait(0.608, Ignore Condition);
 		Event Player.player_dragon_t = 0;
 		"so that the hitbox will update when the dragon starts visually"
-		Event Player.player_dragon_var[0] = Event Player.player_dragon_var[2];
-		Event Player.player_dragon_var[1] = Event Player.player_dragon_var[3];
-		Chase Player Variable At Rate(Event Player, player_dragon_t, Global.dragon_dimensions[4], Global.dragon_dimensions[3], None);
+		Event Player.player_dragon_dimensions[5] = Event Player.player_dragon_dimensions[7];
+		Event Player.player_dragon_dimensions[6] = Event Player.player_dragon_dimensions[8];
+		Chase Player Variable At Rate(Event Player, player_dragon_t, Event Player.player_dragon_dimensions[4],
+			Event Player.player_dragon_dimensions[3], None);
 	}
 }
 
@@ -1078,18 +1075,19 @@ rule("[sub] create dragon hitbox root")
 		If(Hero Of(Event Player) == Hero(Hanzo));
 			"the dragon 150dps"
 			For Player Variable(Event Player, loop_j, 0, 7, 1);
-				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[4]], Event Player.player_dragon_var[0] + (
-					10 + Event Player.player_dragon_t - 5 * Evaluate Once(Event Player.loop_j)) * Event Player.player_dragon_var[1],
-					Global.dragon_dimensions[0], Visible To Position and Radius);
+				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[4]],
+					Event Player.player_dragon_dimensions[5] + (10 + Event Player.player_dragon_t - 5 * Evaluate Once(Event Player.loop_j))
+					* Event Player.player_dragon_dimensions[6], Event Player.player_dragon_dimensions[0], Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.016, Ignore Condition);
 			End;
 			"the center of the dragon 300dps"
-			For Player Variable(Event Player, loop_j, 0, Global.dragon_dimensions[5], 1);
-				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[5]], Event Player.player_dragon_var[0] + (
-					Evaluate Once((1 - Event Player.loop_j / (Global.dragon_dimensions[5] - 1)) * 14 + Event Player.loop_j / (
-					Global.dragon_dimensions[5] - 1) * -24) + Event Player.player_dragon_t) * Event Player.player_dragon_var[1],
-					Global.dragon_dimensions[1], Visible To Position and Radius);
+			For Player Variable(Event Player, loop_j, 0, Event Player.player_dragon_dimensions[9], 1);
+				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[5]],
+					Event Player.player_dragon_dimensions[5] + (Evaluate Once((1 - Event Player.loop_j / (
+					Event Player.player_dragon_dimensions[9] - 1)) * 14 + Event Player.loop_j / (Event Player.player_dragon_dimensions[9] - 1)
+					* -24) + Event Player.player_dragon_t) * Event Player.player_dragon_dimensions[6], Event Player.player_dragon_dimensions[1],
+					Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.016, Ignore Condition);
 			End;
