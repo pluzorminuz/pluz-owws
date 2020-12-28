@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2020 Dec 14, added McCree"
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2020 Dec 28, McCree radius 8->3 oops"
 	}
 
 	lobby
@@ -125,7 +125,7 @@ rule("[sub] update constants")
 		"mccree"
 		Else If(Hero Of(Event Player) == Hero(McCree));
 			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
-			Global.constants = Array(-9.840, 30, 8, 7 / 30, 0, 0, 0);
+			Global.constants = Array(-9.840, 30, 3, 7 / 30, 0, 0, 0);
 		"sigma"
 		Else If(Hero Of(Event Player) == Hero(Sigma));
 			"sigma rock, [0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
@@ -1067,7 +1067,7 @@ rule("[sub] final hud")
 	{
 		Create HUD Text(All Players(All Teams), Null, Custom String("Improved Nade Tool by pluzorminuz"), Custom String("Code: XWAGN"),
 			Left, -2, Color(White), Color(White), Color(Yellow), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Last Updated: 2020 Dec 14"), Null, Left, -1.800, Color(White), Color(
+		Create HUD Text(All Players(All Teams), Null, Custom String("Last Updated: 2020 Dec 28"), Null, Left, -1.800, Color(White), Color(
 			White), Color(Yellow), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Server Load"), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Left, -1, Color(White), Color(White), Color(White), Visible To and String,
