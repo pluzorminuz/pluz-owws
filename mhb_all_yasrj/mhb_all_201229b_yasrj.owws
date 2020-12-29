@@ -1599,7 +1599,7 @@ rule("[sub] create_shatter_hitbox_root")
 				0.050 * Global.shatter_dimensions[5], 0, 0.050 * Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[2], 0),
 				Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.shatter_dimensions[5], 0,
 				Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation),
-				Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+				Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"l"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
@@ -1608,7 +1608,7 @@ rule("[sub] create_shatter_hitbox_root")
 				Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
 				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
 				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
-				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+				Rotation And Translation), Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"rdown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
@@ -1624,7 +1624,7 @@ rule("[sub] create_shatter_hitbox_root")
 				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
 				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
 				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[3], 0), Event Player,
-				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+				Rotation And Translation), Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_rdown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
@@ -1632,7 +1632,7 @@ rule("[sub] create_shatter_hitbox_root")
 				+ Vector(0, Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(
 				Event Player.player_scale * Vector(Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[5], 0,
 				Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[3], 0), Event Player,
-				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+				Rotation And Translation), Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_ldown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(Absolute Value(
@@ -1641,7 +1641,7 @@ rule("[sub] create_shatter_hitbox_root")
 				Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
 				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
 				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0,
-				Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation), Global.color_global[Global.color_settings[7]],
+				Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation), Global.color_global[Global.color_settings[6]],
 				Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_curve"
@@ -1653,7 +1653,7 @@ rule("[sub] create_shatter_hitbox_root")
 				2 * Global.shatter_dimensions[1] * (Total Time Elapsed / 4 % 1) - Global.shatter_dimensions[1]), 0,
 				Global.shatter_dimensions[0] * Cosine From Degrees(2 * Global.shatter_dimensions[1] * (Total Time Elapsed / 4 % 1)
 				- Global.shatter_dimensions[1])) + Vector(0, Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation),
-				Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+				Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			For Player Variable(Event Player, loop_j, 0, Global.shatter_dimensions[4] - 1, 1);
 				"Curve"
@@ -1662,7 +1662,7 @@ rule("[sub] create_shatter_hitbox_root")
 					Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(
 					Event Player.player_scale * Evaluate Once(Vector(Global.shatter_dimensions[7 + 2 * Event Player.loop_j], 0,
 					Global.shatter_dimensions[8 + 2 * Event Player.loop_j])) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
-					Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
+					Rotation And Translation), Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				"Down"
 				disabled Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Evaluate Once(Vector(
@@ -1675,11 +1675,11 @@ rule("[sub] create_shatter_hitbox_root")
 				Wait(0.016, Ignore Condition);
 			End;
 			"shaft"
-			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
+			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[6]], Position Of(Event Player),
 				Event Player.player_scale * Event Player.player_shatter_var / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"ring"
-			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
+			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[6]], Position Of(Event Player),
 				Event Player.player_scale * Global.shatter_dimensions[0] / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"temp_arr for EFFECTS"

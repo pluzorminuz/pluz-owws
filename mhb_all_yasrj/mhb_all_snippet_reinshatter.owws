@@ -1,0 +1,209 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+			Spawn With Ultimate Ready: On
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: global_shatter_dimensions
+		1: loop_i
+
+	player:
+		0: player_shatter_var
+}
+
+subroutines
+{
+	0: init_global_shatter_var
+}
+
+rule("setting up global")
+{
+	event
+	{
+		Subroutine;
+		init_global_shatter_var;
+	}
+
+	actions
+	{
+		Global.global_shatter_dimensions = Array(19.835, 25, 1.770, -1, 9);
+		For Global Variable(loop_i, 0, Global.global_shatter_dimensions[4], 1);
+			Modify Global Variable(global_shatter_dimensions, Append To Array, Global.global_shatter_dimensions[0] * Sine From Degrees(2 * (
+				Global.loop_i / (Global.global_shatter_dimensions[4] - 1))
+				* Global.global_shatter_dimensions[1] - Global.global_shatter_dimensions[1]));
+			Modify Global Variable(global_shatter_dimensions, Append To Array, Global.global_shatter_dimensions[0] * Cosine From Degrees(2 * (
+				Global.loop_i / (Global.global_shatter_dimensions[4] - 1))
+				* Global.global_shatter_dimensions[1] - Global.global_shatter_dimensions[1]));
+		End;
+	}
+}
+
+rule("set up effects")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		"R"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(0.050 * Global.global_shatter_dimensions[5],
+			Global.global_shatter_dimensions[2], 0.050 * Global.global_shatter_dimensions[6]), Event Player, Rotation And Translation),
+			World Vector Of(Vector(Global.global_shatter_dimensions[5], Global.global_shatter_dimensions[2],
+			Global.global_shatter_dimensions[6]), Event Player, Rotation And Translation), Color(White), Position and Radius);
+		"L"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(
+			0.050 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 3], Global.global_shatter_dimensions[2],
+			0.050 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 4]), Event Player,
+			Rotation And Translation), World Vector Of(Vector(
+			Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 3], Global.global_shatter_dimensions[2],
+			Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 4]), Event Player, Rotation And Translation), Color(
+			White), Position and Radius);
+		"RDown"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(Global.global_shatter_dimensions[5],
+			Global.global_shatter_dimensions[2], Global.global_shatter_dimensions[6]), Event Player, Rotation And Translation),
+			World Vector Of(Vector(Global.global_shatter_dimensions[5], Global.global_shatter_dimensions[3],
+			Global.global_shatter_dimensions[6] + 0.010), Event Player, Rotation And Translation), Color(White), Position and Radius);
+		"RDown Anim"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[5], Global.global_shatter_dimensions[2],
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[6]), Event Player, Rotation And Translation), World Vector Of(
+			Vector(Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[5], Global.global_shatter_dimensions[3],
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[6] + 0.010), Event Player, Rotation And Translation), Color(
+			White), Position and Radius);
+		"LDown Anim"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 3],
+			Global.global_shatter_dimensions[2],
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 4]), Event Player,
+			Rotation And Translation), World Vector Of(Vector(
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 3],
+			Global.global_shatter_dimensions[3],
+			Total Time Elapsed / 4 % 1 * Global.global_shatter_dimensions[2 * Global.global_shatter_dimensions[4] + 4] + 0.010),
+			Event Player, Rotation And Translation), Color(White), Position and Radius);
+		"AnimCurve"
+		Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Vector(
+			Global.global_shatter_dimensions[0] * Sine From Degrees(2 * Global.global_shatter_dimensions[1] * (Total Time Elapsed / 4 % 1)
+			- Global.global_shatter_dimensions[1]), Global.global_shatter_dimensions[2],
+			Global.global_shatter_dimensions[0] * Cosine From Degrees(2 * Global.global_shatter_dimensions[1] * (
+			Total Time Elapsed / 4 % 1) - Global.global_shatter_dimensions[1])), Event Player, Rotation And Translation), World Vector Of(
+			Vector(Global.global_shatter_dimensions[0] * Sine From Degrees(2 * Global.global_shatter_dimensions[1] * (
+			Total Time Elapsed / 4 % 1) - Global.global_shatter_dimensions[1]), Global.global_shatter_dimensions[3],
+			Global.global_shatter_dimensions[0] * Cosine From Degrees(2 * Global.global_shatter_dimensions[1] * (
+			Total Time Elapsed / 4 % 1) - Global.global_shatter_dimensions[1]) + 0.010), Event Player, Rotation And Translation), Color(
+			White), Position and Radius);
+		For Global Variable(loop_i, 0, Global.global_shatter_dimensions[4] - 1, 1);
+			"Curve"
+			Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Evaluate Once(Vector(
+				Global.global_shatter_dimensions[5 + 2 * Global.loop_i], Global.global_shatter_dimensions[2],
+				Global.global_shatter_dimensions[6 + 2 * Global.loop_i])), Event Player, Rotation And Translation), World Vector Of(
+				Evaluate Once(Vector(Global.global_shatter_dimensions[7 + 2 * Global.loop_i], Global.global_shatter_dimensions[2],
+				Global.global_shatter_dimensions[8 + 2 * Global.loop_i])), Event Player, Rotation And Translation), Color(White),
+				Position and Radius);
+			"Down"
+			Create Beam Effect(All Players(All Teams), Grapple Beam, World Vector Of(Evaluate Once(Vector(
+				Global.global_shatter_dimensions[7 + 2 * Global.loop_i], Global.global_shatter_dimensions[2],
+				Global.global_shatter_dimensions[8 + 2 * Global.loop_i])), Event Player, Rotation And Translation), World Vector Of(
+				Evaluate Once(Vector(Global.global_shatter_dimensions[7 + 2 * Global.loop_i], Global.global_shatter_dimensions[3],
+				Global.global_shatter_dimensions[8 + 2 * Global.loop_i] + 0.010)), Event Player, Rotation And Translation), Color(White),
+				Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+		Create Effect(All Players(All Teams), Light Shaft, Color(Green), Position Of(Event Player),
+			Event Player.player_shatter_var / 0.985, Position and Radius);
+		Create Effect(All Players(All Teams), Ring, Color(Green), Position Of(Event Player), Event Player.player_shatter_var / 0.985,
+			Position and Radius);
+	}
+}
+
+rule("[REIN] using_shatter")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Reinhardt;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.player_shatter_var = 0.650;
+		Chase Player Variable Over Time(Event Player, player_shatter_var, 19.835, 0.480, None);
+		Wait(1, Ignore Condition);
+		Stop Chasing Player Variable(Event Player, player_shatter_var);
+		Event Player.player_shatter_var = 0;
+	}
+}
