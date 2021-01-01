@@ -1,0 +1,1195 @@
+settings
+{
+	main
+	{
+		Description: "The server can only display 1 instance of the hitbox, put whoever displaying the hitbox in 1st slot of Team 1. Leave the slot empty for a bot. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097, Discord: pluzorminuz#2542. Let me know if there are any problems! Last Updated: 2020 Nov 20, for 1.54 LIVE"
+	}
+
+	lobby
+	{
+		Max Team 1 Players: 1
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+			No Ammunition Requirement: On
+			Spawn With Ultimate Ready: On
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+
+			D.Va
+			{
+				Defense Matrix Maximum Time: 500%
+				Defense Matrix Recharge Rate: 500%
+			}
+
+			Genji
+			{
+				Deflect Cooldown Time: 0%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: kinetic_verts
+		1: kinetic_edges
+		2: matrix_verts
+		3: matrix_edges
+		4: hero_limits
+		5: hero_num
+		6: f3
+		7: f4
+		11: deflect_verts
+		12: deflect_edges
+
+	player:
+		0: view
+}
+
+subroutines
+{
+	0: sub_matrix_p1
+	1: sub_kinetic_p1
+	2: spawn_bot
+	3: sub_deflect_p1
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.f3 = 100;
+		Global.f4 = 1000;
+		Global.matrix_verts = Array(Vector(-125.223, -99.415, 79.635), Vector(-125.223, 99.696, 79.635), Vector(125.266, -99.415, 79.635),
+			Vector(125.266, 99.696, 79.635), Vector(-125.223, -99.415, 1025.124), Vector(-125.223, 99.696, 1025.120), Vector(125.266,
+			-99.415, 1025.124), Vector(125.266, 99.696, 1025.120));
+		Global.matrix_edges = Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6),
+			Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1));
+		Global.kinetic_verts = Array(Vector(999.816, 1099.714, 2599.862), Vector(999.816, -1599.897, 2599.862), Vector(-1000.300, 1099.714,
+			2599.860), Vector(-1000.306, -1599.902, 2599.858), Vector(999.816, 1099.714, 403.875), Vector(999.816, -1599.900, 403.875),
+			Vector(-1000.306, 1099.714, 403.875), Vector(-1000.306, -1599.897, 403.875));
+		Global.kinetic_edges = Array(Array(5, 7), Array(1, 5), Array(0, 1), Array(7, 6), Array(2, 3), Array(4, 5), Array(2, 6), Array(0,
+			2), Array(7, 3), Array(6, 4), Array(4, 0), Array(3, 1));
+		Global.deflect_verts = Array(Vector(-747.048, -1500.072, -498.838), Vector(-747.048, 750.664, -498.838), Vector(748.471, -1500.072,
+			-498.838), Vector(748.471, 750.664, -498.838), Vector(-747.048, -1500.072, 999.127), Vector(-747.048, 750.664, 999.127),
+			Vector(748.471, -1500.072, 999.127), Vector(748.471, 750.664, 999.127), Vector(502.177, -1500.072, -498.837), Vector(-500.753,
+			-1500.072, -498.837), Vector(-500.753, 750.663, -498.838), Vector(502.177, 750.663, -498.838), Vector(502.177, 750.663, 3.852),
+			Vector(-500.753, 750.663, 3.852), Vector(502.177, -1500.072, 3.852), Vector(-500.753, -1500.072, 3.852));
+		Global.deflect_edges = Array(Array(9, 0), Array(0, 1), Array(11, 3), Array(3, 2), Array(7, 6), Array(5, 4), Array(6, 2), Array(3,
+			7), Array(0, 4), Array(5, 1), Array(2, 8), Array(13, 15), Array(1, 10), Array(12, 14), Array(4, 6), Array(7, 5), Array(12, 13),
+			Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
+		Global.hero_limits = Array(Hero(Genji), Hero(Sigma), Hero(D.Va));
+		Call Subroutine(spawn_bot);
+		Create HUD Text(All Players(All Teams), Custom String("server load (cur/avg/peak)"), Null, String("{0} {1} {2}", Server Load,
+			Server Load Average, Server Load Peak), Left, -10, Color(Blue), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+	}
+}
+
+rule("player settings (genji)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(Genji);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(1, Ignore Condition);
+		Call Subroutine(sub_deflect_p1);
+		Event Player.view = True;
+	}
+}
+
+rule("player settings (sigma)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(Sigma);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(1, Ignore Condition);
+		Call Subroutine(sub_kinetic_p1);
+		Event Player.view = True;
+	}
+}
+
+rule("player settings (dva)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(D.Va);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(1, Ignore Condition);
+		Call Subroutine(sub_matrix_p1);
+		Event Player.view = True;
+	}
+}
+
+rule("spawn bot")
+{
+	event
+	{
+		Subroutine;
+		spawn_bot;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Global.hero_limits[Global.hero_num], Team 1, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Set Max Health(Players In Slot(0, Team 1), 1000);
+		Wait(2, Ignore Condition);
+		Start Heal Over Time(Players In Slot(0, Team 1), Players In Slot(0, Team 1), 9999, 100);
+		Set Facing(Players In Slot(0, Team 1), Direction From Angles(Horizontal Facing Angle Of(Players In Slot(0, Team 1)), -0.010),
+			To World);
+	}
+}
+
+rule("limit hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) != True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Global.hero_limits);
+	}
+}
+
+rule("hud display (team 2)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(0, Team 1)))), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(0, Team 1))) < 0), Null, Null, Left, 1, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Input Binding String(Button(Interact)), Custom String("Teleport bot")), Null,
+			Null, Left, 9, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("ultimate status"), Custom String("Cycle bot hero")), Null, Null,
+			Left, 10, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("Acknowledge"), Custom String("Kill yourself")), Null, Null, Left,
+			11, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("kill button (acknowledge)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+	}
+}
+
+rule("bot genji deflect loop (makes bot keep deflecting)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Genji);
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ability 2));
+		Wait(2.800, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("place bot (interect key)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Teleport(Players In Slot(0, Team 1), Position Of(Event Player));
+		Set Facing(Players In Slot(0, Team 1), Facing Direction Of(Event Player), To World);
+	}
+}
+
+rule("bot sigma loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Sigma);
+	}
+
+	actions
+	{
+		Wait(0.250, Ignore Condition);
+		Stop Holding Button(Event Player, Button(Ability 1));
+		Wait(0.250, Ignore Condition);
+		Start Holding Button(Event Player, Button(Ability 1));
+		Wait(3, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("bot dva loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Has Spawned(Event Player) == True;
+		Hero Of(Event Player) == Hero(D.Va);
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Button(Secondary Fire));
+		Wait(11, Ignore Condition);
+		Stop Holding Button(Event Player, Button(Secondary Fire));
+		Wait(6, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("toggle camera off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Event Player.view = !Event Player.view;
+	}
+}
+
+rule("toggle camera becomes true")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Event Player.view == True;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(
+			Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
+	}
+}
+
+rule("toggle camera becomes false")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Event Player.view == False;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+	}
+}
+
+rule("change bot hero (ult status)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Destroy All Dummy Bots;
+		Global.hero_num = (Global.hero_num + 1) % 3;
+		Wait(0.250, Ignore Condition);
+		Call Subroutine(spawn_bot);
+	}
+}
+
+rule("hud display (team 1)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} -> {1}", Input Binding String(Button(Interact)), Custom String("Toggle camera")), Null,
+			Null, Left, 9, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("Acknowledge"), Custom String("Kill yourself")), Null, Null, Left,
+			11, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("refill ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("sub_matrix_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_matrix_p1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[0][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[0][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[0][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[0][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[0][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[0][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[1][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[1][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[1][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[1][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[1][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[1][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[2][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[2][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[2][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[2][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[2][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[2][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[3][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[3][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[3][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[3][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[3][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[3][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[4][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[4][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[4][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[4][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[4][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[4][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[5][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[5][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[5][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[5][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[5][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[5][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[6][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[6][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[6][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[6][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[6][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[6][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[7][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[7][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[7][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[7][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[7][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[7][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[8][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[8][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[8][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[8][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[8][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[8][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[9][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[9][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[9][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[9][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[9][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[9][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[10][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[10][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[10][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[10][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[10][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[10][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.matrix_verts[Global.matrix_edges[11][0]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[11][0]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[11][0]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.matrix_verts[Global.matrix_edges[11][1]] / Global.f3, Vector(1, 0, 0)), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[11][1]] / Global.f3, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.matrix_verts[Global.matrix_edges[11][1]] / Global.f3, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+	}
+}
+
+rule("sub_kinetic_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_kinetic_p1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[0][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[0][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[0][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[0][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[0][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[0][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[1][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[1][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[1][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[1][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[1][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[1][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[2][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[2][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[2][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[2][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[2][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[2][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[3][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[3][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[3][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[3][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[3][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[3][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[4][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[4][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[4][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[4][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[4][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[4][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[5][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[5][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[5][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[5][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[5][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[5][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[6][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[6][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[6][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[6][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[6][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[6][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[7][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[7][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[7][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[7][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[7][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[7][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[8][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[8][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[8][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[8][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[8][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[8][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[9][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[9][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[9][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[9][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[9][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[9][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[10][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[10][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[10][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[10][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[10][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[10][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.kinetic_verts[Global.kinetic_edges[11][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[11][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[11][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[11][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[11][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.kinetic_verts[Global.kinetic_edges[11][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+	}
+}
+
+rule("sub_deflect_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_deflect_p1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[0][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[0][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[0][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[0][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[0][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[0][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[1][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[1][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[1][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[1][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[1][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[1][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[2][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[2][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[2][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[2][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[2][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[2][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[3][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[3][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[3][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[3][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[3][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[3][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[4][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[4][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[4][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[4][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[4][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[4][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[5][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[5][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[5][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[5][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[5][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[5][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[6][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[6][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[6][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[6][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[6][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[6][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[7][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[7][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[7][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[7][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[7][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[7][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[8][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[8][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[8][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[8][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[8][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[8][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[9][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[9][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[9][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[9][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[9][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[9][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[10][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[10][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[10][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[10][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[10][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[10][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[11][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[11][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[11][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[11][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[11][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[11][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[12][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[12][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[12][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[12][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[12][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[12][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[13][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[13][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[13][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[13][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[13][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[13][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[14][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[14][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[14][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[14][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[14][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[14][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[15][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[15][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[15][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[15][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[15][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[15][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[16][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[16][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[16][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[16][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[16][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[16][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[17][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[17][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[17][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[17][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[17][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[17][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[18][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[18][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[18][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[18][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[18][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[18][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[19][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[19][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[19][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[19][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[19][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[19][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[20][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[20][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[20][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[20][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[20][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[20][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[21][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[21][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[21][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[21][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[21][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[21][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[22][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[22][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[22][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[22][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[22][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[22][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(
+			Vector(Dot Product(Global.deflect_verts[Global.deflect_edges[23][0]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[23][0]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[23][0]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation),
+			Eye Position(Event Player) - Position Of(Event Player) + World Vector Of(Vector(Dot Product(
+			Global.deflect_verts[Global.deflect_edges[23][1]] / Global.f4, Vector(1, 0, 0)), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[23][1]] / Global.f4, Vector(0, Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)), -1 * Sine From Degrees(Vertical Facing Angle Of(Event Player)))), Dot Product(
+			Global.deflect_verts[Global.deflect_edges[23][1]] / Global.f4, Vector(0, 1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)), Cosine From Degrees(Vertical Facing Angle Of(Event Player))))), Event Player, Rotation And Translation), Color(
+			White), Visible To Position and Radius);
+	}
+}
