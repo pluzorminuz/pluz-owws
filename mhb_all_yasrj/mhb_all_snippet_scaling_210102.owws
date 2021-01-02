@@ -1,0 +1,165 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: player_scale
+}
+
+rule("hud")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Null, Null, String("{0}: {1}", Custom String("[HOLD Jump / Crouch] Player Scale"),
+			Event Player.player_scale), Top, 0, Color(White), Color(White), Color(White), String, Default Visibility);
+		Event Player.player_scale = 1;
+	}
+}
+
+rule("[SCALE] enlarge")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Jump)) == True;
+		Is Button Held(Event Player, Button(Crouch)) != True;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Start Scaling Player(Event Player, Event Player.player_scale, True);
+		Chase Player Variable At Rate(Event Player, player_scale, 20, Event Player.player_scale ^ (
+			-0.050 * Event Player.player_scale + 1.100), Destination and Rate);
+	}
+}
+
+rule("[SCALE] shrink")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Crouch)) == True;
+		Is Button Held(Event Player, Button(Jump)) != True;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Start Scaling Player(Event Player, Event Player.player_scale, True);
+		Chase Player Variable At Rate(Event Player, player_scale, 0.100, Event Player.player_scale ^ (
+			-0.050 * Event Player.player_scale + 1.100), Destination and Rate);
+	}
+}
+
+rule("[SCALE] stop scale")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Crouch)) != True;
+		Is Button Held(Event Player, Button(Jump)) != True;
+	}
+
+	actions
+	{
+		Stop Chasing Player Variable(Event Player, player_scale);
+	}
+}
+
+rule("[SCALE] reset scale")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Crouch)) == True;
+		Is Button Held(Event Player, Button(Jump)) == True;
+	}
+
+	actions
+	{
+		Stop Scaling Player(Event Player);
+		Stop Chasing Player Variable(Event Player, player_scale);
+		Event Player.player_scale = 1;
+	}
+}
