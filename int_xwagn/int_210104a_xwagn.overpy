@@ -1,0 +1,621 @@
+settings {
+    "main": {
+        "description": "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Jan 04, Added Junkrat Grenade and Mine"
+    },
+    "lobby": {
+        "allowPlayersInQueue": true,
+        "spectatorSlots": 1,
+        "team1Slots": 1,
+        "team2Slots": 1
+    },
+    "gamemodes": {
+        "skirmish": {
+            "enabledMaps": [
+                "blizzWorldWinter"
+            ]
+        },
+        "general": {
+            "heroLimit": "off",
+            "roleLimit": "2OfEachRolePerTeam",
+            "respawnTime%": 50
+        }
+    },
+    "heroes": {
+        "allTeams": {
+            "general": {
+                "abilityCooldown%": 0
+            }
+        }
+    }
+}
+
+#Global variables
+
+globalvar control_points 0
+globalvar anim_rate 1
+globalvar anim_offset 2
+globalvar anim_simulation_length 3
+globalvar constants 4
+globalvar calc_temp 5
+globalvar t_ray_cast 6
+globalvar proj_hit_pos 7
+globalvar ray_cast_s 8
+globalvar ray_cast_e 9
+globalvar t_hit_pos 10
+globalvar camera_view_dist 11
+globalvar pos_lock 12
+globalvar lock_hud_id 13
+globalvar cam_on 14
+globalvar chase_cam_on 15
+globalvar chase_cam_hud_id 16
+globalvar chase_cam_dist 17
+globalvar chase_cam_start_delay 18
+globalvar trajectory_visible_to 19
+globalvar proj_launch_delta 20
+globalvar proj_launch_norm 21
+globalvar hanzo_charge 22
+globalvar hero_allowed 23
+globalvar for_loop_i 24
+
+
+#Player variables
+
+playervar curr_hero 0
+playervar lock_pos_fac 1
+playervar eye_height 2
+
+
+#Subroutine names
+
+subroutine update_constants 0
+subroutine trajectory_display 1
+subroutine chase_cam_sub 2
+subroutine debug_hud_display 3
+subroutine hud_final 4
+
+
+def update_constants():
+    @Name "[sub] update constants"
+    
+    eventPlayer.disallowButton(Button.CROUCH)
+    eventPlayer.curr_hero = eventPlayer.getCurrentHero()
+    #start hero specific constants
+    #wait(0)
+    #ana perfect and done
+    if eventPlayer.getCurrentHero() == Hero.ANA:
+        constants = [-9.84, 30, 4, 7, 0.35, 0, 0]
+        #baptiste done
+    elif eventPlayer.getCurrentHero() == Hero.BAPTISTE:
+        constants = [-20.1, 60, 3, 7, 0.1, 0.007, 6.5]
+        #orisa done
+    elif eventPlayer.getCurrentHero() == Hero.ORISA:
+        constants = [-9.84, 25, 0, 7, 0.4, 0, 0]
+        #zarya done
+    elif eventPlayer.getCurrentHero() == Hero.ZARYA:
+        constants = [-9.84, 25, 2.5, 7, 0.5, 0.1, 6]
+        #sombra done
+    elif eventPlayer.getCurrentHero() == Hero.SOMBRA:
+        constants = [-20.2, 25, 0, 5, 0.2, 0.09, 15]
+        #ashe done
+    elif eventPlayer.getCurrentHero() == Hero.ASHE:
+        constants = [-8.03, 25, 5, 7, 0.4, 0.07, 0]
+        #hanzo
+    elif eventPlayer.getCurrentHero() == Hero.HANZO:
+        constants = [-9.815, 110, 9, 15, 0.032, 0, 0]
+        #tracer
+    elif eventPlayer.getCurrentHero() == Hero.TRACER:
+        constants = [-30.8, 15, 5, 2, 0.15, 0.19, 0]
+        #mccree
+    elif eventPlayer.getCurrentHero() == Hero.MCCREE:
+        #[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2
+        constants = [-9.84, 30, 3, 7 / 30, 0, 0, 0]
+        #sigma
+    elif eventPlayer.getCurrentHero() == Hero.SIGMA:
+        #sigma rock, [0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2
+        constants = [-9.84, 27.5, 2.5, 7, 0.85, 0.05, 0]
+        #junkrat
+    elif eventPlayer.getCurrentHero() == Hero.JUNKRAT:
+        #sigma rock, [0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2
+        constants = [-12.35, 25, 2, 7, 0.1, 0.075, 0]
+        #end hero specific constants
+    #wait(0)
+    anim_rate = constants[3]
+    anim_simulation_length = constants[3]
+    chase_cam_start_delay = constants[4]
+    proj_launch_delta = constants[5]
+    wait(0.032)
+    eventPlayer.eye_height = eventPlayer.getEyePosition() - eventPlayer.getPosition()
+    wait(0.032)
+    eventPlayer.allowButton(Button.CROUCH)
+
+
+/*
+rule "mod1":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    #gravity
+    #constants[0] += 0.005
+    #speed
+    #constants[1] += 0.1
+    #launch delta
+    proj_launch_delta += 0.001
+*/
+
+/*
+rule "mod2":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
+    
+    #gravity
+    #constants[0] += -0.005
+    #speed
+    #constants[1] += -0.1
+    #launch delta
+    proj_launch_delta += -0.001
+*/
+
+def chase_cam_sub():
+    @Name "[sub] chase cam action"
+    
+    trajectory_visible_to.remove(eventPlayer)
+    eventPlayer.setInvisibility(Invis.ALL)
+    chase_cam_dist = 0
+    #ensures that most of the time the projectile will correct itself from 3rd person trajectory to 1st person
+    wait()
+    #original
+    eventPlayer.startCamera(((1 - chase_cam_dist) ** 2) * control_points[0] + (((2 * (1 - chase_cam_dist)) * chase_cam_dist) * control_points[1]) + chase_cam_dist ** 2 * control_points[2], ((max(1 - chase_cam_dist - chase_cam_start_delay / anim_simulation_length, 0)) ** 2) * control_points[0] + (((2 * (max(1 - chase_cam_dist - chase_cam_start_delay / anim_simulation_length, 0))) * (min(chase_cam_dist + chase_cam_start_delay / anim_simulation_length, 1))) * control_points[1]) + (((min(chase_cam_dist + chase_cam_start_delay / anim_simulation_length, 1)) ** 2) * control_points[2]), 0)
+    #debug
+    #eventPlayer.startCamera(((1 - chase_cam_dist) ** 2) * control_points[0] + (((2 * (1 - chase_cam_dist)) * chase_cam_dist) * control_points[1]) + chase_cam_dist ** 2 * control_points[2] + vect(0.8, 0, 0), ((1 - chase_cam_dist) ** 2) * control_points[0] + (((2 * (1 - chase_cam_dist)) * chase_cam_dist) * control_points[1]) + chase_cam_dist ** 2 * control_points[2], 0)
+    wait(chase_cam_start_delay)
+    chase(chase_cam_dist, t_ray_cast - chase_cam_start_delay / anim_simulation_length, rate=1 / anim_simulation_length, ChaseReeval.NONE)
+    wait(t_hit_pos * anim_simulation_length + 1.5)
+    stopChasingVariable(chase_cam_dist)
+    eventPlayer.stopCamera()
+    eventPlayer.setInvisibility(Invis.NONE)
+    trajectory_visible_to.append(eventPlayer)
+    cam_on = false
+
+
+rule "Init":
+    disableInspector()
+    hero_allowed = [Hero.ANA, Hero.ASHE, Hero.BAPTISTE, Hero.HANZO, Hero.ORISA, Hero.SOMBRA, Hero.TRACER, Hero.ZARYA, Hero.MCCREE, Hero.JUNKRAT]
+    proj_launch_delta = 0
+    trajectory_visible_to = []
+    chase_cam_on = false
+    cam_on = false
+    pos_lock = false
+    control_points = [vect(13, 2, 0), vect(0, 12, 0), vect(-14, 1, 1)]
+    camera_view_dist = 0.8
+    #ana
+    constants = [-9.84, 30, 4, 7, 0.35, 0, 0]
+    anim_offset = -0.04
+    calc_temp = [null, null, null, null, null]
+    trajectory_display()
+    #hit position marker
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.RED, proj_hit_pos, 0.3, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    #primary range
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.SKY_BLUE, proj_hit_pos, constants[2] / 0.985, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    #secondary range
+    createEffect(getAllPlayers(), Effect.SPHERE, Color.BLUE, proj_hit_pos, constants[6] / 0.985, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    hud_final()
+    #debug_hud_display()
+
+
+rule "Hero Limit":
+    @Event eachPlayer
+    @Hero all
+    
+    eventPlayer.setAllowedHeroes(hero_allowed)
+
+
+rule "Initial Spawn Setup":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition hostPlayer == true
+    
+    trajectory_visible_to.append(eventPlayer)
+    eventPlayer.curr_hero = eventPlayer.getCurrentHero()
+    update_constants()
+    #debug
+    #wait(1)
+    #eventPlayer.startForcingPosition(vect(0, 0, 0), true)
+    #eventPlayer.startFacing(angleToDirection(0, -60), 10000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    #setSlowMotion(20)
+    #eventPlayer.teleport(vect(-70.616, 17.242, 124.675))
+    #eventPlayer.setStatusEffect(null, Status.PHASED_OUT, 9999)
+    #setSlowMotion(10)
+
+
+rule "Calc":
+    @Event eachPlayer
+    @Hero all
+    @Condition hostPlayer == true
+    
+    if eventPlayer.isHoldingButton(Button.INTERACT) == true:
+        goto lbl_0
+    control_points[0] = eventPlayer.getEyePosition()
+    #straight up
+    if eventPlayer.getVerticalFacingAngle() < -89:
+        control_points[2] = eventPlayer.getEyePosition() + vect(0, 1, 0) * constants[1] * anim_simulation_length + vect(0, 0.5 * constants[0] * anim_simulation_length ** 2, 0)
+        calc_temp[1] = anim_simulation_length / 2 * vect(0, 1, 0).y * constants[1]
+        #straight down
+    elif eventPlayer.getVerticalFacingAngle() > 89:
+        control_points[2] = eventPlayer.getEyePosition() + vect(0, -1, 0) * constants[1] * anim_simulation_length + vect(0, 0.5 * constants[0] * anim_simulation_length ** 2, 0)
+        calc_temp[1] = anim_simulation_length / 2 * (vect(0, -1, 0)).y * constants[1]
+    else:
+        proj_launch_norm = normalize(eventPlayer.getFacingDirection() + vect(0, proj_launch_delta, 0))
+        control_points[2] = eventPlayer.getEyePosition() + proj_launch_norm * constants[1] * anim_simulation_length + vect(0, 0.5 * constants[0] * anim_simulation_length ** 2, 0)
+        calc_temp[1] = anim_simulation_length / 2 * proj_launch_norm.y * constants[1]
+    calc_temp[0] = (control_points[0] + control_points[2]) / 2
+    control_points[1] = vect(calc_temp[0].x, control_points[0].y + calc_temp[1], calc_temp[0].z)
+    for t_ray_cast in range(0, 0.996, 0.002):
+        ray_cast_s = ((1 - t_ray_cast) ** 2) * control_points[0] + (((2 * (1 - t_ray_cast)) * t_ray_cast) * control_points[1]) + t_ray_cast ** 2 * control_points[2]
+        ray_cast_e = ((1 - t_ray_cast - 0.01) ** 2) * control_points[0] + (((2 * (1 - t_ray_cast - 0.01)) * (t_ray_cast + 0.01)) * control_points[1]) + (((t_ray_cast + 0.01) ** 2) * control_points[2])
+        proj_hit_pos = raycast(ray_cast_s, ray_cast_e, null, eventPlayer, true).getHitPosition()
+        if proj_hit_pos != ray_cast_e:
+            break
+    t_hit_pos = t_ray_cast
+    lbl_0:
+    wait(0.08)
+    goto RULE_START
+
+
+rule "Camera (controls: Melee)":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.MELEE) == true
+    
+    cam_on = not cam_on
+
+
+rule "Cam On":
+    @Event eachPlayer
+    @Hero all
+    @Condition cam_on == true
+    
+    #eventPlayer.startCamera(((min(1, 1 - t_hit_pos + camera_view_dist)) ** 2) * control_points[0] + (((2 * (min(1, 1 - t_hit_pos + camera_view_dist))) * (max(0, t_hit_pos - camera_view_dist))) * control_points[1]) + (((max(0, t_hit_pos - camera_view_dist)) ** 2) * control_points[2]), proj_hit_pos, 10)
+    eventPlayer.startCamera(((1 - t_hit_pos * camera_view_dist) ** 2) * control_points[0] + ((((2 * (1 - t_hit_pos * camera_view_dist)) * t_hit_pos) * camera_view_dist) * control_points[1]) + (t_hit_pos * camera_view_dist) ** 2 * control_points[2], proj_hit_pos, 10)
+    #eventPlayer.startCamera(((1 - -1 * constants[1] / constants[0] / anim_simulation_length) ** 2) * control_points[0] + (((2 * (1 - -1 * constants[1] / constants[0] / anim_simulation_length)) * (-1 * constants[1] / constants[0] / anim_simulation_length)) * control_points[1]) + (-1 * constants[1] / constants[0] / anim_simulation_length) ** 2 * control_points[2] + vect(0.8, 0, 0), ((1 - -1 * constants[1] / constants[0] / anim_simulation_length) ** 2) * control_points[0] + (((2 * (1 - -1 * constants[1] / constants[0] / anim_simulation_length)) * (-1 * constants[1] / constants[0] / anim_simulation_length)) * control_points[1]) + (-1 * constants[1] / constants[0] / anim_simulation_length) ** 2 * control_points[2], 0)
+    #setSlowMotion(10)
+
+
+rule "Cam Off":
+    @Event eachPlayer
+    @Hero all
+    @Condition cam_on == false
+    
+    eventPlayer.stopCamera()
+    #setSlowMotion(100)
+
+
+rule "Lock (controls: Reload)":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.RELOAD) == true
+    
+    pos_lock = not pos_lock
+
+
+rule "Lock On":
+    @Event eachPlayer
+    @Hero all
+    @Condition pos_lock == true
+    
+    eventPlayer.disableEnvironmentCollision(true)
+    eventPlayer.lock_pos_fac = [eventPlayer.getEyePosition() - eventPlayer.eye_height, eventPlayer.getFacingDirection()]
+    eventPlayer.startForcingPosition(eventPlayer.lock_pos_fac[0], false)
+    eventPlayer.startFacing(eventPlayer.lock_pos_fac[1], 10000, Relativity.TO_WORLD, FacingReeval.NONE)
+    hudHeader(getAllPlayers(), "LOCK ENGAGED! Jump: Zoom out, Crouch: Zoom in", HudPosition.TOP, 1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    lock_hud_id = getLastCreatedText()
+
+
+rule "Lock Off":
+    @Event eachPlayer
+    @Hero all
+    @Condition pos_lock == false
+    
+    eventPlayer.enableEnvironmentCollision()
+    eventPlayer.stopForcingPosition()
+    eventPlayer.stopFacing()
+    destroyHudText(lock_hud_id)
+
+
+rule "Zoom Out (controls: Jump)":
+    @Event eachPlayer
+    @Hero all
+    @Condition pos_lock == true
+    @Condition eventPlayer.isHoldingButton(Button.JUMP) == true
+    
+    camera_view_dist = max(camera_view_dist + -0.003, 0)
+    wait()
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Zoom In (controls: Crouch)":
+    @Event eachPlayer
+    @Hero all
+    @Condition pos_lock == true
+    @Condition eventPlayer.isHoldingButton(Button.CROUCH) == true
+    
+    camera_view_dist = min(camera_view_dist + 0.003, 1)
+    wait()
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Detect player change":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.curr_hero != eventPlayer.getCurrentHero()
+    @Condition hostPlayer == true
+    
+    update_constants()
+
+
+rule "Chase Camera (controls: Ult Status)":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isCommunicating(Comms.ULTIMATE_STATUS) == true
+    
+    chase_cam_on = not chase_cam_on
+
+
+rule "Chase Cam On":
+    @Event eachPlayer
+    @Hero all
+    @Condition chase_cam_on == true
+    
+    hudHeader(getAllPlayers(), "Chase Camera On. Activate Ability to start camera.", HudPosition.TOP, 2, Color.BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    chase_cam_hud_id = getLastCreatedText()
+
+
+rule "Chase Cam Off":
+    @Event eachPlayer
+    @Hero all
+    @Condition chase_cam_on == false
+    
+    destroyHudText(chase_cam_hud_id)
+
+
+def trajectory_display():
+    @Name "[sub] trajectory display"
+    
+    createEffect(trajectory_visible_to, Effect.SPHERE, Color.YELLOW, ((1 - getTotalTimeElapsed() / anim_rate % 1) ** 2) * control_points[0] + (((2 * (1 - getTotalTimeElapsed() / anim_rate % 1)) * (getTotalTimeElapsed() / anim_rate % 1)) * control_points[1]) + (getTotalTimeElapsed() / anim_rate % 1) ** 2 * control_points[2], 0.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(trajectory_visible_to, Effect.SPHERE, Color.WHITE, ((1 - ((getTotalTimeElapsed() / anim_rate + 1 * anim_offset) % 1)) ** 2) * control_points[0] + (((2 * (1 - ((getTotalTimeElapsed() / anim_rate + 1 * anim_offset) % 1))) * ((getTotalTimeElapsed() / anim_rate + 1 * anim_offset) % 1)) * control_points[1]) + ((((getTotalTimeElapsed() / anim_rate + 1 * anim_offset) % 1) ** 2) * control_points[2]), 0.1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(trajectory_visible_to, Effect.SPHERE, Color.WHITE, ((1 - ((getTotalTimeElapsed() / anim_rate + 2 * anim_offset) % 1)) ** 2) * control_points[0] + (((2 * (1 - ((getTotalTimeElapsed() / anim_rate + 2 * anim_offset) % 1))) * ((getTotalTimeElapsed() / anim_rate + 2 * anim_offset) % 1)) * control_points[1]) + ((((getTotalTimeElapsed() / anim_rate + 2 * anim_offset) % 1) ** 2) * control_points[2]), 0.1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(trajectory_visible_to, Effect.SPHERE, Color.WHITE, ((1 - ((getTotalTimeElapsed() / anim_rate + 3 * anim_offset) % 1)) ** 2) * control_points[0] + (((2 * (1 - ((getTotalTimeElapsed() / anim_rate + 3 * anim_offset) % 1))) * ((getTotalTimeElapsed() / anim_rate + 3 * anim_offset) % 1)) * control_points[1]) + ((((getTotalTimeElapsed() / anim_rate + 3 * anim_offset) % 1) ** 2) * control_points[2]), 0.1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    for for_loop_i in range(0.02, 1, 0.02):
+        createEffect(trajectory_visible_to, Effect.SPHERE, Color.BLUE, ((1 - evalOnce(for_loop_i)) ** 2) * control_points[0] + (((2 * (1 - evalOnce(for_loop_i))) * evalOnce(for_loop_i)) * control_points[1]) + evalOnce(for_loop_i) ** 2 * control_points[2], 0.1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        wait()
+
+
+rule "sucide":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isCommunicating(Comms.FALL_BACK) == true
+    
+    kill(eventPlayer, eventPlayer)
+
+
+rule "debug tele":
+    @Event eachPlayer
+    @Hero all
+    @Condition getCurrentMap() == Map.WORKSHOP_EXPANSE_NIGHT
+    @Condition eventPlayer.isAlive() == true
+    
+    eventPlayer.teleport(vect(380, 0, 380))
+
+
+rule "Hanzo: Primary Fire Charge":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
+    @Condition eventPlayer.isUsingAbility2() != true
+    
+    hanzo_charge = 25
+    chase(hanzo_charge, 110, rate=120, ChaseReeval.NONE)
+
+
+rule "Hanzo: Primary Fire Release":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
+    @Condition eventPlayer.isUsingAbility2() != true
+    
+    constants[1] = hanzo_charge
+    wait()
+    if RULE_CONDITION:
+        goto RULE_START
+    #wait()
+    stopChasingVariable(hanzo_charge)
+    constants[1] = hanzo_charge
+    if chase_cam_on == true:
+        chase_cam_sub()
+
+
+rule "Hanzo: Using Storm Arrow":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isUsingAbility2() == true
+    
+    constants[1] = 110
+
+
+rule "Hanzo: Fire Storm Arrow":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
+    @Condition chase_cam_on == true
+    
+    chase_cam_sub()
+
+
+/*
+rule "Chase Camera Action (Hanzo storm arrow)":
+    @Event eachPlayer
+    @Hero all
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    #@Condition (eventPlayer.isHoldingButton(Button.ABILITY_2) or eventPlayer.isHoldingButton(Button.SECONDARY_FIRE)) == true
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
+    @Condition eventPlayer.getCurrentHero() == Hero.HANZO
+    
+    chase_cam_sub()
+*/
+
+rule "Junkrat: Using Primary Fire":
+    @Event eachPlayer
+    @Hero junkrat
+    @Condition eventPlayer.isFiringPrimaryFire() == true
+    
+    #grenade g
+    constants[0] = -12.35
+    #grenade delta
+    proj_launch_delta = 0.075
+    chase_cam_start_delay = 0.1
+
+
+rule "Junkrat: Using Concuss Mine":
+    @Event eachPlayer
+    @Hero junkrat
+    @Condition eventPlayer.isUsingAbility1() == true
+    
+    #mine g
+    constants[0] = -20.3
+    #mine delta
+    proj_launch_delta = 0.09
+    chase_cam_start_delay = 0.25
+
+
+rule "Chase Camera: Ana":
+    @Event eachPlayer
+    @Hero ana
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Ashe":
+    @Event eachPlayer
+    @Hero ashe
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Baptiste":
+    @Event eachPlayer
+    @Hero baptiste
+    @Condition chase_cam_on == true
+    @Condition (eventPlayer.isHoldingButton(Button.ABILITY_2) or eventPlayer.isHoldingButton(Button.SECONDARY_FIRE)) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Sombra":
+    @Event eachPlayer
+    @Hero sombra
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Zarya":
+    @Event eachPlayer
+    @Hero zarya
+    @Condition chase_cam_on == true
+    @Condition (eventPlayer.isHoldingButton(Button.ULTIMATE) or eventPlayer.isHoldingButton(Button.SECONDARY_FIRE)) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Orisa":
+    @Event eachPlayer
+    @Hero orisa
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Sigma":
+    @Event eachPlayer
+    @Hero sigma
+    @Condition chase_cam_on == true
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: McCree (why would you need it?)":
+    @Event eachPlayer
+    @Hero mccree
+    
+
+
+rule "Chase Camera: Junkrat":
+    @Event eachPlayer
+    @Hero junkrat
+    @Condition chase_cam_on == true
+    @Condition (eventPlayer.isFiringPrimaryFire() or eventPlayer.isUsingAbility1()) == true
+    
+    chase_cam_sub()
+
+
+rule "Chase Camera: Orisa":
+    @Event eachPlayer
+    @Hero all
+    @Condition chase_cam_on == true
+    #@Condition (eventPlayer.isHoldingButton(Button.ABILITY_2) or eventPlayer.isHoldingButton(Button.SECONDARY_FIRE)) == true
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    @Condition eventPlayer.getCurrentHero() == Hero.TRACER
+    
+    chase_cam_sub()
+
+
+rule "refill ult":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.getUltCharge() != 100
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.isAlive() == true
+    
+    eventPlayer.setUltCharge(100)
+
+
+def debug_hud_display():
+    @Name "[sub] debug hud"
+    
+    hudHeader(getAllPlayers(), l"{0} - {1} - {2}".format("Camera Dist", camera_view_dist, null), HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), l"{0} - {1} - {2}".format("Constants", l"{0} == {1}".format(constants[0], 1000 * constants[0]), constants[1]), HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), l"{0} - {1} - {2}".format("controls", null, l"{0} {1} {2}".format(control_points[0], control_points[1], control_points[2])), HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), l"{0} - {1} - {2}".format("delta", proj_launch_delta, proj_launch_delta * 1000), HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+
+def hud_final():
+    @Name "[sub] final hud"
+    
+    hudText(getAllPlayers(), null, "Improved Nade Tool by pluzorminuz", "Code: XWAGN", HudPosition.LEFT, -2, Color.WHITE, Color.WHITE, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader(getAllPlayers(), "ver. 210104a", HudPosition.LEFT, -1.8, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, "Server Load", l"{0} - {1} - {2}".format(getServerLoad(), getAverageServerLoad(), getPeakServerLoad()), HudPosition.LEFT, -1, Color.WHITE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "Instructions", HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, "Ultimate Status", "- to toggle chase camera", HudPosition.LEFT, 0.05, Color.WHITE, Color.BLUE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, l"{0} {1}".format(Button.MELEE, l"({0})".format(buttonString(Button.MELEE))), "- to toggle landing spot view", HudPosition.LEFT, 0.1, Color.WHITE, Color.GREEN, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, l"{0} {1}".format(Button.RELOAD, l"({0})".format(buttonString(Button.RELOAD))), "- to lock position and view.", HudPosition.LEFT, 0.2, Color.WHITE, Color.RED, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, l"{0} and {1}".format(l"{0} {1}".format(Button.JUMP, l"({0})".format(buttonString(Button.JUMP))), l"{0} {1}".format(Button.CROUCH, l"({0})".format(buttonString(Button.CROUCH)))), "- to zoom out or in while locked and in landing spot view", HudPosition.LEFT, 0.25, Color.WHITE, Color.YELLOW, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, l"{0} {1}".format(Button.INTERACT, l"({0})".format(buttonString(Button.INTERACT))), "- hold to lock trajectory preview", HudPosition.LEFT, 0.3, Color.WHITE, Color.AQUA, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "Stats", HudPosition.LEFT, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, "Flight Time (Approx)", anim_simulation_length * t_hit_pos, HudPosition.LEFT, 3.05, Color.WHITE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, "Position", hostPlayer.getPosition(), HudPosition.LEFT, 3.1, Color.WHITE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(getAllPlayers(), null, "Angles (Horz, Vert)", l"{0}, {1}".format(hostPlayer.getHorizontalFacingAngle(), hostPlayer.getVerticalFacingAngle()), HudPosition.LEFT, 3.2, Color.WHITE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+
