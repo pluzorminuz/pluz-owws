@@ -1,0 +1,168 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Control
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Escort
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Hybrid
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Moira
+			{
+				Biotic Orb Cooldown Time: 70%
+				Biotic Orb Max Healing Scalar: 10%
+				Projectile Speed: 10%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: bounce_max
+		1: loop_i
+
+	player:
+		0: curr_i
+		1: p
+		2: n
+		3: d
+}
+
+subroutines
+{
+	0: reflector
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.bounce_max = 16;
+	}
+}
+
+rule("player_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 1, Global.bounce_max, 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Event Player.p[Evaluate Once(Global.loop_i)],
+				Event Player.p[Evaluate Once(Global.loop_i + 1)], Color(White), Visible To Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] reflector")
+{
+	event
+	{
+		Subroutine;
+		reflector;
+	}
+
+	actions
+	{
+		Event Player.d[Event Player.curr_i + 1] = Event Player.d[Event Player.curr_i] - 2 * Event Player.n[Event Player.curr_i] * Dot Product(
+			Event Player.n[Event Player.curr_i], Event Player.d[Event Player.curr_i]);
+	}
+}
+
+rule("player loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Ability Cooldown(Event Player, Button(Ability 2)) == 0;
+	}
+
+	actions
+	{
+		Event Player.p[0] = Eye Position(Event Player);
+		Event Player.n[0] = Facing Direction Of(Event Player);
+		Event Player.d[0] = -1 * Facing Direction Of(Event Player);
+		Wait(0.016, Ignore Condition);
+		For Player Variable(Event Player, curr_i, 0, Global.bounce_max, 1);
+			"get d_i"
+			disabled Call Subroutine(reflector);
+			Event Player.d[Event Player.curr_i + 1] = Event Player.d[Event Player.curr_i] - 2 * Event Player.n[Event Player.curr_i] * Dot Product(
+				Event Player.n[Event Player.curr_i], Event Player.d[Event Player.curr_i]);
+			Event Player.p[Event Player.curr_i + 1] = Ray Cast Hit Position(Event Player.p[Event Player.curr_i],
+				Event Player.p[Event Player.curr_i] + 1000 * Event Player.d[Event Player.curr_i + 1], Null, Event Player, True);
+			Event Player.n[Event Player.curr_i + 1] = Ray Cast Hit Normal(Event Player.p[Event Player.curr_i],
+				Event Player.p[Event Player.curr_i] + 1000 * Event Player.d[Event Player.curr_i + 1], Null, Event Player, True);
+			Wait(0.016, Ignore Condition);
+		End;
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("set health")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Player Health(Event Player, 171);
+	}
+}
