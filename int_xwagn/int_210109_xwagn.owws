@@ -80,10 +80,6 @@ variables
 		27: spherecast_i
 		28: proj_dir
 		29: spherecast_fib_temp
-		30: spherecast_hit_arr
-		31: spherecast_hit_temp
-		32: traj_lock
-		33: traj_lock_hud_id
 
 	player:
 		0: curr_hero
@@ -409,7 +405,7 @@ rule("Calc")
 	conditions
 	{
 		Has Spawned(Event Player) == True;
-		Global.traj_lock == False;
+		Is Button Held(Event Player, Button(Interact)) == False;
 	}
 
 	actions
@@ -425,7 +421,6 @@ rule("Calc")
 		Global.apex_t = -1 * Y Component Of(Global.proj_launch_norm) * Global.constants[1] / Global.constants[0] / Global.constants[3];
 		If(Global.constants[7] != 0);
 			For Global Variable(t_ray_cast, 0, Global.constants[3] * 500, 1);
-				Skip If(Global.constants[7] == 0, 22);
 				For Global Variable(for_loop_i, 0, Global.spherecast_settings[2], 1);
 					Global.ray_cast_s = (1 - Global.t_ray_cast * 0.002 / Global.constants[3]) ^ 2 * Global.control_points[0] + 2 * (
 						1 - Global.t_ray_cast * 0.002 / Global.constants[3]) * (Global.t_ray_cast * 0.002 / Global.constants[3])
@@ -434,25 +429,18 @@ rule("Calc")
 						* Global.control_points[0] + Global.t_ray_cast * 0.002 / Global.constants[3] * Global.control_points[1], (
 						1 - Global.t_ray_cast * 0.002 / Global.constants[3])
 						* Global.control_points[1] + Global.t_ray_cast * 0.002 / Global.constants[3] * Global.control_points[2]));
-					Global.spherecast_hit_arr = Empty Array;
 					For Global Variable(spherecast_i, 0, Count Of(Global.spherecast), 1);
 						If(Dot Product(Global.spherecast[Global.spherecast_i], Global.proj_dir) < 0);
 							Continue;
 						End;
 						Global.ray_cast_e = Global.ray_cast_s + Global.constants[7] * Global.spherecast[Global.spherecast_i];
-						Global.spherecast_hit_temp = Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True);
-						If(Global.spherecast_hit_temp != Global.ray_cast_e);
-							Modify Global Variable(spherecast_hit_arr, Append To Array, Array(Array(Distance Between(Global.ray_cast_s,
-								Global.spherecast_hit_temp), Global.spherecast_hit_temp)));
-						End;
+						Skip If(Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True) != Global.ray_cast_e, 5);
 					End;
-					Skip If(Global.spherecast_hit_arr != Empty Array, 4);
 					Global.t_ray_cast += 1;
 				End;
 				Wait(0.016, Restart When True);
 			End;
-			Global.spherecast_hit_arr = Sorted Array(Global.spherecast_hit_arr, Current Array Element[0]);
-			Global.proj_hit_pos = Global.spherecast_hit_arr[0][1];
+			Global.proj_hit_pos = Global.ray_cast_e;
 			Global.t_hit_pos = Global.t_ray_cast * 0.002 / Global.constants[3];
 		Else;
 			For Global Variable(t_ray_cast, 0, 1, 0.002);
@@ -586,9 +574,8 @@ rule("Lock On")
 		Event Player.lock_pos_fac = Array(Eye Position(Event Player) - Event Player.eye_height, Facing Direction Of(Event Player));
 		Start Forcing Player Position(Event Player, Event Player.lock_pos_fac[0], False);
 		Start Facing(Event Player, Event Player.lock_pos_fac[1], 10000, To World, None);
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("LOCK ENGAGED!"), Input Binding String(Button(Jump)),
-			String("{0} {1} {2}", Custom String("--> Zoom Out,"), Input Binding String(Button(Crouch)), Custom String("--> Zoom In"))),
-			Null, Null, Top, 1, Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("LOCK ENGAGED! Jump: Zoom out, Crouch: Zoom in"), Null, Null, Top, 1, Color(
+			Red), Color(White), Color(White), Visible To and String, Default Visibility);
 		Global.lock_hud_id = Last Text ID;
 	}
 }
@@ -613,68 +600,6 @@ rule("Lock Off")
 		Stop Forcing Player Position(Event Player);
 		Stop Facing(Event Player);
 		Destroy HUD Text(Global.lock_hud_id);
-	}
-}
-
-rule("Lock Trajectory Preview (controls: Interact)")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Is Button Held(Event Player, Button(Interact)) == True;
-	}
-
-	actions
-	{
-		Global.traj_lock = !Global.traj_lock;
-	}
-}
-
-rule("Traj Lock On")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Global.traj_lock == True;
-	}
-
-	actions
-	{
-		Create HUD Text(All Players(All Teams), Custom String("Trajectory Preview Locked."), Null, Null, Top, 2, Color(Aqua), Color(White),
-			Color(White), Visible To and String, Default Visibility);
-		Global.traj_lock_hud_id = Last Text ID;
-	}
-}
-
-rule("Traj Lock Off")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Global.traj_lock == False;
-	}
-
-	actions
-	{
-		Destroy HUD Text(Global.traj_lock_hud_id);
 	}
 }
 
@@ -1430,7 +1355,7 @@ rule("[sub] final hud")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210109a)"), Custom String(
+		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210109)"), Custom String(
 			"by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Server Load"), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Left, -1, Color(White), Color(White), Color(White), Visible To and String,
@@ -1450,8 +1375,8 @@ rule("[sub] final hud")
 			Crouch))))), Custom String("- to zoom out or in while locked and in landing spot view"), Left, 0.250, Color(White), Color(
 			Yellow), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Interact), String("({0})", Input Binding String(Button(
-			Interact)))), Custom String("- to lock trajectory preview / refresh spherecast calc"), Left, 0.300, Color(White), Color(Aqua),
-			Color(White), Visible To and String, Default Visibility);
+			Interact)))), Custom String("- hold to lock trajectory preview"), Left, 0.300, Color(White), Color(Aqua), Color(White),
+			Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- to change hero"), Left, 0.400, Color(
 			White), Color(Turquoise), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Custom String("Stats"), Null, Null, Left, 3, Color(White), Color(White), Color(White),

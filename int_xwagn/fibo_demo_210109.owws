@@ -1,0 +1,160 @@
+settings
+{
+	main
+	{
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Jan 08, Dev Patch: spherecast"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Max Spectators: 1
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Hero Limit: Off
+			Limit Roles: 2 Of Each Role Per Team
+			Respawn Time Scalar: 50%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Torbjörn
+			{
+				Infinite Ultimate Duration: On
+			}
+		}
+	}
+
+	workshop
+	{
+		Loop Boost: 8
+		Use Fibonacci Sphere: On
+	}
+}
+
+variables
+{
+	global:
+		14: cam_on
+		25: spherecast
+		26: spherecast_settings
+		27: spherecast_i
+		29: spherecast_fib_temp
+}
+
+subroutines
+{
+	6: spherecast_arr
+}
+
+rule("Init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.spherecast_settings = Array(Workshop Setting Toggle(Custom String("Spherecast"), Custom String("Use Fibonacci Sphere"),
+			False, 0), Workshop Setting Integer(Custom String("Spherecast"), Custom String("Fibonacci Vertex Count"), 64, 1, 1000, 1),
+			Workshop Setting Integer(Custom String("Spherecast"), Custom String("Loop Boost"), 16, 1, 24, 2));
+		Start Rule(spherecast_arr, Do Nothing);
+		For Global Variable(cam_on, 0, 128, 1);
+			Create Effect(All Players(All Teams), Sphere, Color(White), Global.spherecast[Evaluate Once(Global.cam_on)] + Vector(0, 1, 0),
+				0.030, Visible To Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] build spherecast arr")
+{
+	event
+	{
+		Subroutine;
+		spherecast_arr;
+	}
+
+	actions
+	{
+		If(Global.spherecast_settings[0] == True);
+			Global.spherecast = Empty Array;
+			For Global Variable(spherecast_i, 0, Global.spherecast_settings[1], 1);
+				Global.spherecast_fib_temp[0] = Global.spherecast_i + 0.500;
+				"phi r"
+				Global.spherecast_fib_temp[1] = Arccosine In Radians(1 - 2 * (Global.spherecast_fib_temp[0] / Global.spherecast_settings[1]));
+				"theta d"
+				Global.spherecast_fib_temp[2] = Global.spherecast_fib_temp[0] * 180 * (1 + Square Root(5));
+				"x, y, z = cos(theta) * sin(phi), sin(theta) * sin(phi), cos(phi)"
+				Global.spherecast[Global.spherecast_i] = Vector(Cosine From Degrees(Global.spherecast_fib_temp[2]) * Sine From Radians(
+					Global.spherecast_fib_temp[1]), Cosine From Radians(Global.spherecast_fib_temp[1]), Sine From Degrees(
+					Global.spherecast_fib_temp[2]) * Sine From Radians(Global.spherecast_fib_temp[1]));
+				Wait(0.016, Ignore Condition);
+			End;
+		Else;
+			Global.spherecast = Array(Vector(0, -1, 0), Vector(0.724, -0.447, 0.526), Vector(-0.276, -0.447, 0.851), Vector(-0.894, -0.447, 0),
+				Vector(-0.276, -0.447, -0.851), Vector(0.724, -0.447, -0.526), Vector(0.276, 0.447, 0.851), Vector(-0.724, 0.447, 0.526),
+				Vector(-0.724, 0.447, -0.526), Vector(0.276, 0.447, -0.851), Vector(0.894, 0.447, 0), Vector(0, 1, 0), Vector(-0.162, -0.851,
+				0.500), Vector(0.425, -0.851, 0.309), Vector(0.263, -0.526, 0.809), Vector(0.851, -0.526, 0), Vector(0.425, -0.851, -0.309),
+				Vector(-0.526, -0.851, 0), Vector(-0.688, -0.526, 0.500), Vector(-0.162, -0.851, -0.500), Vector(-0.688, -0.526, -0.500),
+				Vector(0.263, -0.526, -0.809), Vector(0.951, 0, 0.309), Vector(0.951, 0, -0.309), Vector(0, 0, 1), Vector(0.588, 0, 0.809),
+				Vector(-0.951, 0, 0.309), Vector(-0.588, 0, 0.809), Vector(-0.588, 0, -0.809), Vector(-0.951, 0, -0.309), Vector(0.588, 0,
+				-0.809), Vector(0, 0, -1), Vector(0.688, 0.526, 0.500), Vector(-0.263, 0.526, 0.809), Vector(-0.851, 0.526, 0), Vector(-0.263,
+				0.526, -0.809), Vector(0.688, 0.526, -0.500), Vector(0.162, 0.851, 0.500), Vector(0.526, 0.851, 0), Vector(-0.425, 0.851,
+				0.309), Vector(-0.425, 0.851, -0.309), Vector(0.162, 0.851, -0.500));
+		End;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Global.spherecast_settings[1] += 1;
+		For Global Variable(spherecast_i, 0, Global.spherecast_settings[1], 1);
+			Global.spherecast_fib_temp[0] = Global.spherecast_i + 0.500;
+			"phi r"
+			Global.spherecast_fib_temp[1] = Arccosine In Radians(1 - 2 * (Global.spherecast_fib_temp[0] / Global.spherecast_settings[1]));
+			"theta d"
+			Global.spherecast_fib_temp[2] = Global.spherecast_fib_temp[0] * 180 * (1 + Square Root(5));
+			"x, y, z = cos(theta) * sin(phi), sin(theta) * sin(phi), cos(phi)"
+			Global.spherecast[Global.spherecast_i] = Vector(Cosine From Degrees(Global.spherecast_fib_temp[2]) * Sine From Radians(
+				Global.spherecast_fib_temp[1]), Cosine From Radians(Global.spherecast_fib_temp[1]), Sine From Degrees(
+				Global.spherecast_fib_temp[2]) * Sine From Radians(Global.spherecast_fib_temp[1]));
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
