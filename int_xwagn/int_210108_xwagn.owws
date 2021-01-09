@@ -73,6 +73,8 @@ variables
 		26: use_spherecast
 		27: spherecast_i
 		28: proj_dir
+		29: spherecast_found
+		30: loop_boost
 
 	player:
 		0: curr_hero
@@ -139,7 +141,7 @@ rule("[sub] update constants")
 		"junkrat done"
 		Else If(Hero Of(Event Player) == Hero(Junkrat));
 			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2, [7]proj.coll_r"
-			Global.constants = Array(-12.350, 25, 2, 7, 0.100, 0.075, 3, 0);
+			Global.constants = Array(-12.350, 25, 2, 7, 0.100, 0.075, 3, 0.250);
 		"torbjorn done"
 		Else If(Hero Of(Event Player) == Hero(Torbjörn));
 			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
@@ -154,7 +156,7 @@ rule("[sub] update constants")
 	}
 }
 
-disabled rule("mod1")
+rule("mod1")
 {
 	event
 	{
@@ -181,7 +183,7 @@ disabled rule("mod1")
 	}
 }
 
-disabled rule("mod2")
+rule("mod2")
 {
 	event
 	{
@@ -333,7 +335,7 @@ rule("Init")
 		Create Effect(All Players(All Teams), Sphere, Color(Yellow), Global.proj_hit_pos, Global.constants[7],
 			Visible To Position and Radius);
 		"spherecast progress size"
-		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Global.ray_cast_s, Global.constants[7],
+		Create Effect(All Players(All Teams), Sphere, Color(Yellow), Global.ray_cast_s, Global.constants[7],
 			Visible To Position and Radius);
 		"primary range"
 		Create Effect(All Players(All Teams), Sphere, Color(Sky Blue), Global.proj_hit_pos, Global.constants[2] / 0.985,
@@ -342,7 +344,7 @@ rule("Init")
 		Create Effect(All Players(All Teams), Sphere, Color(Blue), Global.proj_hit_pos, Global.constants[6] / 0.985,
 			Visible To Position and Radius);
 		Call Subroutine(hud_final);
-		disabled Call Subroutine(debug_hud_display);
+		Call Subroutine(debug_hud_display);
 	}
 }
 
@@ -418,9 +420,10 @@ rule("Calc")
 			0.500 * Global.constants[0] * Global.constants[3] ^ 2, 0);
 		"apex t"
 		Global.apex_t = -1 * Y Component Of(Global.proj_launch_norm) * Global.constants[1] / Global.constants[0] / Global.constants[3];
-		If(Global.constants[7] != 0);
+		If(Global.use_spherecast == True && Global.constants[7] != 0);
+			Global.spherecast_found = False;
 			For Global Variable(t_ray_cast, 0, Global.constants[3] * 500, 1);
-				For Global Variable(for_loop_i, 0, 16, 1);
+				For Global Variable(loop_boost, 0, 16, 1);
 					Global.ray_cast_s = (1 - Global.t_ray_cast * 0.002 / Global.constants[3]) ^ 2 * Global.control_points[0] + 2 * (
 						1 - Global.t_ray_cast * 0.002 / Global.constants[3]) * (Global.t_ray_cast * 0.002 / Global.constants[3])
 						* Global.control_points[1] + (Global.t_ray_cast * 0.002 / Global.constants[3]) ^ 2 * Global.control_points[2];
@@ -433,13 +436,22 @@ rule("Calc")
 							Continue;
 						End;
 						Global.ray_cast_e = Global.ray_cast_s + Global.constants[7] * Global.spherecast[Global.spherecast_i];
-						Skip If(Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True) != Global.ray_cast_e, 5);
+						If(Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True) != Global.ray_cast_e);
+							Global.spherecast_found = True;
+							Global.proj_hit_pos = Global.ray_cast_s;
+							Break;
+						End;
+					End;
+					If(Global.spherecast_found == True);
+						Break;
 					End;
 					Global.t_ray_cast += 1;
 				End;
+				If(Global.spherecast_found == True);
+					Break;
+				End;
 				Wait(0.016, Restart When True);
 			End;
-			Global.proj_hit_pos = Global.ray_cast_e;
 			Global.t_hit_pos = Global.t_ray_cast * 0.002 / Global.constants[3];
 		Else;
 			For Global Variable(t_ray_cast, 0, 1, 0.002);
@@ -950,8 +962,6 @@ rule("Junkrat: Using Primary Fire")
 		Global.constants[1] = 25;
 		"grenade delay"
 		Global.constants[4] = 0.100;
-		"grenade colli_r"
-		Global.constants[7] = 0;
 	}
 }
 
@@ -979,8 +989,6 @@ rule("Junkrat: Using Concuss Mine")
 		Global.constants[1] = 25;
 		"mine delay"
 		Global.constants[4] = 0.250;
-		"trap colli_r"
-		Global.constants[7] = 0.235;
 	}
 }
 
@@ -1008,8 +1016,6 @@ rule("Junkrat: Using Steel Trap")
 		Global.constants[1] = 10;
 		"trap delay"
 		Global.constants[4] = 0.250;
-		"trap colli_r"
-		Global.constants[7] = 0;
 	}
 }
 
@@ -1354,7 +1360,7 @@ rule("[sub] final hud")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210108a)"), Custom String(
+		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210108)"), Custom String(
 			"by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Server Load"), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Left, -1, Color(White), Color(White), Color(White), Visible To and String,
