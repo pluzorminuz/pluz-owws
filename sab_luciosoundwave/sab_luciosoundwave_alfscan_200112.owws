@@ -1,0 +1,322 @@
+settings
+{
+	lobby
+	{
+		Map Rotation: After A Game
+		Max Spectators: 1
+		Max Team 1 Players: 11
+		Max Team 2 Players: 1
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Kill Cam: Off
+			Kill Feed: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Lúcio
+			{
+				No Ammunition Requirement: On
+				Soundwave Cooldown Time: 0%
+				Soundwave Knockback Scalar: 0%
+			}
+
+			Reinhardt
+			{
+				Charge Knockback Scalar: 0%
+				Damage Dealt: 200%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: damage_dealer
+		1: damage_receiver
+		2: signal
+		3: hero_detector
+		4: hero_dealer
+		5: dealer_activate_ability_time
+
+	player:
+		0: rolled_position
+		1: has_received_damage
+		2: self_damage_received_time
+}
+
+subroutines
+{
+	0: roll_and_tp
+	1: reset_var
+}
+
+rule("[sub] roll and tp")
+{
+	event
+	{
+		Subroutine;
+		roll_and_tp;
+	}
+
+	actions
+	{
+		Event Player.rolled_position = Vector(Random Real(-4, 4), Random Real(2, 12), Random Real(0, 7.3));
+		Teleport(Event Player, Event Player.rolled_position);
+	}
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Set Match Time(3599);
+		disabled Pause Match Time;
+		Global.dealer_activate_ability_time = 0;
+		Global.hero_detector = Hero(Baptiste);
+		Global.hero_dealer = Hero(Lúcio);
+		Global.damage_dealer = Empty Array;
+		Global.damage_receiver = Empty Array;
+		Global.signal = False;
+		Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+	}
+}
+
+rule("damage_dealer_init (rein)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Modify Global Variable(damage_dealer, Append To Array, Event Player);
+		Set Gravity(Event Player, 0);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+		Start Forcing Player Position(Event Player, Vector(0, 6, 0), False);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer"), Slot Of(Event Player), 10000 * Position Of(
+			Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		disabled Start Scaling Player(Event Player, 3, False);
+	}
+}
+
+rule("damage_receiver_init (bap)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Modify Global Variable(damage_receiver, Append To Array, Event Player);
+		Set Gravity(Event Player, 0);
+		Start Scaling Player(Event Player, 0.100, False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("loop")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		Press Button(Global.damage_dealer, Button(Secondary Fire));
+		Wait(30 * 0.016, Ignore Condition);
+		Global.signal = True;
+		Wait(0.032, Ignore Condition);
+		Global.signal = False;
+		Wait(0.096, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("damage_receiver_detect_damage")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.has_received_damage = True;
+		Event Player.self_damage_received_time = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("damage_receiver_signal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Global.signal == True;
+	}
+
+	actions
+	{
+		If(Event Player.has_received_damage == True);
+			Enable Inspector Recording;
+			"hit"
+			Log To Inspector(String("{0} {1} {2}", 2, Custom String("|"), String("{0} {1} {2}", 100000 * Position Of(Event Player),
+				Custom String("|"), String("{0} {1} {2}", 100000 * Event Player.rolled_position, Custom String("|"),
+				Event Player.self_damage_received_time - Global.dealer_activate_ability_time))));
+			Disable Inspector Recording;
+		Else;
+			Enable Inspector Recording;
+			"miss"
+			Log To Inspector(String("{0} {1} {2}", 1, Custom String("|"), String("{0} {1} {2}", 100000 * Position Of(Event Player),
+				Custom String("|"), String("{0} {1} {2}", 100000 * Event Player.rolled_position, Custom String("|"), Custom String("NULL")))));
+			Disable Inspector Recording;
+		End;
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(reset_var);
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("[sub] reset var")
+{
+	event
+	{
+		Subroutine;
+		reset_var;
+	}
+
+	actions
+	{
+		Event Player.has_received_damage = False;
+	}
+}
+
+rule("dealer activating ability")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Is Firing Secondary(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.dealer_activate_ability_time = 1000 * Total Time Elapsed;
+	}
+}
+
+disabled rule("set match time rep")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(3599);
+		Wait(60, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("no knockback")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Knockback Dealt(Event Player, 0);
+		Set Knockback Received(Event Player, 0);
+	}
+}
