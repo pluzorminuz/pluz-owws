@@ -1,0 +1,87 @@
+settings
+{
+	modes
+	{
+		Practice Range
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Respawn Time Scalar: 40%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Infinite Ultimate Duration: On
+			Spawn With Ultimate Ready: On
+		}
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Global.B - Global.A, Global.I * 0.160, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.A = Global.B;
+		Global.B = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		For Global Variable(I, 30, 100, 1);
+			Press Button(Event Player, Button(Primary Fire));
+			Wait(Global.I * 0.016, Ignore Condition);
+			Press Button(Event Player, Button(Primary Fire));
+			Wait(Global.I * 0.016, Ignore Condition);
+			Press Button(Event Player, Button(Primary Fire));
+			Wait(Global.I * 0.016, Ignore Condition);
+			Press Button(Event Player, Button(Primary Fire));
+			Wait(1, Ignore Condition);
+		End;
+	}
+}
