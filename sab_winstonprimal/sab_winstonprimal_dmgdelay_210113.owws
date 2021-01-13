@@ -1,0 +1,120 @@
+settings
+{
+	lobby
+	{
+		Map Rotation: After A Game
+		Max Spectators: 1
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Practice Range
+
+		disabled Skirmish
+		{
+			Game Mode Start: Manual
+			Kill Cam: Off
+			Kill Feed: Off
+		}
+
+		General
+		{
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Infinite Ultimate Duration: On
+			Spawn With Ultimate Ready: On
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: damage1
+		1: damage2
+		2: primary_on
+		3: primary_off
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Custom String("primary time"), Null, Global.primary_off - Global.primary_on, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Custom String("damage time"), Null, Global.damage2 - Global.damage1, Left, 0, Color(White), Color(
+			White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Is Firing Primary(Event Player), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.primary_on = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == False;
+	}
+
+	actions
+	{
+		Global.primary_off = 1000 * Total Time Elapsed;
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Global.damage1 = Global.damage2;
+		Global.damage2 = 1000 * Total Time Elapsed;
+	}
+}
