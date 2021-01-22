@@ -60,34 +60,36 @@ variables
 {
 	global:
 		0: control_points
-		1: constants
 		2: anim_offset
-		3: apex_t
-		4: t_ray_cast
-		5: proj_hit_pos
-		6: ray_cast_s
-		7: ray_cast_e
-		8: t_hit_pos
-		9: camera_view_dist
-		10: pos_lock
-		11: lock_hud_id
-		12: cam_on
-		13: chase_cam_on
-		14: chase_cam_dist
-		15: chase_cam_chasing
-		16: trajectory_visible_to
-		17: proj_launch_norm
-		18: hanzo_charge
-		19: hero_allowed
-		20: for_loop_i
-		21: spherecast
-		22: spherecast_settings
-		23: spherecast_i
-		24: proj_dir
-		25: spherecast_fib_temp
-		26: spherecast_hit_arr
-		27: spherecast_hit_temp
-		28: traj_lock
+		4: constants
+		5: apex_t
+		6: t_ray_cast
+		7: proj_hit_pos
+		8: ray_cast_s
+		9: ray_cast_e
+		10: t_hit_pos
+		11: camera_view_dist
+		12: pos_lock
+		13: lock_hud_id
+		14: cam_on
+		15: chase_cam_on
+		16: chase_cam_hud_id
+		17: chase_cam_dist
+		18: chase_cam_chasing
+		19: trajectory_visible_to
+		21: proj_launch_norm
+		22: hanzo_charge
+		23: hero_allowed
+		24: for_loop_i
+		25: spherecast
+		26: spherecast_settings
+		27: spherecast_i
+		28: proj_dir
+		29: spherecast_fib_temp
+		30: spherecast_hit_arr
+		31: spherecast_hit_temp
+		32: traj_lock
+		33: traj_lock_hud_id
 
 	player:
 		0: curr_hero
@@ -104,7 +106,6 @@ subroutines
 	4: hud_final
 	5: chase_cam_sub_old
 	6: spherecast_arr
-	7: chase_cam_camera
 }
 
 rule("[sub] update constants")
@@ -242,8 +243,26 @@ rule("[sub] chase cam action post210106")
 		Chase Global Variable At Rate(chase_cam_dist, Global.t_hit_pos, 1 / Global.constants[3], None);
 		"ensures that most of the time the projectile will correct itself from 3rd person trajectory to 1st person"
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(chase_cam_camera);
-		Global.cam_on = True;
+		"backward cam"
+		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Normalize(
+			Vector Towards(Eye Position(Event Player), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (
+			1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2])), (
+			1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+		"original"
+		Start Camera(Event Player, Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1)
+			^ 2 * Global.control_points[0] + 2 * Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) * Max(
+			Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) * Global.control_points[1] + Max(
+			Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) ^ 2 * Global.control_points[2], (
+			1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+		"debug levelled"
+		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Vector(0.800, 0,
+			0), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
+			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
 		Wait(Global.t_hit_pos * Global.constants[3] + Global.constants[4] + 1.500 - 0.016, Ignore Condition);
 		Stop Chasing Global Variable(chase_cam_dist);
 		Stop Camera(Event Player);
@@ -477,6 +496,7 @@ rule("Landing Spot Camera (controls: Melee)")
 	conditions
 	{
 		Is Button Held(Event Player, Button(Melee)) == True;
+		Global.chase_cam_chasing == False;
 	}
 
 	actions
@@ -501,22 +521,18 @@ rule("Landing Spot Cam On")
 
 	actions
 	{
-		If(Global.chase_cam_chasing == False);
-			disabled Start Camera(Event Player, Min(1, 1 - Global.t_hit_pos + Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * Min(1,
-				1 - Global.t_hit_pos + Global.camera_view_dist) * Max(0, Global.t_hit_pos - Global.camera_view_dist)
-				* Global.control_points[1] + Max(0, Global.t_hit_pos - Global.camera_view_dist) ^ 2 * Global.control_points[2],
-				Global.proj_hit_pos, 10);
-			Start Camera(Event Player, (1 - Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * (
-				1 - Global.t_hit_pos * Global.camera_view_dist) * Global.t_hit_pos * Global.camera_view_dist * Global.control_points[1] + (
-				Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[2], Global.proj_hit_pos, 10);
-			disabled Start Camera(Event Player, (1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t)
-				* Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2] + Vector(0.800, 0, 0), (
-				1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t)
-				* Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2], 0);
-			disabled Set Slow Motion(10);
-		Else;
-			Call Subroutine(chase_cam_camera);
-		End;
+		disabled Start Camera(Event Player, Min(1, 1 - Global.t_hit_pos + Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * Min(1,
+			1 - Global.t_hit_pos + Global.camera_view_dist) * Max(0, Global.t_hit_pos - Global.camera_view_dist)
+			* Global.control_points[1] + Max(0, Global.t_hit_pos - Global.camera_view_dist) ^ 2 * Global.control_points[2],
+			Global.proj_hit_pos, 10);
+		Start Camera(Event Player, (1 - Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * (
+			1 - Global.t_hit_pos * Global.camera_view_dist) * Global.t_hit_pos * Global.camera_view_dist * Global.control_points[1] + (
+			Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[2], Global.proj_hit_pos, 10);
+		disabled Start Camera(Event Player, (1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t)
+			* Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2] + Vector(0.800, 0, 0), (
+			1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t)
+			* Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2], 0);
+		disabled Set Slow Motion(10);
 	}
 }
 
@@ -584,7 +600,7 @@ rule("Lock On")
 		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("LOCK ENGAGED!"), Input Binding String(Button(Jump)),
 			String("{0} {1} {2}", Custom String("--> Zoom Out,"), Input Binding String(Button(Crouch)), Custom String("--> Zoom In"))),
 			Null, Null, Top, 1, Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
-		Global.lock_hud_id[0] = Last Text ID;
+		Global.lock_hud_id = Last Text ID;
 	}
 }
 
@@ -607,7 +623,7 @@ rule("Lock Off")
 		Enable Movement Collision With Environment(Event Player);
 		Stop Forcing Player Position(Event Player);
 		Stop Facing(Event Player);
-		Destroy HUD Text(Global.lock_hud_id[0]);
+		Destroy HUD Text(Global.lock_hud_id);
 	}
 }
 
@@ -649,7 +665,7 @@ rule("Traj Lock On")
 	{
 		Create HUD Text(All Players(All Teams), Custom String("Trajectory Preview Locked."), Null, Null, Top, 2, Color(Aqua), Color(White),
 			Color(White), Visible To and String, Default Visibility);
-		Global.lock_hud_id[2] = Last Text ID;
+		Global.traj_lock_hud_id = Last Text ID;
 	}
 }
 
@@ -669,7 +685,7 @@ rule("Traj Lock Off")
 
 	actions
 	{
-		Destroy HUD Text(Global.lock_hud_id[2]);
+		Destroy HUD Text(Global.traj_lock_hud_id);
 	}
 }
 
@@ -779,7 +795,7 @@ rule("Chase Cam On")
 	{
 		Create HUD Text(All Players(All Teams), Custom String("Chase Camera On. Activate Ability to start camera."), Null, Null, Top, 2,
 			Color(Blue), Color(White), Color(White), Visible To and String, Default Visibility);
-		Global.lock_hud_id[1] = Last Text ID;
+		Global.chase_cam_hud_id = Last Text ID;
 	}
 }
 
@@ -799,7 +815,7 @@ rule("Chase Cam Off")
 
 	actions
 	{
-		Destroy HUD Text(Global.lock_hud_id[1]);
+		Destroy HUD Text(Global.chase_cam_hud_id);
 	}
 }
 
@@ -1425,7 +1441,7 @@ rule("[sub] final hud")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210121a)"), Custom String(
+		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210121)"), Custom String(
 			"by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Server Load"), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Left, -1, Color(White), Color(White), Color(White), Visible To and String,
@@ -1548,38 +1564,5 @@ rule("[sub] build spherecast arr")
 				0.526, -0.809), Vector(0.688, 0.526, -0.500), Vector(0.162, 0.851, 0.500), Vector(0.526, 0.851, 0), Vector(-0.425, 0.851,
 				0.309), Vector(-0.425, 0.851, -0.309), Vector(0.162, 0.851, -0.500));
 		End;
-	}
-}
-
-rule("[sub] chase cam camera all")
-{
-	event
-	{
-		Subroutine;
-		chase_cam_camera;
-	}
-
-	actions
-	{
-		"backward cam"
-		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Normalize(
-			Vector Towards(Eye Position(Event Player), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (
-			1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2])), (
-			1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
-		"original"
-		Start Camera(Event Player, Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1)
-			^ 2 * Global.control_points[0] + 2 * Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) * Max(
-			Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) * Global.control_points[1] + Max(
-			Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) ^ 2 * Global.control_points[2], (
-			1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
-		"debug levelled"
-		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Vector(0.800, 0,
-			0), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist)
-			* Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
 	}
 }
