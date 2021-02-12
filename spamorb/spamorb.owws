@@ -1,0 +1,270 @@
+settings
+{
+	lobby
+	{
+		Max Team 1 Players: 0
+		Max Team 2 Players: 0
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		General
+		{
+			Kill Feed: Off
+			Limit Roles: 2 Of Each Role Per Team
+			Respawn Time Scalar: 0%
+			Skins: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			enabled heroes
+			{
+				Moira
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Spawn More Dummy Bots
+	}
+}
+
+variables
+{
+	global:
+		0: bots
+		1: rand1
+		2: rand2
+		4: h_rot
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.bots = Empty Array;
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Moira), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(9, Ignore Condition);
+		Set Slow Motion(50);
+	}
+}
+
+rule("loop")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		For Global Variable(D, 0, Global.rand1, 1);
+			Start Holding Button(Global.bots, Button(Secondary Fire));
+			Press Button(Global.bots, Button(Ability 2));
+			Wait(0.128, Ignore Condition);
+			Stop Holding Button(Global.bots, Button(Secondary Fire));
+			Cancel Primary Action(Global.bots);
+			Set Ability Cooldown(Global.bots, Button(Ability 2), 0);
+		End;
+		For Global Variable(D, 0, Global.rand2, 1);
+			Start Holding Button(Global.bots, Button(Primary Fire));
+			Press Button(Global.bots, Button(Ability 2));
+			Wait(0.128, Ignore Condition);
+			Stop Holding Button(Global.bots, Button(Primary Fire));
+			Cancel Primary Action(Global.bots);
+			Set Ability Cooldown(Global.bots, Button(Ability 2), 0);
+		End;
+		Loop;
+	}
+}
+
+rule("player_fake")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) == True;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Start Forcing Player Position(Event Player, Vector(0, 18, 0), False);
+		disabled Start Camera(Event Player, Eye Position(Event Player) + World Vector Of(Vector(0, 0.300, -4), Event Player, Rotation),
+			Eye Position(Event Player), 0);
+		disabled Create Beam Effect(All Players(All Teams), Moira Coalescence Beam, Event Player, Eye Position(Event Player)
+			+ 30 * Direction From Angles(Global.h_rot, 90 + Sine From Radians(Total Time Elapsed) * 17.331 * Sine From Degrees(
+			Global.h_rot - (Slot Of(Event Player) - 1) * (360 / 22))), Color(White), Visible To Position and Radius);
+		Wait(9.300, Ignore Condition);
+		Press Button(Event Player, Button(Ability 2));
+	}
+}
+
+rule("bot_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Slot Of(Event Player) != 0;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Start Forcing Player Position(Event Player, Players In Slot(0, Team 1), True);
+		Set Invisible(Event Player, All);
+		Start Facing(Event Player, Direction From Angles((Slot Of(Event Player) - 1) * (360 / 22) + Global.h_rot, Sine From Radians(
+			Total Time Elapsed) * 17.331 * Sine From Degrees(Global.h_rot - (Slot Of(Event Player) - 1) * (360 / 22))), 10000, To World,
+			Direction and Turn Rate);
+		Modify Global Variable(bots, Append To Array, Event Player);
+		Set Projectile Speed(Event Player, 20);
+	}
+}
+
+rule("rng")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.rand1 = Random Integer(2, 5);
+		Global.rand2 = Random Integer(2, 5);
+		Wait(0.384, Ignore Condition);
+		Loop;
+	}
+}
+
+disabled rule("player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(0, 0, 0));
+		Start Camera(Event Player, Eye Position(Event Player) + World Vector Of(Vector(0, 0.300, -4), Event Player, Rotation),
+			Eye Position(Event Player), 0);
+	}
+}
+
+rule("rng_rot")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(h_rot, 100000, Random Real(30, 140), Destination and Rate);
+		Wait(Random Integer(3, 10), Ignore Condition);
+		Chase Global Variable At Rate(h_rot, -100000, Random Real(30, 140), Destination and Rate);
+		Wait(Random Integer(3, 7), Ignore Condition);
+		Loop;
+	}
+}
+
+rule("player_fake")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Total Time Elapsed > 9.700;
+	}
+
+	actions
+	{
+		Set Facing(Event Player, Direction From Angles(Random Real(0, 360), Random Real(-90, 90)), To World);
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
