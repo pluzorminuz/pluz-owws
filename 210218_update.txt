@@ -1,0 +1,17 @@
+doomfist metrot strike number implementation
+hero change player
+toggle melee handling
+hud --> local player
+removed manual text count and hud count
+flux use static pos
+logic for doomfist effects
+reordered subroutines
+renamed subroutines
+tidied color settings
+changes teleport controls
+changed hero change preserve location and facing
+relocated effect while sigma / doomfist is ulting
+beam default 6->8
+
+moved calc into a subroutines
+changed chase cam to start rule

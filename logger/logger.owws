@@ -1,0 +1,53 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		Control
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Log To Inspector(String("{0} - {1} - {2}", 100 * Total Time Elapsed, Attacker.D, String("{0} - {1} - {2}", Custom String(
+			"damaged"), Victim.D, String("{0} - {1} - {2}", Event Damage, Position Of(Attacker), String("{0} - {1} - {2}", Position Of(
+			Victim))))));
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.A = String("{0} {1} {2}", Custom String("<"), Event Player, Custom String(">"));
+		Event Player.B = String("{0} {1} {2}", Custom String("<"), Hero Of(Event Player), Custom String(">"));
+		Event Player.C = String("{0} {1} {2}", Custom String("<"), Team Of(Event Player), Custom String(">"));
+		Event Player.D = String("{0} {1} {2}", Custom String("<"), String("{0} {1} {2}", Event Player.A, Event Player.B, Event Player.C),
+			Custom String(">"));
+	}
+}
