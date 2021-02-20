@@ -1,0 +1,175 @@
+settings
+{
+	modes
+	{
+		Capture the Flag
+		{
+			enabled maps
+			{
+				Ayutthaya
+			}
+		}
+
+		Deathmatch
+		{
+			enabled maps
+			{
+			}
+		}
+
+		Skirmish
+		{
+			Limit Valid Control Points: First
+			Respawn As Random Hero: On
+			Respawn Time Scalar: 0%
+
+			enabled maps
+			{
+			}
+		}
+	}
+
+	heroes
+	{
+		Team 1
+		{
+			Ability Cooldown Time: 0%
+
+			enabled heroes
+			{
+				Sombra
+			}
+		}
+
+		Team 2
+		{
+			Ability Cooldown Time: 0%
+
+			enabled heroes
+			{
+				Sombra
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: data
+
+	player:
+		0: pos
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Create HUD Text(All Players(All Teams), Objective Index, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Position Of(Event Player), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Set Gravity(Event Player, 0);
+		Set Move Speed(Event Player, 500);
+	}
+}
+
+disabled rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.pos = Position Of(Event Player);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Global.data = Array(Current Map, Objective Index, Position Of(Event Player), Y Component Of(Position Of(Event Player)));
+		Enable Inspector Recording;
+		Disable Inspector Recording;
+	}
+}
+
+rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Vector(0, -1, 0), 0.100, To World, Cancel Contrary Motion XYZ);
+	}
+}
+
+rule("Rule 6")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Event Player) + 10 * Direction From Angles(Horizontal Facing Angle Of(Event Player), 0));
+	}
+}

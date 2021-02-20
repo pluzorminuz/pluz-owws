@@ -1,0 +1,103 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: velocity
+		1: cast_time_delay
+		2: init_pos
+		3: init_dir
+		4: t
+}
+
+rule("PLAYER LOCK")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Start Facing(Event Player, Global.init_dir, 100, To World, Direction and Turn Rate);
+		Start Forcing Player Position(Event Player, Global.init_pos, False);
+		Set Projectile Gravity(Event Player, 0);
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.velocity = 20;
+		Global.cast_time_delay = 0.500;
+		Global.init_pos = Vector(0, 0, 0);
+		Global.init_dir = Vector(1, 0, 0);
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Global.init_pos + Global.t * Global.init_dir + Vector(0, 8, 0),
+			Global.init_pos + Global.t * Global.init_dir, 0);
+		Stop Chasing Global Variable(t);
+		Global.t = 0;
+		Wait(Global.cast_time_delay, Ignore Condition);
+		Chase Global Variable At Rate(t, 1000, Global.velocity, None);
+		Wait(10, Ignore Condition);
+		Stop Camera(Event Player);
+	}
+}

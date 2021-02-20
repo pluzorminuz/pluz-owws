@@ -102,6 +102,8 @@ variables
 		23: enemies
 		24: player_doomfist_enemies_t
 		25: loop_k_doomfist
+		26: mhb_target_closestpt
+		27: mhb_apparent_delta
 }
 
 subroutines
@@ -556,8 +558,9 @@ rule("[sub] all hero body melee hurtbox")
 		For Player Variable(Event Player, loop_j, 0, 4, 1);
 			Create Effect(All Players(Opposite Team Of(Team Of(Event Player))), Sphere, Global.color_global[Global.color_settings[0]],
 				Update Every Frame(Position Of(Event Player) + Event Player.player_scale * (Evaluate Once(1 - Event Player.loop_j / 3)
-				* Event Player.self_mhb[1] + Evaluate Once(Event Player.loop_j / 3) * Event Player.self_mhb[2])),
-				Event Player.player_scale * Event Player.self_mhb[0] / 0.985, Visible To Position and Radius);
+				* Event Player.self_mhb[1] + Evaluate Once(Event Player.loop_j / 3) * Event Player.self_mhb[2])), (
+				Event Player.player_scale * Event Player.self_mhb[0] + Local Player.mhb_apparent_delta) / 0.985,
+				Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"end create melee hurtbox"
 		End;
@@ -1127,6 +1130,8 @@ rule("[HANZO] dragon_fire_set_variables")
 		Event Player.player_dragon_var[0] = Event Player.player_dragon_var[2];
 		Event Player.player_dragon_var[1] = Event Player.player_dragon_var[3];
 		Chase Player Variable At Rate(Event Player, player_dragon_t, Global.dimensions_dragon[4], Global.dimensions_dragon[3], None);
+		Create Effect(All Players(All Teams), Sphere, Color(White), Event Player.player_dragon_var[4], 0.500,
+			Visible To Position and Radius);
 	}
 }
 
@@ -1776,10 +1781,7 @@ rule("[SCALE BOT] enlarge")
 	actions
 	{
 		Wait(2, Abort When False);
-		Event Player.player_scale_controls[0] = False;
-		Start Scaling Player(Event Player, Event Player.player_scale, True);
-		Chase Player Variable At Rate(Event Player, player_scale, 20, Event Player.player_scale ^ (
-			-0.050 * Event Player.player_scale + 1.100), Destination and Rate);
+		Event Player.mhb_target.player_scale_controls[0] = True;
 	}
 }
 
@@ -2623,5 +2625,72 @@ rule("[sub] init_global_color_settings")
 		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
 			"Uppercut - Active"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
 			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 3));
+	}
+}
+
+rule("[MOIRA] closest point of target mhb(line) segment to facing direction")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Moira;
+	}
+
+	actions
+	{
+		Event Player.mhb_target_closestpt = Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale * Min(
+			Max(Dot Product(Eye Position(Event Player) - (Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale), Cross Product(Facing Direction Of(Event Player),
+			Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale)))
+			/ Dot Product(Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))), 0), 1);
+		Wait(0.016, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("moira hud temp")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Moira;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("MoiraBeam - Target Dist"), String("{0} {1}", Custom String(
+			"N/A"), Custom String("cm")), String("({0})", 100 * (Distance Between(Event Player.mhb_target_closestpt, Eye Position(
+			Event Player) + Facing Direction Of(Event Player) * Dot Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target_closestpt - Eye Position(Event Player)))
+			- 0.500 - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0]))), Null, Null, Left, 21,
+			Global.color_global[Global.color_settings[4]], Color(White), Color(White), String, Default Visibility);
+		Event Player.mhb_apparent_delta = 0.500;
+	}
+}
+
+rule("Rule 83")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Moira;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.mhb_apparent_delta = 1.050;
+		Wait Until(!Is Using Ultimate(Event Player), 99999);
+		Event Player.mhb_apparent_delta = 0.500;
 	}
 }
