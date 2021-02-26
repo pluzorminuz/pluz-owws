@@ -1,17 +1,33 @@
-doomfist metrot strike number implementation
-hero change player
-toggle melee handling
-hud --> local player
-removed manual text count and hud count
-flux use static pos
-logic for doomfist effects
-reordered subroutines
-renamed subroutines
-tidied color settings
-changes teleport controls
-changed hero change preserve location and facing
-relocated effect while sigma / doomfist is ulting
-beam default 6->8
+mhb_all 210218 dev log:
 
-moved calc into a subroutines
-changed chase cam to start rule
+- implemented Meteor Strike damage numbers (fully)
+-- added logics for doom fist related effects
+- hero switching now sends player back to hero selection screen (more intuitive)
+-- player preserve the location and facing direction after switching 
+- "reworked" toggle melee function
+-- now actually sets the radius to 0, better than creating and destroying constantly lol
+- moved some HUD to use local player
+- removed manual effect and hudtext counters and components and rules
+- reordered subroutines
+- renamed subroutines
+- tidied up global color settings
+- changed teleport bot control, now uses Ability 1 + Interact
+- new player variable: player_static_pos
+-- for Flux and Meteor Strike
+-- effects stays at the position of impact
+-- will move the effect to somewhere irrelevant when ulting (old position no longer matters)
+- beam count default increased to 8
+
+int 210218 dev log:
+
+- moved calc rule into a subroutine
+- changed [sub] chase cam to start rule instead of call subroutine
+
+gsd_playground 210218 dev log:
+
+- moved the huds to use local player where available
+- removed manual effect and hudtext counters and components and rules
+- removed fast beam option for the new optimized beam effects
+- switching bot hero no longer carry the active ability button from the previous hero
+- reworked bot switching controls (because there are only 3 hero to switch to)
+- TODO: added some bots that shoot
