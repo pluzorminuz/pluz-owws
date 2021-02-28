@@ -124,28 +124,15 @@ rule("init const")
 		Global.dummy_bot = Empty Array;
 		Global.f3 = 100;
 		Global.f4 = 1000;
-		Global.matrix_verts = Array(Vector(-125.223, -99.415, 79.635), Vector(-125.223, 99.696, 79.635), Vector(125.266, -99.415, 79.635),
-			Vector(125.266, 99.696, 79.635), Vector(-125.223, -99.415, 1025.124), Vector(-125.223, 99.696, 1025.120), Vector(125.266,
-			-99.415, 1025.124), Vector(125.266, 99.696, 1025.120));
-		Global.matrix_edges = Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6),
-			Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1));
-		Global.kinetic_verts = Array(Vector(999.816, 1099.714, 2599.862), Vector(999.816, -1599.897, 2599.862), Vector(-1000.300, 1099.714,
-			2599.860), Vector(-1000.306, -1599.902, 2599.858), Vector(999.816, 1099.714, 403.875), Vector(999.816, -1599.900, 403.875),
-			Vector(-1000.306, 1099.714, 403.875), Vector(-1000.306, -1599.897, 403.875));
-		Global.kinetic_edges = Array(Array(5, 7), Array(1, 5), Array(0, 1), Array(7, 6), Array(2, 3), Array(4, 5), Array(2, 6), Array(0,
-			2), Array(7, 3), Array(6, 4), Array(4, 0), Array(3, 1));
-		Global.deflect_verts = Array(Vector(-747.048, -1500.072, -498.838), Vector(-747.048, 750.664, -498.838), Vector(748.471, -1500.072,
-			-498.838), Vector(748.471, 750.664, -498.838), Vector(-747.048, -1500.072, 999.127), Vector(-747.048, 750.664, 999.127),
-			Vector(748.471, -1500.072, 999.127), Vector(748.471, 750.664, 999.127), Vector(502.177, -1500.072, -498.837), Vector(-500.753,
-			-1500.072, -498.837), Vector(-500.753, 750.663, -498.838), Vector(502.177, 750.663, -498.838), Vector(502.177, 750.663, 3.852),
-			Vector(-500.753, 750.663, 3.852), Vector(502.177, -1500.072, 3.852), Vector(-500.753, -1500.072, 3.852));
-		Global.deflect_edges = Array(Array(9, 0), Array(0, 1), Array(11, 3), Array(3, 2), Array(7, 6), Array(5, 4), Array(6, 2), Array(3,
-			7), Array(0, 4), Array(5, 1), Array(2, 8), Array(13, 15), Array(1, 10), Array(12, 14), Array(4, 6), Array(7, 5), Array(12, 13),
-			Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
+		Global.matrix_verts = Array(Vector(-125.223, -99.415, 79.635), Vector(-125.223, 99.696, 79.635), Vector(125.266, -99.415, 79.635), Vector(125.266, 99.696, 79.635), Vector(-125.223, -99.415, 1025.124), Vector(-125.223, 99.696, 1025.120), Vector(125.266, -99.415, 1025.124), Vector(125.266, 99.696, 1025.120));
+		Global.matrix_edges = Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1));
+		Global.kinetic_verts = Array(Vector(999.816, 1099.714, 2599.862), Vector(999.816, -1599.897, 2599.862), Vector(-1000.300, 1099.714, 2599.860), Vector(-1000.306, -1599.902, 2599.858), Vector(999.816, 1099.714, 403.875), Vector(999.816, -1599.900, 403.875), Vector(-1000.306, 1099.714, 403.875), Vector(-1000.306, -1599.897, 403.875));
+		Global.kinetic_edges = Array(Array(5, 7), Array(1, 5), Array(0, 1), Array(7, 6), Array(2, 3), Array(4, 5), Array(2, 6), Array(0, 2), Array(7, 3), Array(6, 4), Array(4, 0), Array(3, 1));
+		Global.deflect_verts = Array(Vector(-747.048, -1500.072, -498.838), Vector(-747.048, 750.664, -498.838), Vector(748.471, -1500.072, -498.838), Vector(748.471, 750.664, -498.838), Vector(-747.048, -1500.072, 999.127), Vector(-747.048, 750.664, 999.127), Vector(748.471, -1500.072, 999.127), Vector(748.471, 750.664, 999.127), Vector(502.177, -1500.072, -498.837), Vector(-500.753, -1500.072, -498.837), Vector(-500.753, 750.663, -498.838), Vector(502.177, 750.663, -498.838), Vector(502.177, 750.663, 3.852), Vector(-500.753, 750.663, 3.852), Vector(502.177, -1500.072, 3.852), Vector(-500.753, -1500.072, 3.852));
+		Global.deflect_edges = Array(Array(9, 0), Array(0, 1), Array(11, 3), Array(3, 2), Array(7, 6), Array(5, 4), Array(6, 2), Array(3, 7), Array(0, 4), Array(5, 1), Array(2, 8), Array(13, 15), Array(1, 10), Array(12, 14), Array(4, 6), Array(7, 5), Array(12, 13), Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
 		Global.hero_limits = Array(Hero(Sigma), Hero(D.Va), Hero(Genji));
 		Global.proj_hero_index = Array(Hero(Junkrat), Hero(Zarya), Hero(Ana));
-		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire)), Array(-9.840, 25, 0.100, 3, Button(Secondary Fire)),
-			Array(0, 20, 0, 10, Button(Primary Fire)));
+		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire)), Array(-9.840, 25, 0.100, 3, Button(Secondary Fire)), Array(0, 20, 0, 10, Button(Primary Fire)));
 	}
 }
 
@@ -158,49 +145,20 @@ rule("init huds")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1} {2}", Server Load, Server Load Average, String("{0} {1} {2}",
-			Server Load Peak, Entity Count, Text Count)), Right, -100, Color(Gray), Color(Gray), Color(Gray), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), Custom String("Code: 0A3TE"), Custom String(
-			"Genji/Sigma/D.Va Hitbox Playground (210228ptr)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(
-			Aqua), Visible To, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(
-			Reload)))), Custom String("- toggle camera"), Left, 8, Color(Green), Color(Green), Color(White), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Melee), String("({0})", Input Binding String(Button(
-			Melee)))), Custom String("- teleport selected bot"), Left, 9, Color(Green), Color(Aqua), Color(White), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, String("{0} {1} {2}", Custom String("<-"), Button(Primary Fire), String(
-			"{0} {1} {2}", Input Binding String(Button(Primary Fire)), Custom String("/"), String("{0} {1} {2}", Input Binding String(
-			Button(Secondary Fire)), Button(Secondary Fire), Custom String("->")))), String("{0} {1} {2}", Custom String(
-			"- select hitbox-displaying bot hero"), Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(
-			Global.hero_limits[Local Player.bot_hero_index])), Left, 10, Color(Green), Color(Orange), Color(White), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String(
-			"- confirm hitbox-displaying bot hero change"), Left, 11, Color(Green), Color(Blue), Color(White), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 12, Color(Green),
-			Color(Yellow), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Local Player,
-			Opposite Team Of(Team Of(Local Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Local Player, Opposite Team Of(
-			Team Of(Local Player)))))), Null, Null, Left, 20, Color(White), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("[Interact] Selected"), Local Player.mhb_target,
-			Hero Icon String(Hero Of(Local Player.mhb_target))), Null, Null, Left, 21, Color(Blue), Color(White), Color(White),
-			Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Local Player),
-			Facing Direction Of(Local Player.mhb_target))), Null, Null, Left, 22, Color(Yellow), Color(White), Color(White),
-			Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Local Player),
-			Facing Direction Of(Local Player.mhb_target)) < 0), Null, Null, Left, 23, Color(Yellow), Color(White), Color(White),
-			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1} {2}", Server Load, Server Load Average, String("{0} {1} {2}", Server Load Peak, Entity Count, Text Count)), Right, -100, Color(Gray), Color(Gray), Color(Gray), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Code: 0A3TE"), Custom String("Genji/Sigma/D.Va Hitbox Playground (210228ptr)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(Reload)))), Custom String("- toggle camera"), Left, 8, Color(Green), Color(Green), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Melee), String("({0})", Input Binding String(Button(Melee)))), Custom String("- teleport selected bot"), Left, 9, Color(Green), Color(Aqua), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1} {2}", Custom String("<-"), Button(Primary Fire), String("{0} {1} {2}", Input Binding String(Button(Primary Fire)), Custom String("/"), String("{0} {1} {2}", Input Binding String(Button(Secondary Fire)), Button(Secondary Fire), Custom String("->")))), String("{0} {1} {2}", Custom String("- select hitbox-displaying bot hero"), Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(Global.hero_limits[Local Player.bot_hero_index])), Left, 10, Color(Green), Color(Orange), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String("- confirm hitbox-displaying bot hero change"), Left, 11, Color(Green), Color(Blue), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 12, Color(Green), Color(Yellow), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Local Player, Opposite Team Of(Team Of(Local Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Local Player, Opposite Team Of(Team Of(Local Player)))))), Null, Null, Left, 20, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("[Interact] Selected"), Local Player.mhb_target, Hero Icon String(Hero Of(Local Player.mhb_target))), Null, Null, Left, 21, Color(Blue), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Local Player), Facing Direction Of(Local Player.mhb_target))), Null, Null, Left, 22, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Local Player), Facing Direction Of(Local Player.mhb_target)) < 0), Null, Null, Left, 23, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
 		Call Subroutine(spawn_bot);
 		"<- primary hero secondary -> ultimate status, change bot hero"
-		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("<-"), Input Binding String(Button(Primary Fire)),
-			String("{0} {1} {2}", Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(
-			Global.hero_limits[Local Player.bot_hero_index]), String("{0} {1} {2}", Input Binding String(Button(Secondary Fire)),
-			Custom String("->"), Custom String("Ultimate Status - Change Bot Hero")))), Null, Null, Left, 10, Color(Green), Color(White),
-			Color(White), Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("<-"), Input Binding String(Button(Primary Fire)), String("{0} {1} {2}", Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(Global.hero_limits[Local Player.bot_hero_index]), String("{0} {1} {2}", Input Binding String(Button(Secondary Fire)), Custom String("->"), Custom String("Ultimate Status - Change Bot Hero")))), Null, Null, Left, 10, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
 	}
 }
 
@@ -587,8 +545,7 @@ rule("camera 3rd")
 
 	actions
 	{
-		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(
-			Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
+		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
 	}
 }
 
@@ -644,17 +601,7 @@ rule("[sub] sub_matrix_p1")
 	actions
 	{
 		For Player Variable(Event Player, loop_j, 0, Count Of(Global.matrix_edges), 1);
-			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)
-				* Evaluate Once(X Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3))
-				+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(
-				Y Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)) + Facing Direction Of(
-				Event Player) * Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)),
-				Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(
-				Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Direction From Angles(
-				Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
-				Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Facing Direction Of(Event Player)
-				* Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)), Color(White),
-				Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)* Evaluate Once(X Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3))+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Facing Direction Of(Event Player)* Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)), Color(White), Visible To Position and Radius);
 			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
@@ -672,17 +619,7 @@ rule("[sub] sub_kinetic_p1")
 	actions
 	{
 		For Player Variable(Event Player, loop_j, 0, Count Of(Global.kinetic_edges), 1);
-			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)
-				* Evaluate Once(X Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4))
-				+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(
-				Y Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(
-				Event Player) * Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)),
-				Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(
-				Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(
-				Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
-				Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player)
-				* Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)), Color(White),
-				Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)* Evaluate Once(X Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4))+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player)* Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)), Color(White), Visible To Position and Radius);
 			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
@@ -700,17 +637,7 @@ rule("[sub] sub_deflect_p1")
 	actions
 	{
 		For Player Variable(Event Player, loop_j, 0, Count Of(Global.deflect_edges), 1);
-			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)
-				* Evaluate Once(X Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4))
-				+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(
-				Y Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(
-				Event Player) * Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)),
-				Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(
-				Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(
-				Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
-				Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player)
-				* Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)), Color(White),
-				Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation)* Evaluate Once(X Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4))+ Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player)* Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)), Color(White), Visible To Position and Radius);
 			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
@@ -747,8 +674,7 @@ rule("[sub] projectile bezier calculations")
 	actions
 	{
 		Event Player.proj_p0 = Eye Position(Event Player);
-		Event Player.proj_dir = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
-			> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+		Event Player.proj_dir = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
 		Event Player.proj_p1 = Event Player.proj_p0 + 0.500 * Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir;
 		Event Player.proj_p2 = Event Player.proj_p0 + Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir + 0.500 * Event Player.proj_simtime * Event Player.proj_simtime * Event Player.proj_grav * Up;
 	}
@@ -765,14 +691,7 @@ rule("[sub] create proj trajectory")
 	actions
 	{
 		For Player Variable(Event Player, loop_j, 0, 20, 1);
-			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Evaluate Once(
-				1 - Event Player.loop_j / 10 + Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p0 + Evaluate Once(
-				Event Player.loop_j / 10 - Event Player.loop_j * Event Player.loop_j / 200) * Event Player.proj_p1 + Evaluate Once(
-				Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p2, Evaluate Once(1 - (Event Player.loop_j + 1) / 10 + (
-				Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p0 + Evaluate Once((Event Player.loop_j + 1)
-				/ 10 - (Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 200) * Event Player.proj_p1 + Evaluate Once((
-				Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p2, Color(White),
-				Visible To Position and Radius);
+			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Evaluate Once(1 - Event Player.loop_j / 10 + Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p0 + Evaluate Once(Event Player.loop_j / 10 - Event Player.loop_j * Event Player.loop_j / 200) * Event Player.proj_p1 + Evaluate Once(Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p2, Evaluate Once(1 - (Event Player.loop_j + 1) / 10 + (Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p0 + Evaluate Once((Event Player.loop_j + 1)/ 10 - (Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 200) * Event Player.proj_p1 + Evaluate Once((Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p2, Color(White), Visible To Position and Radius);
 			Wait(0.016, Ignore Condition);
 		End;
 	}

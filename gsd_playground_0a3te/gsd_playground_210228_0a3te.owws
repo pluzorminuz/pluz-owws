@@ -96,7 +96,6 @@ variables
 		14: is_dummy_bot
 		15: is_shooting_bot
 		16: proj_index
-		17: button_to_hold
 }
 
 subroutines
@@ -144,8 +143,7 @@ rule("init const")
 			Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
 		Global.hero_limits = Array(Hero(Sigma), Hero(D.Va), Hero(Genji));
 		Global.proj_hero_index = Array(Hero(Junkrat), Hero(Zarya), Hero(Ana));
-		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire)), Array(-9.840, 25, 0.100, 3, Button(Secondary Fire)),
-			Array(0, 20, 0, 10, Button(Primary Fire)));
+		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3), Array(-9.840, 25, 0.100, 3), Array(0, 20, 0, 10));
 	}
 }
 
@@ -176,9 +174,8 @@ rule("init huds")
 			"- select hitbox-displaying bot hero"), Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(
 			Global.hero_limits[Local Player.bot_hero_index])), Left, 10, Color(Green), Color(Orange), Color(White), Visible To and String,
 			Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String(
-			"- confirm hitbox-displaying bot hero change"), Left, 11, Color(Green), Color(Blue), Color(White), Visible To and String,
-			Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String("- confirm hitbox-displaying bot hero change"),
+			Left, 11, Color(Green), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 12, Color(Green),
 			Color(Yellow), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Local Player,
@@ -265,8 +262,6 @@ rule("shooting bot init")
 	{
 		Start Rule(get_proj_data, Restart Rule);
 		Start Rule(init_trajectory, Restart Rule);
-		Wait(1, Ignore Condition);
-		Start Holding Button(Event Player, Event Player.button_to_hold);
 	}
 }
 
@@ -815,6 +810,68 @@ rule("[sub] get proj const")
 		Event Player.proj_vel = Global.proj_const[Event Player.proj_index][1];
 		Event Player.proj_del = Global.proj_const[Event Player.proj_index][2];
 		Event Player.proj_simtime = Global.proj_const[Event Player.proj_index][3];
-		Event Player.button_to_hold = Global.proj_const[Event Player.proj_index][4];
+	}
+}
+
+rule("bot ana")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Ana;
+	}
+
+	conditions
+	{
+		Event Player.is_shooting_bot == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Button(Primary Fire));
+		Set Facing(Event Player, Vector(-1, 0, 0), To World);
+	}
+}
+
+rule("bot zarya")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Zarya;
+	}
+
+	conditions
+	{
+		Event Player.is_shooting_bot == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Button(Secondary Fire));
+		Set Facing(Event Player, Vector(-1, 0.500, 1), To World);
+	}
+}
+
+rule("bot junkrat")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Event Player.is_shooting_bot == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Button(Primary Fire));
+		Set Facing(Event Player, Vector(1, 0.700, 1), To World);
 	}
 }

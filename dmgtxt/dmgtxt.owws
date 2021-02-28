@@ -29,8 +29,8 @@ rule("init_damage_iwt")
 					Local Player.victimPos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
 					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
 					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)
-					] > 3 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(Green)),
-					Default Visibility);
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(
+					Green)), Default Visibility);
 			End;
 		Else;
 			For Global Variable(loop_i, 0, Max(Number Of Slots(Team 1), Number Of Slots(Team 2)), 1);
@@ -38,8 +38,8 @@ rule("init_damage_iwt")
 					Local Player.victimPos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
 					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
 					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)
-					] > 3 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(Green)),
-					Default Visibility);
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(
+					Green)), Default Visibility);
 			End;
 		End;
 	}
@@ -61,7 +61,7 @@ rule("init_healing_iwt")
 					Local Player.healeePos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
 					Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
 					Visible To Position String and Color, Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)
-					] > 3 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
 			End;
 		Else;
 			For Global Variable(loop_i, 0, Max(Number Of Slots(Team 1), Number Of Slots(Team 2)), 1);
@@ -69,7 +69,7 @@ rule("init_healing_iwt")
 					Local Player.healeePos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
 					Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
 					Visible To Position String and Color, Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)
-					] > 3 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
 			End;
 		End;
 	}
@@ -88,11 +88,12 @@ rule("dealt_dmg")
 	{
 		Is Dummy Bot(Event Player) != True;
 		Victim != Attacker;
+		Is In Line of Sight(Attacker, Victim, Barriers Do Not Block LOS) == True;
 	}
 
 	actions
 	{
-		If(Total Time Elapsed - Event Player.lastDmgTime[Slot Of(Victim)] > 0.800);
+		If(Total Time Elapsed - Event Player.lastDmgTime[Slot Of(Victim)] > 1.500);
 			Event Player.accDmg[Slot Of(Victim)] = Event Damage;
 		Else;
 			Event Player.accDmg[Slot Of(Victim)] += Event Damage;
@@ -125,7 +126,7 @@ rule("dealt_heal")
 
 	actions
 	{
-		If(Total Time Elapsed - Event Player.lastHealTime[Slot Of(Healee)] > 1.200);
+		If(Total Time Elapsed - Event Player.lastHealTime[Slot Of(Healee)] > 1.500);
 			Event Player.accHeal[Slot Of(Healee)] = Event Healing;
 		Else;
 			Event Player.accHeal[Slot Of(Healee)] += Event Healing;

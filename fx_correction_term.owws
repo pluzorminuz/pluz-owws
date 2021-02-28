@@ -1,0 +1,4 @@
+actions
+{
+	Global._FX_CNST = 10155.377 / 10000;
+}
