@@ -5,7 +5,11 @@ def striptab(str):
 	return str.replace('\t','')
 
 def stripendcomma(str):
-	return str.replace(',\n',', ')
+	if str[-2:] == ',\n':
+		str = str[:-2] + ', '
+	elif str[-2:] == ')\n':
+		str = str[:-2] + ') '
+	return str
 
 def merge(arr):
 	if len(arr) == 1: # only one line
