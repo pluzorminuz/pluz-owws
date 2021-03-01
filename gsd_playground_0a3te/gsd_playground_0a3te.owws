@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Genji/Sigma/D.Va Hitbox Playground by pluzorminuz. Let me know if there are any problems! Last Updated: 2021 Feb 28. Reddit: u/spadler097, Discord: pluzorminuz#2542."
+		Description: "Genji/Sigma/D.Va Hitbox Playground by pluzorminuz. Let me know if there are any problems! Last Updated: 2021 Mar 01. Reddit: u/spadler097, Discord: pluzorminuz#2542."
 	}
 
 	lobby
@@ -97,6 +97,7 @@ variables
 		15: is_shooting_bot
 		16: proj_index
 		17: button_to_hold
+		18: dir_to_fac
 }
 
 subroutines
@@ -144,8 +145,8 @@ rule("init const")
 			Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
 		Global.hero_limits = Array(Hero(Sigma), Hero(D.Va), Hero(Genji));
 		Global.proj_hero_index = Array(Hero(Junkrat), Hero(Zarya), Hero(Ana));
-		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire)), Array(-9.840, 25, 0.100, 3, Button(Secondary Fire)),
-			Array(0, 20, 0, 10, Button(Primary Fire)));
+		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire), Vector(1, 0.700, 1)), Array(-9.840, 25, 0.100, 3,
+			Button(Secondary Fire), Vector(-1, 0.500, 1)), Array(0, 20, 0, 10, Button(Primary Fire), Vector(-1, 0, 0)));
 	}
 }
 
@@ -162,7 +163,7 @@ rule("init huds")
 			Server Load Peak, Entity Count, Text Count)), Right, -100, Color(Gray), Color(Gray), Color(Gray), Visible To and String,
 			Default Visibility);
 		Create HUD Text(All Players(All Teams), Custom String("Code: 0A3TE"), Custom String(
-			"Genji/Sigma/D.Va Hitbox Playground (210228ptr)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(
+			"Genji/Sigma/D.Va Hitbox Playground (210301ptr)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(
 			Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(
 			Reload)))), Custom String("- toggle camera"), Left, 8, Color(Green), Color(Green), Color(White), Visible To and String,
@@ -217,7 +218,6 @@ rule("player init")
 	{
 		Event Player.player_effect_id = Empty Array;
 		Set Max Health(Event Player, 1000);
-		Start Heal Over Time(Event Player, Event Player, 9999, 100);
 	}
 }
 
@@ -267,6 +267,7 @@ rule("shooting bot init")
 		Start Rule(init_trajectory, Restart Rule);
 		Wait(1, Ignore Condition);
 		Start Holding Button(Event Player, Event Player.button_to_hold);
+		Set Facing(Event Player, Event Player.dir_to_fac, To World);
 	}
 }
 
@@ -322,6 +323,7 @@ rule("change hero routine")
 			Call Subroutine(sub_kinetic_p1);
 			Event Player.view = True;
 		End;
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
 	}
 }
 
@@ -336,9 +338,11 @@ rule("[sub] spawn bot")
 	actions
 	{
 		Create Dummy Bot(Global.hero_limits[Global.hero_num], Team 2, 6, Vector(0, 0, 0), Vector(0, 0, 0));
-		Create Dummy Bot(Hero(Ana), Team 2, 8, Vector(18, 0, -15), Vector(0, 0, 1));
-		Create Dummy Bot(Hero(Zarya), Team 2, 7, Vector(18, 0, -18), Vector(0, 0.400, 1));
-		Create Dummy Bot(Hero(Junkrat), Team 2, 9, Vector(-18, 0, -18), Vector(0, 1, 1));
+		If(Current Map == Map(Workshop Chamber));
+			Create Dummy Bot(Hero(Ana), Team 2, 8, Vector(18, 0, -15), Vector(0, 0, 1));
+			Create Dummy Bot(Hero(Zarya), Team 2, 7, Vector(18, 0, -18), Vector(0, 0.400, 1));
+			Create Dummy Bot(Hero(Junkrat), Team 2, 9, Vector(-18, 0, -18), Vector(0, 1, 1));
+		End;
 	}
 }
 
@@ -816,5 +820,6 @@ rule("[sub] get proj const")
 		Event Player.proj_del = Global.proj_const[Event Player.proj_index][2];
 		Event Player.proj_simtime = Global.proj_const[Event Player.proj_index][3];
 		Event Player.button_to_hold = Global.proj_const[Event Player.proj_index][4];
+		Event Player.dir_to_fac = Global.proj_const[Event Player.proj_index][5];
 	}
 }

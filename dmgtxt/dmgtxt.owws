@@ -1,7 +1,9 @@
 variables
 {
 	global:
-		0: loop_i
+		0: slotC
+		1: slotQ
+		2: slotS
 
 	player:
 		0: accDmg
@@ -13,7 +15,7 @@ variables
 		6: healeePos
 }
 
-rule("init_damage_iwt")
+rule("init")
 {
 	event
 	{
@@ -23,53 +25,26 @@ rule("init_damage_iwt")
 	actions
 	{
 		Disable Inspector Recording;
-		If(Current Game Mode == Game Mode(Deathmatch));
-			For Global Variable(loop_i, 0, Number Of Slots(All Teams), 1);
-				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accDmg[Evaluate Once(Global.loop_i)], To Nearest),
-					Local Player.victimPos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
-					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
-					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)
-					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(
-					Green)), Default Visibility);
-			End;
-		Else;
-			For Global Variable(loop_i, 0, Max(Number Of Slots(Team 1), Number Of Slots(Team 2)), 1);
-				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accDmg[Evaluate Once(Global.loop_i)], To Nearest),
-					Local Player.victimPos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
-					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
-					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.loop_i)
-					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.loop_i)] ? Color(Red) : Color(
-					Green)), Default Visibility);
-			End;
-		End;
-	}
-}
-
-rule("init_healing_iwt")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Disable Inspector Recording;
-		If(Current Game Mode == Game Mode(Deathmatch));
-			For Global Variable(loop_i, 0, Number Of Slots(All Teams), 1);
-				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accHeal[Evaluate Once(Global.loop_i)], To Nearest),
-					Local Player.healeePos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
-					Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
-					Visible To Position String and Color, Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)
-					] > 1.500 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
-			End;
-		Else;
-			For Global Variable(loop_i, 0, Max(Number Of Slots(Team 1), Number Of Slots(Team 2)), 1);
-				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accHeal[Evaluate Once(Global.loop_i)], To Nearest),
-					Local Player.healeePos[Evaluate Once(Global.loop_i)] + 0.400 * Up * (
-					Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)]), 1.500, Do Not Clip,
-					Visible To Position String and Color, Total Time Elapsed - Local Player.lastHealTime[Evaluate Once(Global.loop_i)
-					] > 1.500 ? Custom Color(255, 255, 255, 0) : Color(Aqua), Default Visibility);
+		Global.slotQ = Empty Array;
+		Global.slotS = Empty Array;
+		While(True);
+			Wait Until(Global.slotQ != Empty Array, 99999);
+			Global.slotC = First Of(Global.slotQ);
+			Modify Global Variable(slotQ, Remove From Array By Value, Global.slotC);
+			If(!Array Contains(Global.slotS, Global.slotC));
+				Modify Global Variable(slotS, Append To Array, Global.slotC);
+				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accDmg[Evaluate Once(Global.slotC)], To Nearest),
+					Local Player.victimPos[Evaluate Once(Global.slotC)] + 0.400 * Up * (
+					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.slotC)]), 1.500, Do Not Clip,
+					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.slotC)
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.slotC)] ? Color(Red) : Color(Green)),
+					Default Visibility);
+				Create In-World Text(All Players(All Teams), Round To Integer(Local Player.accDmg[Evaluate Once(Global.slotC)], To Nearest),
+					Local Player.victimPos[Evaluate Once(Global.slotC)] + 0.400 * Up * (
+					Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.slotC)]), 1.500, Do Not Clip,
+					Visible To Position String and Color, Total Time Elapsed - Local Player.lastDmgTime[Evaluate Once(Global.slotC)
+					] > 1.500 ? Custom Color(255, 255, 255, 0) : (Local Player.dmgIsCrit[Evaluate Once(Global.slotC)] ? Color(Red) : Color(Green)),
+					Default Visibility);
 			End;
 		End;
 	}
@@ -133,5 +108,20 @@ rule("dealt_heal")
 		End;
 		Event Player.healeePos[Slot Of(Healee)] = Eye Position(Healee);
 		Event Player.lastHealTime[Slot Of(Healee)] = Total Time Elapsed;
+	}
+}
+
+rule("player_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Modify Global Variable(slotQ, Append To Array, Slot Of(Event Player));
 	}
 }
