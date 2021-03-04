@@ -71,9 +71,9 @@ proj_data = []
 
 for hero in hero_array_uniq:
     candidate_list = [line for line in data if line[0] == hero]
-    this_default = candidate_list[0][9]
-    this_fx = candidate_list[0][10:13]
-    this_warn = candidate_list[0][13]
+    this_default = candidate_list[0][10]
+    this_fx = candidate_list[0][11:14]
+    this_warn = candidate_list[0][14]
     
     this_proj_data = []
 
@@ -82,7 +82,7 @@ for hero in hero_array_uniq:
         if entry == []:
             this_proj_data.append([])
         else:
-            this_proj_data.append(entry[0][2:9])
+            this_proj_data.append(entry[0][2:10])
 
     proj_data.append ( [this_proj_data, this_default, this_fx, this_warn] )
 

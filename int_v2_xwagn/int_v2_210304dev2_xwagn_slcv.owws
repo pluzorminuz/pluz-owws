@@ -17,7 +17,7 @@ settings
 		{
 			enabled maps
 			{
-				King's Row
+				Temple of Anubis
 			}
 		}
 
@@ -96,7 +96,6 @@ variables
 		35: predictcam_dist
 		36: eye_height
 		37: trajlock_bool
-		38: proj_override
 }
 
 subroutines
@@ -124,7 +123,7 @@ rule("init")
 		Disable Inspector Recording;
 		"sphere,shaft 1.053046257,ringout 1.052807897,ringin 1.062128122"
 		Global._FX = Array(10155.377 / 10000, 10530.462 / 10000, 10528.079 / 10000, 10621.281 / 10000);
-		Global.data = Array(Array(Hero(Ana), Hero(Junkrat), Hero(Baptiste), Hero(Orisa), Hero(Zarya), Hero(Sombra), Hero(Ashe), Hero(Tracer), Hero(McCree), Hero(Mei), Hero(Torbjörn), Hero(Hanzo)), Array(Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 30, 0, 7, 0, 0, 0.350, False)), 4, Array(4, 0, 0), False), Array(Array(Array(-12.350, 25, 0.075, 7, 0, 0, 0.100, False), Array(), Array(), Array(-20.300, 25, 0.090, 7, 0, 0, 0.250, False), Array(-20.200, 10, 0.095, 7, 0, 0, 0.250, False)), 0, Array(2, 3, 0), True), Array(Array(Array(), Array(-20.100, 60, 0.007, 7, 0, 0, 0.100, False), Array(), Array(), Array(-20.100, 60, 0.007, 7, 0, 0, 0.100, False)), 1, Array(3, 0, 6.500), True), Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 25, 0, 7, 0, 0, 0.400, False)), 4, Array(0, 0, 0), True), Array(Array(Array(), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Array(), Array()), 1, Array(2.500, 6, 0), False), Array(Array(Array(), Array(), Array(), Array(), Array(-20.200, 25, 0.090, 5, 0, 0, 0.200, False)), 4, Array(15, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(), Array(-8.030, 25, 0.070, 7, 0, 0, 0.400, False)), 4, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(-30.800, 15, 0.190, 2, 0, 0, 0.150, False), Array(), Array()), 2, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False), Array(Array(Array(), Array(), Array(-9.900, 20, 0.090, 7, 0, 0.468, 0.600, False), Array(), Array()), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100, True), Array(), Array(-30.050, 40, 0, 4, 0, 0, 0.100, True), Array(), Array()), 0, Array(0, 2.500, 0), True), Array(Array(Array(-9.815, 110, 0, 15, 0, 0, 0.032, True), Array(), Array(), Array(), Array(-9.815, 110, 0, 15, 0, 0, 0.032, True)), 0, Array(0, 9, 0), False)));
+		Global.data = Array(Array(Hero(Ana), Hero(Junkrat), Hero(Baptiste), Hero(Orisa), Hero(Zarya), Hero(Sombra), Hero(Ashe), Hero(Tracer), Hero(McCree), Hero(Mei), Hero(Torbjörn)), Array(Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 30, 0, 7, 0, 0, 0.350)), 4, Array(4, 0, 0), False), Array(Array(Array(-12.350, 25, 0.075, 7, 0, 0, 0.100), Array(), Array(), Array(-20.300, 25, 0.090, 7, 0, 0, 0.250), Array(-20.200, 10, 0.095, 7, 0, 0, 0.250)), 0, Array(2, 3, 0), True), Array(Array(Array(), Array(-20.100, 60, 0.007, 7, 0, 0, 0.100), Array(), Array(), Array(-20.100, 60, 0.007, 7, 0, 0, 0.100)), 1, Array(3, 0, 6.500), True), Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 25, 0, 7, 0, 0, 0.400)), 4, Array(0, 0, 0), True), Array(Array(Array(), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500), Array(), Array()), 1, Array(2.500, 6, 0), False), Array(Array(Array(), Array(), Array(), Array(), Array(-20.200, 25, 0.090, 5, 0, 0, 0.200)), 4, Array(15, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(), Array(-8.030, 25, 0.070, 7, 0, 0.100, 0.400)), 4, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(-30.800, 15, 0.190, 2, 0, 0, 0.150), Array(), Array()), 2, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100)), 4, Array(3, 0, 0), False), Array(Array(Array(), Array(), Array(-9.900, 20, 0.090, 7, 0, 0.468, 0.600), Array(), Array()), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100), Array(), Array(-30.050, 40, 0, 4, 0, 0, 0.100), Array(), Array()), 0, Array(0, 2.500, 0), True)));
 		Call Subroutine(init_map_deathplane_y);
 		Call Subroutine(hud_final);
 		Call Subroutine(create_trajectory);
@@ -198,14 +197,13 @@ rule("player_changed_hero")
 		End;
 		Event Player.predictcam_dist = 0.800;
 		Event Player.predictcam_bool = False;
-		Event Player.trajectory_hidden = False;
 		If(Event Player.chasecam_chasing == True);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
 	}
 }
 
-rule("player_action_change_hero (acknowledge)")
+rule("player_action_change_hero")
 {
 	event
 	{
@@ -247,7 +245,7 @@ rule("player_action_refill_ult")
 	}
 }
 
-rule("player_action_zoomout (jump)")
+rule("Zoom Out (controls: Jump)")
 {
 	event
 	{
@@ -270,7 +268,7 @@ rule("player_action_zoomout (jump)")
 	}
 }
 
-rule("player_action_zoomin (duck)")
+rule("Zoom In (controls: Crouch)")
 {
 	event
 	{
@@ -293,7 +291,7 @@ rule("player_action_zoomin (duck)")
 	}
 }
 
-rule("player_action_predictcam (melee)")
+rule("Landing Spot Camera (controls: Melee)")
 {
 	event
 	{
@@ -317,7 +315,7 @@ rule("player_action_predictcam (melee)")
 	}
 }
 
-rule("predictcam_toggle_on")
+rule("Landing Spot Cam On")
 {
 	event
 	{
@@ -343,7 +341,7 @@ rule("predictcam_toggle_on")
 	}
 }
 
-rule("predictcam_toggle_off")
+rule("Landing Spot Cam Off")
 {
 	event
 	{
@@ -364,7 +362,88 @@ rule("predictcam_toggle_off")
 	}
 }
 
-rule("player_action_chasecam (ult status)")
+rule("[sub] load_proj_data")
+{
+	event
+	{
+		Subroutine;
+		load_proj_data;
+	}
+
+	actions
+	{
+		Event Player.hero_index = Index Of Array Value(Global.data[0], Hero Of(Event Player));
+		Event Player.hero_proj_data = Global.data[1][Event Player.hero_index][0];
+		Event Player.proj_fx = Global.data[1][Event Player.hero_index][2];
+		Event Player.proj_warning = Global.data[1][Event Player.hero_index][3];
+		Event Player.using_ability = Global.data[1][Event Player.hero_index][1];
+		Call Subroutine(swap_proj_data);
+		disabled Event Player.proj_g = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][0];
+		disabled Event Player.proj_vel = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][1];
+		disabled Event Player.proj_del = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][2];
+		disabled Event Player.proj_simtime = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][3];
+		disabled Event Player.proj_r = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][4];
+		disabled Event Player.proj_castdelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][5];
+		disabled Event Player.proj_chasedelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][6];
+	}
+}
+
+rule("[sub] save_eye_and_fac")
+{
+	event
+	{
+		Subroutine;
+		save_trajectory_origin;
+	}
+
+	actions
+	{
+		Event Player.proj_p0_hidden = Eye Position(Event Player);
+		Event Player.proj_dir_hidden = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+	}
+}
+
+rule("[sub] calculate_projectile_parameters")
+{
+	event
+	{
+		Subroutine;
+		calc_proj;
+	}
+
+	actions
+	{
+		Event Player.proj_p0 = Event Player.proj_p0_hidden;
+		Event Player.proj_dir = Event Player.proj_dir_hidden;
+		Event Player.proj_p1 = Event Player.proj_p0 + 0.500 * Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir;
+		Event Player.proj_p2 = Event Player.proj_p0 + Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir + 0.500 * Event Player.proj_simtime * Event Player.proj_simtime * Event Player.proj_g * Up;
+		Event Player.proj_apex_t = -1 * Y Component Of(Event Player.proj_dir) * Event Player.proj_vel / Event Player.proj_g / Event Player.proj_simtime;
+		If(Host Player == Event Player);
+			If(Event Player.proj_r == 0);
+				For Player Variable(Event Player, ray_cast_t, 0, 1, 0.002);
+					Event Player.ray_cast_start = Evaluate Once((1 - Event Player.ray_cast_t) * (1 - Event Player.ray_cast_t)) * Event Player.proj_p0 + Evaluate Once(2 * (1 - Event Player.ray_cast_t) * Event Player.ray_cast_t) * Event Player.proj_p1 + Evaluate Once(Event Player.ray_cast_t * Event Player.ray_cast_t) * Event Player.proj_p2;
+					If(Y Component Of(Event Player.ray_cast_start) < Global.map_deathplane_y);
+						Break;
+					End;
+					Event Player.ray_cast_end = Evaluate Once((0.998 - Event Player.ray_cast_t) * (0.998 - Event Player.ray_cast_t)) * Event Player.proj_p0 + Evaluate Once(2 * (0.998 - Event Player.ray_cast_t) * (Event Player.ray_cast_t + 0.002)) * Event Player.proj_p1 + Evaluate Once((Event Player.ray_cast_t + 0.002) * (Event Player.ray_cast_t + 0.002)) * Event Player.proj_p2;
+					Event Player.ray_cast_hit_pos = Ray Cast Hit Position(Event Player.ray_cast_start, Event Player.ray_cast_end, Null, Event Player, True);
+					"hit something"
+					If(Event Player.ray_cast_hit_pos != Event Player.ray_cast_end);
+						Break;
+					End;
+				End;
+				"adjustment term"
+				Event Player.proj_predict_land_t = Event Player.ray_cast_t + 0.002 * (Distance Between(Event Player.ray_cast_start, Event Player.ray_cast_hit_pos) / Distance Between(Event Player.ray_cast_start, Event Player.ray_cast_end));
+				Event Player.proj_predict_land_pos = Event Player.ray_cast_hit_pos;
+				Wait(0.064, Ignore Condition);
+			Else;
+				Wait(0.016, Ignore Condition);
+			End;
+		End;
+	}
+}
+
+rule("Chase Camera (controls: Ult Status)")
 {
 	event
 	{
@@ -384,7 +463,7 @@ rule("player_action_chasecam (ult status)")
 	}
 }
 
-rule("player_action_trajlock (interact)")
+rule("Lock Trajectory Preview (controls: Interact)")
 {
 	event
 	{
@@ -404,27 +483,7 @@ rule("player_action_trajlock (interact)")
 	}
 }
 
-rule("player_action_trajhide (group up)")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Is Communicating(Event Player, Group Up) == True;
-	}
-
-	actions
-	{
-		Event Player.trajectory_hidden = !Event Player.trajectory_hidden;
-	}
-}
-
-rule("player_action_lockpos (reload)")
+rule("Lock (controls: Reload)")
 {
 	event
 	{
@@ -444,7 +503,7 @@ rule("player_action_lockpos (reload)")
 	}
 }
 
-rule("lockpos_toggle_on")
+rule("Lock On")
 {
 	event
 	{
@@ -467,7 +526,7 @@ rule("lockpos_toggle_on")
 	}
 }
 
-rule("lockpos_toggle_off")
+rule("Lock Off")
 {
 	event
 	{
@@ -486,309 +545,6 @@ rule("lockpos_toggle_off")
 		Enable Movement Collision With Environment(Event Player);
 		Stop Forcing Player Position(Event Player);
 		Stop Facing(Event Player);
-	}
-}
-
-rule("check_using_primary")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		disabled Is Firing Primary(Event Player) == True;
-		Event Player.proj_override == False;
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Event Player.using_ability = 0;
-		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
-			Call Subroutine(swap_proj_data);
-			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-				Start Rule(chasecam_start, Restart Rule);
-			End;
-		End;
-	}
-}
-
-rule("check_using_secondary")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		disabled Is Firing Secondary(Event Player) == True;
-		Event Player.proj_override == False;
-		Is Button Held(Event Player, Button(Secondary Fire)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Event Player.using_ability = 1;
-		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
-			Call Subroutine(swap_proj_data);
-			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-				Start Rule(chasecam_start, Restart Rule);
-			End;
-		End;
-	}
-}
-
-rule("check_using_ultimate")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		disabled Is Using Ultimate(Event Player) == True;
-		Event Player.proj_override == False;
-		Is Button Held(Event Player, Button(Ultimate)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Event Player.using_ability = 2;
-		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
-			Call Subroutine(swap_proj_data);
-			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-				Start Rule(chasecam_start, Restart Rule);
-			End;
-		End;
-	}
-}
-
-rule("check_using_ability_1")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		disabled Is Using Ability 1(Event Player) == True;
-		Event Player.proj_override == False;
-		Is Button Held(Event Player, Button(Ability 1)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Event Player.using_ability = 3;
-		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
-			Call Subroutine(swap_proj_data);
-			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-				Start Rule(chasecam_start, Restart Rule);
-			End;
-		End;
-	}
-}
-
-rule("check_using_ability_2")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		disabled Is Using Ability 2(Event Player) == True;
-		Event Player.proj_override == False;
-		Is Button Held(Event Player, Button(Ability 2)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Event Player.using_ability = 4;
-		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
-			Call Subroutine(swap_proj_data);
-			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-				Start Rule(chasecam_start, Restart Rule);
-			End;
-		End;
-	}
-}
-
-rule("Hanzo: Primary Fire Charge")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Hanzo;
-	}
-
-	conditions
-	{
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-		Is Using Ability 2(Event Player) != True;
-	}
-
-	actions
-	{
-		Event Player.proj_vel = 25;
-		Chase Player Variable At Rate(Event Player, proj_vel, 110, 120, None);
-		Wait Until(Is Button Held(Event Player, Button(Primary Fire)) == False, 99999);
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Stop Chasing Player Variable(Event Player, proj_vel);
-		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-			Start Rule(chasecam_start, Restart Rule);
-		End;
-	}
-}
-
-rule("Hanzo: Using Storm Arrow")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Hanzo;
-	}
-
-	conditions
-	{
-		Is Using Ability 2(Event Player) == True;
-	}
-
-	actions
-	{
-		If(Event Player.chasecam_chasing != True);
-			Event Player.proj_vel = 110;
-		End;
-	}
-}
-
-rule("Hanzo: Fire Storm Arrow")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Hanzo;
-	}
-
-	conditions
-	{
-		Is Using Ability 2(Event Player) == True;
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-		Event Player.chasecam_bool == True;
-		Event Player.chasecam_chasing == False;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		Start Rule(chasecam_start, Restart Rule);
-	}
-}
-
-rule("Torbjorn: Using Ultimate")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Torbjörn;
-	}
-
-	conditions
-	{
-		Is Using Ultimate(Event Player) == True;
-	}
-
-	actions
-	{
-		If(Event Player.chasecam_chasing != True);
-			Event Player.using_ability = 2;
-			Call Subroutine(swap_proj_data);
-		End;
-	}
-}
-
-rule("Torbjorn: Rivet")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Torbjörn;
-	}
-
-	conditions
-	{
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-		Is Using Ultimate(Event Player) != True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		If(Event Player.chasecam_chasing != True);
-			Event Player.using_ability = 0;
-			Call Subroutine(swap_proj_data);
-		End;
-		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-			Start Rule(chasecam_start, Restart Rule);
-		End;
-	}
-}
-
-rule("Torbjorn: Firing Goo")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Torbjörn;
-	}
-
-	conditions
-	{
-		Is Using Ultimate(Event Player) == True;
-		Is Button Held(Event Player, Button(Primary Fire)) == True;
-	}
-
-	actions
-	{
-		"immediately snap the starting pos and fac"
-		Call Subroutine(save_trajectory_origin);
-		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
-			Start Rule(chasecam_start, Restart Rule);
-		End;
 	}
 }
 
@@ -836,6 +592,151 @@ rule("[sub] chasecam_start")
 	}
 }
 
+rule("check_using_primary")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Firing Primary(Event Player) == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+	}
+
+	actions
+	{
+		"immediately snap the starting pos and fac"
+		Call Subroutine(save_trajectory_origin);
+		Event Player.using_ability = 0;
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Call Subroutine(swap_proj_data);
+			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
+				Start Rule(chasecam_start, Restart Rule);
+			End;
+		End;
+	}
+}
+
+rule("check_using_secondary")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Firing Secondary(Event Player) == True;
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+	}
+
+	actions
+	{
+		"immediately snap the starting pos and fac"
+		Call Subroutine(save_trajectory_origin);
+		Event Player.using_ability = 1;
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Call Subroutine(swap_proj_data);
+			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
+				Start Rule(chasecam_start, Restart Rule);
+			End;
+		End;
+	}
+}
+
+rule("check_using_ultimate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Using Ultimate(Event Player) == True;
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		"immediately snap the starting pos and fac"
+		Call Subroutine(save_trajectory_origin);
+		Event Player.using_ability = 2;
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Call Subroutine(swap_proj_data);
+			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
+				Start Rule(chasecam_start, Restart Rule);
+			End;
+		End;
+	}
+}
+
+rule("check_using_ability_1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Using Ability 1(Event Player) == True;
+		Is Button Held(Event Player, Button(Ability 1)) == True;
+	}
+
+	actions
+	{
+		"immediately snap the starting pos and fac"
+		Call Subroutine(save_trajectory_origin);
+		Event Player.using_ability = 3;
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Call Subroutine(swap_proj_data);
+			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
+				Start Rule(chasecam_start, Restart Rule);
+			End;
+		End;
+	}
+}
+
+rule("check_using_ability_2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Is Using Ability 2(Event Player) == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		"immediately snap the starting pos and fac"
+		Call Subroutine(save_trajectory_origin);
+		Event Player.using_ability = 4;
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Call Subroutine(swap_proj_data);
+			If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
+				Start Rule(chasecam_start, Restart Rule);
+			End;
+		End;
+	}
+}
+
 rule("[sub] swap_projectile_data")
 {
 	event
@@ -853,7 +754,6 @@ rule("[sub] swap_projectile_data")
 		Event Player.proj_r = Event Player.hero_proj_data[Event Player.using_ability][4];
 		Event Player.proj_castdelay = Event Player.hero_proj_data[Event Player.using_ability][5];
 		Event Player.proj_chasedelay = Event Player.hero_proj_data[Event Player.using_ability][6];
-		Event Player.proj_override = Event Player.hero_proj_data[Event Player.using_ability][7];
 	}
 }
 
@@ -1009,21 +909,21 @@ rule("[sub] create trajectory")
 			Wait(0.016, Ignore Condition);
 		End;
 		"hit position marker"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Sphere, Color(Red), Local Player.proj_predict_land_pos, 0.200 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Red), Local Player.proj_predict_land_pos, 0.200 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"apex"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Sphere, Color(Green), (1 - Local Player.proj_apex_t) ^ 2 * Local Player.proj_p0 + 2 * (1 - Local Player.proj_apex_t) * Local Player.proj_apex_t * Local Player.proj_p1 + Local Player.proj_apex_t ^ 2 * Local Player.proj_p2, 0.200 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Green), (1 - Local Player.proj_apex_t) ^ 2 * Local Player.proj_p0 + 2 * (1 - Local Player.proj_apex_t) * Local Player.proj_apex_t * Local Player.proj_p1 + Local Player.proj_apex_t ^ 2 * Local Player.proj_p2, 0.200 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"proj collision size"
 		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Local Player.proj_predict_land_pos, Local Player.proj_r * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"spherecast progress size"
 		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Local Player.ray_cast_start, Local Player.proj_r * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"primary range"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Sphere, Color(Sky Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[0] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Sky Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[0] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"secondary range"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Sphere, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[1] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Sphere, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[1] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 		"cylinder range"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Light Shaft, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[2] * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[2] * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
 		"cylinder range (ring)"
-		Create Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True), Ring, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[2] * Evaluate Once(Global._FX[2]), Visible To Position and Radius);
+		Create Effect(All Players(All Teams), Ring, Color(Blue), Local Player.proj_predict_land_pos, Local Player.proj_fx[2] * Evaluate Once(Global._FX[2]), Visible To Position and Radius);
 	}
 }
 
@@ -1046,7 +946,6 @@ rule("[sub] final hud")
 		Create HUD Text(All Players(All Teams), Null, String("{0} and {1}", String("{0} {1}", Button(Jump), String("({0})", Input Binding String(Button(Jump)))), String("{0} {1}", Button(Crouch), String("({0})", Input Binding String(Button(Crouch))))), Custom String("- zoom out or in while locked and in landing spot view"), Left, 0.250, Color(White), Color(Yellow), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Interact), String("({0})", Input Binding String(Button(Interact)))), Custom String("- toggle lock trajectory preview"), Left, 0.300, Color(White), Color(Aqua), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 0.400, Color(White), Color(Turquoise), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Null, Custom String("Group Up"), Custom String("- hide trajectory / effects"), Left, 0.500, Color(White), Color(Lime Green), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Custom String("Stats"), Null, Null, Left, 3, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Flight Time (Approx)"), Local Player.proj_simtime * Local Player.proj_predict_land_t, Left, 3.050, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Position"), Position Of(Host Player), Left, 3.100, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
@@ -1059,88 +958,5 @@ rule("[sub] final hud")
 		Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element.poslock_bool == True), Custom String("LOCK ENGAGED! {0}: Zoom Out, {1}: Zoom In", Input Binding String(Button(Jump)), Input Binding String(Button(Crouch))), Null, Null, Top, 2, Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element.chasecam_bool == True), Custom String("Chase Camera On. Activate Ability ({0}) to start camera.", Local Player.hero_ability_icon), Null, Null, Top, 3, Color(Blue), Color(White), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Filtered Array(All Players(All Teams), Current Array Element.proj_warning == True), Custom String("NON-ZERO PROJECTILE RADIUS. TRAJECTORY MAY NOT MATCH"), Null, Null, Top, 4, Color(Red), Color(White), Color(White), Visible To, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Local Player.proj_override, Null, Null, Right, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		disabled Create HUD Text(All Players(All Teams), Local Player.proj_override, Null, Null, Right, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-	}
-}
-
-rule("[sub] load_proj_data")
-{
-	event
-	{
-		Subroutine;
-		load_proj_data;
-	}
-
-	actions
-	{
-		Event Player.hero_index = Index Of Array Value(Global.data[0], Hero Of(Event Player));
-		Event Player.hero_proj_data = Global.data[1][Event Player.hero_index][0];
-		Event Player.proj_fx = Global.data[1][Event Player.hero_index][2];
-		Event Player.proj_warning = Global.data[1][Event Player.hero_index][3];
-		Event Player.using_ability = Global.data[1][Event Player.hero_index][1];
-		Call Subroutine(swap_proj_data);
-		disabled Event Player.proj_g = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][0];
-		disabled Event Player.proj_vel = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][1];
-		disabled Event Player.proj_del = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][2];
-		disabled Event Player.proj_simtime = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][3];
-		disabled Event Player.proj_r = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][4];
-		disabled Event Player.proj_castdelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][5];
-		disabled Event Player.proj_chasedelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][6];
-	}
-}
-
-rule("[sub] save_eye_and_fac")
-{
-	event
-	{
-		Subroutine;
-		save_trajectory_origin;
-	}
-
-	actions
-	{
-		Event Player.proj_p0_hidden = Eye Position(Event Player);
-		Event Player.proj_dir_hidden = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
-	}
-}
-
-rule("[sub] calculate_projectile_parameters")
-{
-	event
-	{
-		Subroutine;
-		calc_proj;
-	}
-
-	actions
-	{
-		Event Player.proj_p0 = Event Player.proj_p0_hidden;
-		Event Player.proj_dir = Event Player.proj_dir_hidden;
-		Event Player.proj_p1 = Event Player.proj_p0 + 0.500 * Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir;
-		Event Player.proj_p2 = Event Player.proj_p0 + Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir + 0.500 * Event Player.proj_simtime * Event Player.proj_simtime * Event Player.proj_g * Up;
-		Event Player.proj_apex_t = -1 * Y Component Of(Event Player.proj_dir) * Event Player.proj_vel / Event Player.proj_g / Event Player.proj_simtime;
-		If(Host Player == Event Player);
-			If(Event Player.proj_r == 0);
-				For Player Variable(Event Player, ray_cast_t, 0, 1, 0.002);
-					Event Player.ray_cast_start = Evaluate Once((1 - Event Player.ray_cast_t) * (1 - Event Player.ray_cast_t)) * Event Player.proj_p0 + Evaluate Once(2 * (1 - Event Player.ray_cast_t) * Event Player.ray_cast_t) * Event Player.proj_p1 + Evaluate Once(Event Player.ray_cast_t * Event Player.ray_cast_t) * Event Player.proj_p2;
-					If(Y Component Of(Event Player.ray_cast_start) < Global.map_deathplane_y);
-						Break;
-					End;
-					Event Player.ray_cast_end = Evaluate Once((0.998 - Event Player.ray_cast_t) * (0.998 - Event Player.ray_cast_t)) * Event Player.proj_p0 + Evaluate Once(2 * (0.998 - Event Player.ray_cast_t) * (Event Player.ray_cast_t + 0.002)) * Event Player.proj_p1 + Evaluate Once((Event Player.ray_cast_t + 0.002) * (Event Player.ray_cast_t + 0.002)) * Event Player.proj_p2;
-					Event Player.ray_cast_hit_pos = Ray Cast Hit Position(Event Player.ray_cast_start, Event Player.ray_cast_end, Null, Event Player, True);
-					"hit something"
-					If(Event Player.ray_cast_hit_pos != Event Player.ray_cast_end);
-						Break;
-					End;
-				End;
-				"adjustment term"
-				Event Player.proj_predict_land_t = Event Player.ray_cast_t + 0.002 * (Distance Between(Event Player.ray_cast_start, Event Player.ray_cast_hit_pos) / Distance Between(Event Player.ray_cast_start, Event Player.ray_cast_end));
-				Event Player.proj_predict_land_pos = Event Player.ray_cast_hit_pos;
-				Wait(0.064, Ignore Condition);
-			Else;
-				Wait(0.016, Ignore Condition);
-			End;
-		End;
 	}
 }
