@@ -1,0 +1,588 @@
+settings
+{
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		disabled Assault
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Control
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Escort
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Hybrid
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Practice Range
+		{
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Play More Effects
+	}
+}
+
+variables
+{
+	global:
+		0: data
+		1: loop_i
+		2: map_deathplane_y
+		100: _FX
+
+	player:
+		0: hero_index
+		1: hero_proj_data
+		3: proj_g
+		4: proj_vel
+		5: proj_del
+		6: proj_simtime
+		7: proj_r
+		8: proj_castdelay
+		9: proj_chasedelay
+		10: proj_fx
+		11: proj_warning
+		12: proj_p0
+		13: proj_p1
+		14: proj_p2
+		15: proj_apex_t
+		16: trajectory_hidden
+		17: proj_dir
+		18: using_ability
+		19: player_hero
+}
+
+subroutines
+{
+	0: load_proj_data
+	1: calc_proj
+	2: swap_proj_data
+	3: init_map_deathplane_y
+	4: create_trajectory
+	5: check_ability1
+}
+
+rule("fx_correction_term")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"sphere,shaft 1.053046257,ringout 1.052807897,ringin 1.062128122"
+		Global._FX = Array(10155.377 / 10000, 10530.462 / 10000, 10528.079 / 10000, 10621.281 / 10000);
+	}
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.data = Array(Array(Hero(Ana), Hero(Junkrat), Hero(Baptiste), Hero(Orisa), Hero(Zarya), Hero(Sombra), Hero(Ashe), Hero(
+			Tracer), Hero(McCree), Hero(Mei), Hero(Torbjörn)), Array(Array(Array(Array(), Array(), Array(), Array(-9.840, 30, 0, 7, 0, 0,
+			0.350), Array()), 3, Array(4, 0, 0), False), Array(Array(Array(-12.350, 25, 0.075, 7, 0, 0, 0.100), Array(), Array(), Array(
+			-20.300, 25, 0.090, 7, 0, 0, 0.250), Array(-20.200, 10, 0.095, 7, 0, 0, 0.250)), 0, Array(2, 3, 0), True), Array(Array(Array(
+			-20.100, 60, 0.007, 7, 0, 0, 0.100), Array(), Array(), Array(), Array()), 0, Array(3, 0, 6.500), True), Array(Array(Array(),
+			Array(), Array(), Array(), Array(-9.840, 25, 0, 7, 0, 0, 0.400)), 4, Array(0, 0, 0), True), Array(Array(Array(), Array(-9.840,
+			25, 0.100, 7, 0, 0, 0.500), Array(), Array(), Array()), 1, Array(2.500, 6, 0), False), Array(Array(Array(), Array(), Array(),
+			Array(), Array(-20.200, 25, 0.090, 5, 0, 0, 0.200)), 4, Array(15, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(),
+			Array(-8.030, 25, 0.070, 7, 0, 0, 0.400)), 4, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(-30.800, 15, 0.190, 2,
+			0, 0, 0.150), Array(), Array()), 2, Array(5, 0, 0), True), Array(Array(Array(), Array(), Array(), Array(), Array(-9.840, 30, 0,
+			7 / 30, 0, 0, 0.100)), 4, Array(3, 0, 0), False), Array(Array(Array(), Array(), Array(-9.900, 20, 0.090, 7, 0, 0.500, 0.600),
+			Array(), Array()), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100), Array(), Array(-30.050,
+			40, 0, 4, 0, 0, 0.100), Array(), Array()), 0, Array(0, 2.500, 0), True)));
+		Call Subroutine(init_map_deathplane_y);
+		Call Subroutine(create_trajectory);
+	}
+}
+
+rule("init_player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Global.data[0]);
+		Event Player.trajectory_hidden = False;
+	}
+}
+
+rule("player_calc_proj_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Call Subroutine(calc_proj);
+		Wait(0.080, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("player_changed_hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Hero Of(Event Player) != Event Player.player_hero;
+	}
+
+	actions
+	{
+		Event Player.player_hero = Hero Of(Event Player);
+		Call Subroutine(load_proj_data);
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("player_action_change_hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
+		Set Player Allowed Heroes(Event Player, Global.data[0]);
+	}
+}
+
+rule("player_action_refill_ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("[sub] load_proj_data")
+{
+	event
+	{
+		Subroutine;
+		load_proj_data;
+	}
+
+	actions
+	{
+		Event Player.hero_index = Index Of Array Value(Global.data[0], Hero Of(Event Player));
+		Event Player.hero_proj_data = Global.data[1][Event Player.hero_index][0];
+		Event Player.proj_fx = Global.data[1][Event Player.hero_index][2];
+		Event Player.proj_warning = Global.data[1][Event Player.hero_index][3];
+		Event Player.proj_g = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][0];
+		Event Player.proj_vel = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][1];
+		Event Player.proj_del = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][2];
+		Event Player.proj_simtime = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][3];
+		Event Player.proj_r = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][4];
+		Event Player.proj_castdelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][5];
+		Event Player.proj_chasedelay = Event Player.hero_proj_data[Global.data[1][Event Player.hero_index][1]][6];
+	}
+}
+
+rule("[sub] calculate_projectile_parameters")
+{
+	event
+	{
+		Subroutine;
+		calc_proj;
+	}
+
+	actions
+	{
+		Event Player.proj_p0 = Eye Position(Event Player);
+		Event Player.proj_dir = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
+			> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+		Event Player.proj_p1 = Event Player.proj_p0 + 0.500 * Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir;
+		Event Player.proj_p2 = Event Player.proj_p0 + Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir + 0.500 * Event Player.proj_simtime * Event Player.proj_simtime * Event Player.proj_g * Up;
+		Event Player.proj_apex_t = 0;
+	}
+}
+
+rule("check_using_primary")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.using_ability = 0;
+		Call Subroutine(swap_proj_data);
+	}
+}
+
+rule("check_using_secondary")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Firing Secondary(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.using_ability = 1;
+		Call Subroutine(swap_proj_data);
+	}
+}
+
+rule("check_using_ultimate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.using_ability = 2;
+		Call Subroutine(swap_proj_data);
+	}
+}
+
+rule("check_using_ability_1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.using_ability = 3;
+		Call Subroutine(swap_proj_data);
+	}
+}
+
+rule("check_using_ability_2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.using_ability = 4;
+		Call Subroutine(swap_proj_data);
+	}
+}
+
+rule("[sub] swap_projectile_data")
+{
+	event
+	{
+		Subroutine;
+		swap_proj_data;
+	}
+
+	actions
+	{
+		If(Event Player.hero_proj_data[Event Player.using_ability] != Empty Array);
+			Event Player.proj_g = Event Player.hero_proj_data[Event Player.using_ability][0];
+			Event Player.proj_vel = Event Player.hero_proj_data[Event Player.using_ability][1];
+			Event Player.proj_del = Event Player.hero_proj_data[Event Player.using_ability][2];
+			Event Player.proj_simtime = Event Player.hero_proj_data[Event Player.using_ability][3];
+			Event Player.proj_r = Event Player.hero_proj_data[Event Player.using_ability][4];
+			Event Player.proj_castdelay = Event Player.hero_proj_data[Event Player.using_ability][5];
+			Event Player.proj_chasedelay = Event Player.hero_proj_data[Event Player.using_ability][6];
+		End;
+	}
+}
+
+rule("[sub] obsolete")
+{
+	event
+	{
+		Subroutine;
+		check_ability1;
+	}
+
+	actions
+	{
+		If(Event Player.hero_proj_data[2] != Empty Array);
+			While(True);
+				Wait Until(!Is Using Ability 1(Event Player), 99999);
+				Wait Until(Is Using Ability 1(Event Player), 99999);
+				Small Message(All Players(All Teams), Custom String("This ability is open for chase"));
+			End;
+		End;
+	}
+}
+
+rule("[sub] map_deathplane")
+{
+	event
+	{
+		Subroutine;
+		init_map_deathplane_y;
+	}
+
+	actions
+	{
+		If(Current Map == Map(Blizzard World));
+			Global.map_deathplane_y = -6.490;
+		Else If(Current Map == Map(Blizzard World Winter));
+			Global.map_deathplane_y = -6.490;
+		Else If(Current Map == Map(Dorado));
+			Global.map_deathplane_y = -9.510;
+		Else If(Current Map == Map(Eichenwalde));
+			Global.map_deathplane_y = -7.720;
+		Else If(Current Map == Map(Eichenwalde Halloween));
+			Global.map_deathplane_y = -7.710;
+		Else If(Current Map == Map(Hanamura));
+			Global.map_deathplane_y = -8.510;
+		Else If(Current Map == Map(Hanamura Winter));
+			Global.map_deathplane_y = -8.500;
+		Else If(Current Map == Map(Havana));
+			Global.map_deathplane_y = -8.500;
+		Else If(Current Map == Map(Hollywood));
+			Global.map_deathplane_y = -30.510;
+		Else If(Current Map == Map(Hollywood Halloween));
+			Global.map_deathplane_y = -30.500;
+		Else If(Current Map == Map(Horizon Lunar Colony));
+			Global.map_deathplane_y = 0.410;
+		Else If(Current Map == Map(Junkertown));
+			Global.map_deathplane_y = -5.500;
+		Else If(Current Map == Map(King's Row));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(King's Row Winter));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(Numbani));
+			Global.map_deathplane_y = -10.500;
+		Else If(Current Map == Map(Paris));
+			Global.map_deathplane_y = 6.150;
+		Else If(Current Map == Map(Rialto));
+			Global.map_deathplane_y = -15.500;
+		Else If(Current Map == Map(Route 66));
+			Global.map_deathplane_y = -15.500;
+		Else If(Current Map == Map(Temple of Anubis));
+			Global.map_deathplane_y = -10.500;
+		Else If(Current Map == Map(Volskaya Industries));
+			Global.map_deathplane_y = -12.500;
+		Else If(Current Map == Map(Watchpoint: Gibraltar));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(Busan));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = 0.410;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 2.020;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = -8.500;
+			End;
+		Else If(Current Map == Map(Ilios));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -37.450;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = -10.190;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 49.360;
+			End;
+		Else If(Current Map == Map(Nepal));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -106.180;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 0.840;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 115.150;
+			End;
+		Else If(Current Map == Map(Oasis));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -8.990;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = -0.510;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 2.080;
+			End;
+		Else If(Current Map == Map(Lijiang Tower));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -12.510;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 82.570;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 250.200;
+			End;
+		Else If(Current Map == Map(Lijiang Tower Lunar New Year));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -12.510;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 82.570;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 250.200;
+			End;
+		Else If(Current Map == Map(Workshop Chamber));
+			Global.map_deathplane_y = -25.500;
+		Else If(Current Map == Map(Workshop Expanse));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Expanse Night));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Green Screen));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Island));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Island Night));
+			Global.map_deathplane_y = -27;
+		End;
+	}
+}
+
+rule("[debug] toggle_trajectory_visibility")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.trajectory_hidden = !Event Player.trajectory_hidden;
+	}
+}
+
+rule("[sub] create trajectory")
+{
+	event
+	{
+		Subroutine;
+		create_trajectory;
+	}
+
+	actions
+	{
+		disabled For Global Variable(loop_i, 0.020, 1, 0.020);
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Blue), Evaluate Once((1 - Global.loop_i) * (1 - Global.loop_i))
+			* Local Player.proj_p0 + Evaluate Once(2 * Global.loop_i * (1 - Global.loop_i)) * Local Player.proj_p1 + Evaluate Once(
+			Global.loop_i * Global.loop_i) * Local Player.proj_p2, Local Player.trajectory_hidden == True ? 0 : 0.100,
+			Visible To Position and Radius);
+		disabled Wait(0.016, Ignore Condition);
+		disabled End;
+		Create Beam Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True),
+			Torbjörn Turret Sight Beam, Evaluate Once(0.980 * 0.980) * Local Player.proj_p0 + Evaluate Once(2 * 0.020 * 0.980)
+			* Local Player.proj_p1 + Evaluate Once(0.020 * 0.020) * Local Player.proj_p2, Local Player.proj_p0, Color(Team 1),
+			Visible To Position and Radius);
+		For Global Variable(loop_i, 0.020, 1, 0.020);
+			Create Beam Effect(Filtered Array(All Players(All Teams), Current Array Element.trajectory_hidden != True),
+				Torbjörn Turret Sight Beam, Evaluate Once((1 - Global.loop_i) * (1 - Global.loop_i)) * Local Player.proj_p0 + Evaluate Once(
+				2 * Global.loop_i * (1 - Global.loop_i)) * Local Player.proj_p1 + Evaluate Once(Global.loop_i * Global.loop_i)
+				* Local Player.proj_p2, Evaluate Once((0.980 - Global.loop_i) * (0.980 - Global.loop_i))
+				* Local Player.proj_p0 + Evaluate Once(2 * (Global.loop_i + 0.020) * (0.980 - Global.loop_i))
+				* Local Player.proj_p1 + Evaluate Once((Global.loop_i + 0.020) * (Global.loop_i + 0.020)) * Local Player.proj_p2, Color(
+				Team 1), Visible To Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}

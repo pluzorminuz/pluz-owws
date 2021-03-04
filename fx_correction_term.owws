@@ -1,4 +1,18 @@
-actions
+variables
 {
-	Global._FX_CNST = 10155.377 / 10000;
+	global:
+		100: _FX
+}
+rule("fx_correction_terms")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		"sphere,shaft 1.053046257,ringout 1.052807897,ringin 1.062128122"
+		Global._FX = Array(10155.377 / 10000, 10530.462 / 10000, 10528.079 / 10000, 10621.281 / 10000);
+	}
 }
