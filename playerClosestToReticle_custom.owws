@@ -1,0 +1,145 @@
+settings
+{
+	modes
+	{
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: arr
+		1: i
+		2: min
+		3: min_slot
+		4: del
+		5: event_hero
+}
+
+rule("spawn bot")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Baptiste), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Ashe), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Bastion), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Brigitte), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("calc loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, Custom String("Eye height {0}", Event Player.del), Null, Null, Left, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Custom String("Custom {0}", Players In Slot(Event Player.min_slot, Team 2)), Null, Null, Left, 0,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, Custom String("Player Closest To Reticle() {0}", Player Closest To Reticle(Event Player, Team 2)),
+			Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		For Player Variable(Event Player, i, 0, 5, 1);
+			Create HUD Text(Event Player, Custom String("{0} {1}", Hero Of(Players In Slot(Evaluate Once(Event Player.i), Team 2)),
+				1000 * Dot Product(Facing Direction Of(Event Player), Normalize(Position Of(Players In Slot(Evaluate Once(Event Player.i),
+				Team 2)) + Event Player.del * Up - Eye Position(Event Player)))), Null, Null, Right, Evaluate Once(Event Player.i),
+				Evaluate Once(Event Player.i) == Event Player.min_slot ? Color(Green) : Color(White), Color(White), Color(White),
+				Visible To String and Color, Default Visibility);
+		End;
+		While(True);
+			Event Player.min = -9999;
+			For Player Variable(Event Player, i, 0, 5, 1);
+				Event Player.arr[Event Player.i] = 1000 * Dot Product(Facing Direction Of(Event Player), Normalize(Position Of(Players In Slot(
+					Event Player.i, Team 2)) + Event Player.del * Up - Eye Position(Event Player)));
+				If(Event Player.arr[Event Player.i] > Event Player.min);
+					Event Player.min = Event Player.arr[Event Player.i];
+					Event Player.min_slot = Event Player.i;
+				End;
+			End;
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("dot product iwt")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create In-World Text(All Players(All Teams), Custom String("{0} {1}", Hero Of(Event Player), 1000 * Dot Product(
+			Facing Direction Of(Local Player), Normalize(Position Of(Event Player) + Local Player.del * Up - Eye Position(Local Player)))),
+			Event Player, 1, Do Not Clip, Visible To Position String and Color, Slot Of(Event Player) == Local Player.min_slot ? Color(
+			Green) : Color(White), Default Visibility);
+	}
+}
+
+rule("hero switched")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.event_hero != Hero Of(Event Player);
+	}
+
+	actions
+	{
+		Event Player.event_hero = Hero Of(Event Player);
+		Event Player.del = Y Component Of(Eye Position(Event Player) - Position Of(Event Player));
+	}
+}
+
+rule("change hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
+		Set Player Allowed Heroes(Event Player, All Heroes);
+	}
+}
