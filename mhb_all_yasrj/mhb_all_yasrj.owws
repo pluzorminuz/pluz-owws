@@ -5,6 +5,12 @@ settings
 		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor. Reddit: u/spadler097, Last Update: 2021 Mar 09. Discord: pluzorminuz#2542."
 	}
 
+	lobby
+	{
+		Max Team 1 Players: 5
+		Max Team 2 Players: 5
+	}
+
 	modes
 	{
 		Team Deathmatch
@@ -55,6 +61,12 @@ settings
 	{
 		Beam Count: 8
 		Sphere Count: 8
+	}
+
+	extensions
+	{
+		Beam Effects
+		Play More Effects
 	}
 }
 
@@ -1113,15 +1125,15 @@ rule("[HANZO] dragon_fire_set_variables")
 	actions
 	{
 		"1 sec cast time [0.928s / 58t actual number]"
-		Wait(0.928, Ignore Condition);
+		Wait(0.936, Ignore Condition);
 		"set arrow launch pos and dir to temp [7] and [8]"
 		Event Player.player_dragon_var[2] = Eye Position(Event Player);
 		"account for straight U/D"
 		Event Player.player_dragon_var[3] = Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Up, Event Player, Rotation) : (
 			Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Down, Event Player, Rotation) : Facing Direction Of(
 			Event Player));
-		"wait for the dragon to appear (38t -1t + extra 4.5t from microadjustments)"
-		Wait(0.680, Ignore Condition);
+		"wait for the dragon to appear (38t -1t + extra 4t from microadjustments)"
+		Wait(0.672, Ignore Condition);
 		Event Player.player_dragon_t = 0;
 		"so that the hitbox will update when the dragon starts visually"
 		Event Player.player_dragon_var[0] = Event Player.player_dragon_var[2];
@@ -2409,9 +2421,8 @@ rule("[sub] init_global_hud")
 	actions
 	{
 		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String(
-			"The MHB Playground (v1.0.0.210309)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua),
-			Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.1.210309a)"),
+			Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		"debug"
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,
 			Server Load Average, Server Load Peak), Right, -1000, Color(White), Color(Gray), Color(Yellow), Visible To and String,
@@ -2623,5 +2634,25 @@ rule("[sub] init_global_color_settings")
 		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
 			"Uppercut - Active"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
 			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 3));
+	}
+}
+
+rule("ult_charge_refill")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Ultimate Charge Percent(Event Player) != 100;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
 	}
 }

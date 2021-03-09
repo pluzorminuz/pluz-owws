@@ -939,14 +939,14 @@ rule("[HANZO] dragon_fire_set_variables")
 
 	actions
 	{
-		"1 sec cast time [0.928s / 58t actual number]"
-		Wait(0.928, Ignore Condition);
+		"1 sec cast time [0.936s / 58.5t actual number]"
+		Wait(0.936, Ignore Condition);
 		"set arrow launch pos and dir to temp [7] and [8]"
 		Event Player.player_dragon_var[2] = Eye Position(Event Player);
 		"account for straight U/D"
 		Event Player.player_dragon_var[3] = Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Up, Event Player, Rotation) : (Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Down, Event Player, Rotation) : Facing Direction Of(Event Player));
-		"wait for the dragon to appear (38t -1t + extra 4.5t from microadjustments)"
-		Wait(0.680, Ignore Condition);
+		"wait for the dragon to appear (38t -1t + extra 4t from microadjustments)"
+		Wait(0.672, Ignore Condition);
 		Event Player.player_dragon_t = 0;
 		"so that the hitbox will update when the dragon starts visually"
 		Event Player.player_dragon_var[0] = Event Player.player_dragon_var[2];
