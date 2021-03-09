@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor. Reddit: u/spadler097, Last Update: 2021 Feb 20. Discord: pluzorminuz#2542."
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor. Reddit: u/spadler097, Last Update: 2021 Mar 09. Discord: pluzorminuz#2542."
 	}
 
 	modes
@@ -2409,8 +2409,8 @@ rule("[sub] init_global_hud")
 	actions
 	{
 		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ / H493Q [PTR]"), Custom String(
-			"The MHB Playground (210220ptr)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua),
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String(
+			"The MHB Playground (v1.0.0.210309)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua),
 			Visible To, Default Visibility);
 		"debug"
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,

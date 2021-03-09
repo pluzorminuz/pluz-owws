@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 06"
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 09"
 	}
 
 	lobby
@@ -1095,7 +1095,7 @@ rule("[sub] final hud")
 
 	actions
 	{
-		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (v2.0.1.210306)"),
+		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (v2.0.1.210309)"),
 			Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} - {1}", Entity Count, Text Count), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Left, -1, Color(White), Color(Gray), Color(Gray), Visible To and String,
