@@ -1,45 +1,31 @@
-def workshopArray(arr=[]):
-    string = 'Array('
-    if len(arr) == 0:
-        string += ')'
-        return string
-    else:
-        length = len(arr)
-        if isinstance(arr[0], list): # if the item is a list
-            string += workshopArray(arr[0])
-        else:
-            string += str(arr[0])
-        for i in range(length-1):
-            string += ', '
-            if isinstance(arr[i+1], list): # ditto
-                string += workshopArray(arr[i+1])
-            else:
-                string += str(arr[i+1])
-            pass
-        string += ')'
-        return string
+import owhero
+owh = owhero.owwsHero()
 
-def workshopArrayHero(arr=[]):
-    string = 'Array('
+def workshopArray(arr=[],emptyNull=False):
     if len(arr) == 0:
-        string += ')'
-        return string
+        if emptyNull:
+            return 'Null'
+        else:
+            return 'Array()'
     else:
+        string = 'Array('
         length = len(arr)
         if isinstance(arr[0], list): # if the item is a list
-            string += workshopArray(arr[0])
+            string += workshopArray(arr[0], emptyNull)
         else:
-            string += 'Hero('
-            string += str(arr[0])
-            string += ')'
+            if (temp := owh.workshopString(arr[0])) is not None: # if it is a hero
+                string += temp
+            else:
+                string += str(arr[0])
         for i in range(length-1):
             string += ', '
             if isinstance(arr[i+1], list): # ditto
-                string += workshopArray(arr[i+1])
+                string += workshopArray(arr[i+1], emptyNull)
             else:
-                string += 'Hero('
-                string += str(arr[i+1])
-                string += ')'
+                if (temp := owh.workshopString(arr[i+1])) is not None: # if it is a hero
+                    string += temp
+                else:
+                    string += str(arr[i+1])
             pass
         string += ')'
         return string
@@ -86,4 +72,5 @@ for hero in hero_array_uniq:
 
     proj_data.append ( [this_proj_data, this_default, this_fx, this_warn] )
 
-print(workshopArray([workshopArrayHero(hero_array_uniq),workshopArray(proj_data)]))
+print(workshopArray([workshopArray(hero_array_uniq, True),workshopArray(proj_data, True)], True))
+
