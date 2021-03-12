@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor. Reddit: u/spadler097, Last Update: 2021 Mar 09. Discord: pluzorminuz#2542."
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor. Reddit: u/spadler097, Last Update: 2021 Mar 11. Discord: pluzorminuz#2542."
 	}
 
 	lobby
@@ -86,6 +86,7 @@ variables
 		12: cam_mode_hudtext
 		13: dimensions_shatter
 		14: dimensions_doomfist
+		100: _FX
 
 	player:
 		0: self_mhb
@@ -210,6 +211,8 @@ rule("init")
 	actions
 	{
 		Disable Inspector Recording;
+		"sphere,shaft 1.053046257,ringout 1.052807897,ringin 1.062128122"
+		Global._FX = Array(10155.377 / 10000, 10530.462 / 10000, 10528.079 / 10000, 10621.281 / 10000);
 		Call Subroutine(init_global_shatter_var);
 		"meteor strike [0]fo.start [1]fo.end [2]fo.startdmg [3] fo.enddmg [4]maxdmg [5]oobdmg // uppercut [6] r"
 		Global.dimensions_doomfist = Array(2, 8, 200, 15, 300, 0, 2);
@@ -569,7 +572,7 @@ rule("[sub] all hero body melee hurtbox")
 			Create Effect(All Players(Opposite Team Of(Team Of(Event Player))), Sphere, Global.color_global[Global.color_settings[0]],
 				Update Every Frame(Position Of(Event Player) + Event Player.player_scale * (Evaluate Once(1 - Event Player.loop_j / 3)
 				* Event Player.self_mhb[1] + Evaluate Once(Event Player.loop_j / 3) * Event Player.self_mhb[2])),
-				Event Player.player_scale * Event Player.self_mhb[0] / 0.985, Visible To Position and Radius);
+				Event Player.player_scale * Event Player.self_mhb[0] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"end create melee hurtbox"
 		End;
@@ -617,8 +620,8 @@ rule("[sub] create melee hitbox quick + hud")
 		"create melee hitbox"
 		Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[0], Update Every Frame(Eye Position(
 			Event Player) + Global.dimensions_quickmelee[1] * Facing Direction Of(Event Player) * Event Player.player_scale),
-			Event Player.melee_hitbox_temp_disable ? 0 : Event Player.player_scale * Global.dimensions_quickmelee[0] / 0.985,
-			Visible To Position Radius and Color);
+			Event Player.melee_hitbox_temp_disable ? 0 : Event Player.player_scale * Global.dimensions_quickmelee[0] * Evaluate Once(
+			Global._FX[0]), Visible To Position Radius and Color);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		disabled Event Player.player_effect_id[1] = Array(Event Player.temp_arr);
 		"player_effect_id[1] for melee"
@@ -706,7 +709,8 @@ rule("[sub] create melee hitbox rein hammer")
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j])) + Direction From Angles(Horizontal Facing Angle Of(Event Player),
 				Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Event Player.temp_arr3[Event Player.loop_j]))
 				+ Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Event Player.temp_arr3[Event Player.loop_j]))),
-				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
+				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[Evaluate Once(Event Player.loop_j)],
 				Eye Position(Event Player) + Event Player.player_scale * (World Vector Of(Left, Event Player, Rotation) * Evaluate Once(
@@ -714,7 +718,8 @@ rule("[sub] create melee hitbox rein hammer")
 				Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2)),
-				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
+				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
@@ -915,8 +920,8 @@ rule("[sub] create_cone1_offset (offset 0,k,0)")
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Position Of(Event Player) + Vector(0,
-			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985,
-			Visible To Position and Radius);
+			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(
+			Global._FX[0]), Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -964,7 +969,8 @@ rule("[sub] create_cone1_offset (offset 0,k,0)")
 					Event Player.loop_j * Event Player.player_cone1_dimensions[0]) * Event Player.player_scale / Evaluate Once((
 					Global.settings[5] - 1) * Cosine From Degrees(Event Player.player_cone1_dimensions[1]))),
 					Event Player.player_scale * Evaluate Once(Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(
-					Event Player.player_cone1_dimensions[1]) / (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
+					Event Player.player_cone1_dimensions[1]) / (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]),
+					Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -983,8 +989,8 @@ rule("[sub] create_cone1_offset_novert (offset 0,k,0)")
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Position Of(Event Player) + Vector(0,
-			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985,
-			Visible To Position and Radius);
+			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(
+			Global._FX[0]), Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -1027,7 +1033,7 @@ rule("[sub] create_cone1_offset_novert (offset 0,k,0)")
 					Event Player.loop_j * Event Player.player_cone1_dimensions[0]) / Evaluate Once((Global.settings[5] - 1) * Cosine From Degrees(
 					Event Player.player_cone1_dimensions[1]))), Event Player, Rotation), Event Player.player_scale * Evaluate Once(
 					Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(Event Player.player_cone1_dimensions[1])
-					/ (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
+					/ (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -1046,7 +1052,8 @@ rule("[sub] create_cone1_standard (origin at eye)")
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Eye Position(Event Player),
-			Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985, Visible To Position and Radius);
+			Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+			Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -1100,7 +1107,7 @@ rule("[sub] create_cone1_standard (origin at eye)")
 					* Event Player.player_scale / Evaluate Once((Global.settings[5] - 1) * Cosine From Degrees(
 					Event Player.player_cone1_dimensions[1]))), Event Player.player_scale * Evaluate Once(
 					Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(Event Player.player_cone1_dimensions[1])
-					/ (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
+					/ (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -1409,18 +1416,21 @@ rule("[sub] create flux hitbox root")
 				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 			End;
 			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[6]],
-				Event Player.player_static_pos[0], 8 / 0.985, Visible To Position and Radius);
+				Event Player.player_static_pos[0], 8 * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
+			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
+			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[6]],
+				Event Player.player_static_pos[0] + 5.500 * Up, 8 * Evaluate Once(Global._FX[3]), Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"Previous"
-			disabled Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Event Player.player_static_pos[0], 8 / 0.985,
-				Visible To Position and Radius);
+			disabled Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Event Player.player_static_pos[0], 8 * Evaluate Once(
+				Global._FX[1]), Visible To Position and Radius);
 			disabled Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[6]], Event Player.player_static_pos[0],
-				15.500 / 0.985, Visible To Position and Radius);
+				15.500 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"Previous"
-			disabled Create Effect(All Players(All Teams), Sphere, Color(Blue), Event Player.player_static_pos[0], 15.500 / 0.985,
-				Visible To Position and Radius);
+			disabled Create Effect(All Players(All Teams), Sphere, Color(Blue), Event Player.player_static_pos[0], 15.500 * Evaluate Once(
+				Global._FX[0]), Visible To Position and Radius);
 			disabled Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"player_effect_id[4] for flux"
 			Event Player.player_effect_id[4] = Event Player.temp_arr;
@@ -1599,11 +1609,11 @@ rule("[sub] create_shatter_hitbox_root")
 			End;
 			"shaft"
 			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
-				Event Player.player_scale * Event Player.player_shatter_var / 0.985, Visible To Position and Radius);
+				Event Player.player_scale * Event Player.player_shatter_var * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"ring"
 			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
-				Event Player.player_scale * Global.dimensions_shatter[0] / 0.985, Visible To Position and Radius);
+				Event Player.player_scale * Global.dimensions_shatter[0] * Evaluate Once(Global._FX[3]), Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"player_effect_id[5] for shatter"
 			Event Player.player_effect_id[5] = Event Player.temp_arr;
@@ -1788,10 +1798,7 @@ rule("[SCALE BOT] enlarge")
 	actions
 	{
 		Wait(2, Abort When False);
-		Event Player.player_scale_controls[0] = False;
-		Start Scaling Player(Event Player, Event Player.player_scale, True);
-		Chase Player Variable At Rate(Event Player, player_scale, 20, Event Player.player_scale ^ (
-			-0.050 * Event Player.player_scale + 1.100), Destination and Rate);
+		Event Player.mhb_target.player_scale_controls[0] = True;
 	}
 }
 
@@ -2143,7 +2150,8 @@ rule("[sub] create_primal_hitbox")
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j])) + Direction From Angles(Horizontal Facing Angle Of(Event Player),
 				Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Event Player.temp_arr3[Event Player.loop_j]))
 				+ Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Event Player.temp_arr3[Event Player.loop_j]))),
-				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
+				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[Evaluate Once(Event Player.loop_j)],
 				Eye Position(Event Player) + Event Player.player_scale * (World Vector Of(Left, Event Player, Rotation) * Evaluate Once(
@@ -2151,7 +2159,8 @@ rule("[sub] create_primal_hitbox")
 				Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2)),
-				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
+				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
@@ -2421,7 +2430,7 @@ rule("[sub] init_global_hud")
 	actions
 	{
 		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.1.210309a)"),
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.2.210311)"),
 			Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		"debug"
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,
@@ -2520,17 +2529,17 @@ rule("[sub] create_doomfist_hitbox_root")
 			End;
 			"meteor 300"
 			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[8]],
-				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[0] / 0.985,
+				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[0] * Evaluate Once(Global._FX[0]),
 				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"meteor falloff"
 			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[9]],
-				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[1] / 0.985,
+				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[1] * Evaluate Once(Global._FX[0]),
 				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"uppercut hitbox"
 			Create Effect(All Players(All Teams), Sphere, Event Player.player_doomfist_var[2], Update Every Frame(Position Of(Event Player)
-				+ World Vector Of(Vector(0, 1, 2), Event Player, Rotation)), Global.dimensions_doomfist[6] / 0.985,
+				+ World Vector Of(Vector(0, 1, 2), Event Player, Rotation)), Global.dimensions_doomfist[6] * Evaluate Once(Global._FX[0]),
 				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"player_effect_id[5] for shatter"
