@@ -2,6 +2,7 @@ settings
 {
 	lobby
 	{
+		Allow Players Who Are In Queue: Yes
 		Map Rotation: After A Game
 		Max Spectators: 1
 		Max Team 1 Players: 0
@@ -101,8 +102,21 @@ rule("[sub] roll and tp")
 
 	actions
 	{
-		"1"
-		Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-2,2), Random Real(-3,3), Random Real(-1,23));
+		"0.1"
+		If(Slot Of(Event Player) <= 3);
+			"1"
+			Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-0.600, 0.600), Random Real(0.900,
+				2.200), Random Real(-1, 21.200));
+		"0.5"
+		Else If(Slot Of(Event Player) >= 8);
+			Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-0.800, 0.800), Random Real(0,
+				2.200), Random Real(-1, 21.200));
+		"1.0"
+		Else;
+			"1"
+			Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-1.100, 1.100), Random Real(-1,
+				2.200), Random Real(-1, 21.200));
+		End;
 		Teleport(Event Player, Event Player.rolled_position);
 	}
 }
@@ -121,12 +135,12 @@ rule("init")
 		disabled Pause Match Time;
 		Global.dealer_activate_ability_time = 0;
 		Global.hero_detector = Hero(Baptiste);
-		Global.hero_dealer = Hero(Wrecking Ball);
+		Global.hero_dealer = Hero(Roadhog);
 		Global.damage_dealer = Empty Array;
 		Global.damage_receiver = Empty Array;
 		Global.signal = False;
 		For Global Variable(loop_i, 0, 12, 1);
-			Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+			Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
 		End;
 		For Global Variable(loop_i, 0, 12, 1);
 			Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
@@ -157,9 +171,9 @@ rule("damage_dealer_init (rein)")
 		Set Gravity(Event Player, 0);
 		Start Heal Over Time(Event Player, Event Player, 9999, 100);
 		Start Forcing Player Position(Event Player, Vector(5 * Slot Of(Event Player), 10, 0), False);
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer"), Slot Of(Event Player), 10000 * Position Of(
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer"), Slot Of(Event Player), 10000 * Position Of(
 			Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer eye"), Slot Of(Event Player),
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer eye"), Slot Of(Event Player),
 			10000 * Eye Position(Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
 			Default Visibility);
 		disabled Start Scaling Player(Event Player, 3, False);
@@ -193,12 +207,13 @@ rule("damage_receiver_init (bap)")
 		Set Gravity(Event Player, 0);
 		Set Max Health(Event Player, 1000);
 		Modify Global Variable(damage_receiver, Append To Array, Event Player);
-		If (Slot Of(Event Player) <= 3);
+		If(Slot Of(Event Player) <= 3);
 			Event Player.player_scale = 0.100;
-		If (Slot Of(Event Player) >= 8);
+		Else If(Slot Of(Event Player) >= 8);
 			Event Player.player_scale = 0.500;
 		Else;
-			Event Player.player_scale = 1.000;
+			Event Player.player_scale = 1;
+		End;
 		Start Scaling Player(Event Player, Event Player.player_scale, False);
 		Start Heal Over Time(Event Player, Event Player, 9999, 1000);
 		Call Subroutine(roll_and_tp);
@@ -221,7 +236,7 @@ rule("loop")
 	{
 		Press Button(Global.damage_dealer, Button(Ability 1));
 		disabled Global.dealer_activate_ability_time = 1000 * Total Time Elapsed;
-		Wait(90 * 0.016, Ignore Condition);
+		Wait(76 * 0.016, Ignore Condition);
 		Global.signal = True;
 		Wait(0.032, Ignore Condition);
 		Global.signal = False;
@@ -268,12 +283,17 @@ rule("damage_receiver_signal")
 		If(Event Player.has_received_damage == True);
 			Enable Inspector Recording;
 			"hit"
-			Log To Inspector(Custom String("{0}{1}{2}", 2, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}", 100000 * Event Player.rolled_position, Event Player.self_damage_received_time - Global.dealer_activate_ability_time[Slot Of(Event Player)], Custom String("{0}{1}{2}", Event Player.damage_received, Slot Of(Event Player), Event Player.player_scale))));
+			Log To Inspector(Custom String("{0}{1}{2}", 2, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}",
+				100000 * Event Player.rolled_position, Event Player.self_damage_received_time - Global.dealer_activate_ability_time[Slot Of(
+				Event Player)], Custom String("{0}{1}{2}", Event Player.damage_received, Slot Of(Event Player),
+				Event Player.player_scale))));
 			Disable Inspector Recording;
 		Else;
 			Enable Inspector Recording;
 			"miss [type : pos : rolled_pos : delay : dmg : slot : scale]"
-			Log To Inspector(Custom String("{0}{1}{2}", 2, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}", 100000 * Event Player.rolled_position, Custom String(""), Custom String("{0}{1}{2}", Custom String(""), Slot Of(Event Player), Event Player.player_scale))));
+			Log To Inspector(Custom String("{0}{1}{2}", 1, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}",
+				100000 * Event Player.rolled_position, Custom String(""), Custom String("{0}{1}{2}", Custom String(""), Slot Of(
+				Event Player), Event Player.player_scale))));
 			Disable Inspector Recording;
 		End;
 		Wait(0.032, Ignore Condition);
@@ -297,7 +317,7 @@ rule("[sub] reset var")
 	}
 }
 
-disabled rule("dealer activating ability")
+rule("dealer activating ability")
 {
 	event
 	{
@@ -309,7 +329,7 @@ disabled rule("dealer activating ability")
 	conditions
 	{
 		Team Of(Event Player) == Team 2;
-		Is Firing Secondary(Event Player) != True;
+		Is Using Ability 1(Event Player) == True;
 	}
 
 	actions
@@ -370,5 +390,20 @@ disabled rule("doomult")
 	{
 		Set Ultimate Charge(Event Player, 100);
 		Press Button(Event Player, Button(Ultimate));
+	}
+}
+
+rule("Rule 13")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Hacked, 0.016);
 	}
 }
