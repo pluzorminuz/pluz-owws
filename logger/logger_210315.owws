@@ -1,0 +1,196 @@
+settings
+{
+	modes
+	{
+		Control
+		{
+			enabled maps
+			{
+				Lijiang Tower
+			}
+		}
+
+		General
+		{
+			Competitive Rules: On
+			Game Mode Start: Immediately
+			Respawn Time Scalar: 0%
+			Score To Win: 3
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: all_hero
+		3: koth_point_owner
+		4: koth_point_locked
+
+	player:
+		0: player_ult
+		1: player_identifier
+		2: player_hero_id
+		3: player_hero_lasttime
+		4: player_hero
+}
+
+subroutines
+{
+	1: log_koth_point_owner
+	2: log_koth_point_locked
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.all_hero = Array(Hero(Reaper), Hero(Tracer), Hero(Mercy), Hero(Hanzo), Hero(Torbjörn), Hero(Reinhardt), Hero(Pharah), Hero(
+			Winston), Hero(Widowmaker), Hero(Bastion), Hero(Symmetra), Hero(Zenyatta), Hero(Genji), Hero(Roadhog), Hero(McCree), Hero(
+			Junkrat), Hero(Zarya), Hero(Soldier: 76), Hero(Lúcio), Hero(D.Va), Hero(Mei), Hero(Sombra), Hero(Doomfist), Hero(Ana), Hero(
+			Orisa), Hero(Brigitte), Hero(Moira), Hero(Wrecking Ball), Hero(Ashe), Hero(Echo), Hero(Baptiste), Hero(Sigma));
+		If(Count Of(Global.all_hero) != Count Of(All Heroes));
+			Global.all_hero = All Heroes;
+		End;
+		If(Current Game Mode == Game Mode(Control));
+			Start Rule(log_koth_point_owner, Restart Rule);
+			Start Rule(log_koth_point_locked, Restart Rule);
+		End;
+	}
+}
+
+rule("is_game_in_progress")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Wait Until(!Is Game In Progress, 99999);
+		Log To Inspector(Custom String("1_GAMELOGIC0_IS_GAME_PROGRESS{0}0", 1000 * Total Time Elapsed));
+		Wait Until(Is Game In Progress, 99999);
+		Log To Inspector(Custom String("1_GAMELOGIC0_IS_GAME_PROGRESS{0}1", 1000 * Total Time Elapsed));
+		Loop;
+	}
+}
+
+rule("player_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.player_identifier = Custom String("{0}:{1}", Team Of(Event Player) == Team 1 ? Custom String("1") : Custom String(
+			"2"), Slot Of(Event Player));
+		Log To Inspector(Custom String("0_LOBBY1_PLAYER_IDEN{0}{1}{2}", 1000 * Total Time Elapsed, Event Player.player_identifier,
+			Event Player));
+	}
+}
+
+rule("player_hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.player_hero = Hero Of(Event Player);
+		Event Player.player_hero_id = Index Of Array Value(Global.all_hero, Event Player.player_hero);
+		Log To Inspector(Custom String("2_PLAYER1_HERO{0}{1}{2}", 1000 * Total Time Elapsed, Event Player.player_identifier,
+			Custom String("{0}{1}", Event Player.player_hero_id, Event Player.player_hero_lasttime)));
+		Event Player.player_hero_lasttime = 1000 * Total Time Elapsed;
+		Wait Until(Event Player.player_hero != Hero Of(Event Player), 99999);
+		Loop;
+	}
+}
+
+rule("log_ult_charge")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Log To Inspector(Custom String("2_PLAYER0_ULT_PERCENT{0}{1}{2}", 1000 * Total Time Elapsed, Event Player.player_identifier,
+			Ultimate Charge Percent(Event Player)));
+		Event Player.player_ult = Ultimate Charge Percent(Event Player);
+		Wait Until(Event Player.player_ult != Ultimate Charge Percent(Event Player), 99999);
+		Loop;
+	}
+}
+
+rule("log_damage")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Log To Inspector(Custom String("2_PLAYER2_DAMAGED{0}{1}{2}", 1000 * Total Time Elapsed, Attacker.player_identifier,
+			Custom String("{0}{1}{2}", Victim.player_identifier, Event Damage, Custom String("{0}{1}{2}", Position Of(Attacker),
+			Position Of(Victim), Custom String("{0}{1}{2}", Altitude Of(Attacker), Altitude Of(Victim), Custom String("{0}{1}{2}",
+			Event Ability, Event Direction, Custom String("{0}{1}{2}", Event Was Critical Hit, Event Was Environment, Custom String(
+			"{0}{1}", Is Meleeing(Attacker), Ammo(Attacker, Event Ability == Button(Primary Fire) ? 0 : 1)))))))));
+	}
+}
+
+rule("log_koth_point_owner")
+{
+	event
+	{
+		Subroutine;
+		log_koth_point_owner;
+	}
+
+	actions
+	{
+		Log To Inspector(Custom String("4_KOTH_GAMELOGIC1_POINT_OWNER{0}{1}{2}", 1000 * Total Time Elapsed,
+			Control Mode Scoring Team, Custom String("{0}{1}", Control Mode Scoring Percentage(Team 1), Control Mode Scoring Percentage(
+			Team 2))));
+		Global.koth_point_owner = Control Mode Scoring Team;
+		Wait Until(Global.koth_point_owner != Control Mode Scoring Team, 99999);
+		Loop;
+	}
+}
+
+rule("log_koth_point_locked")
+{
+	event
+	{
+		Subroutine;
+		log_koth_point_locked;
+	}
+
+	actions
+	{
+		Log To Inspector(Custom String("4_KOTH_GAMELOGIC2_POINT_LOCKED{0}{1}{2}", 1000 * Total Time Elapsed,
+			Is Control Mode Point Locked));
+		Global.koth_point_locked = Is Control Mode Point Locked;
+		Wait Until(Global.koth_point_locked != Is Control Mode Point Locked, 99999);
+		Loop;
+	}
+}

@@ -1,0 +1,400 @@
+settings
+{
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Map Rotation: After A Game
+		Max Spectators: 1
+		Max Team 1 Players: 0
+		Max Team 2 Players: 0
+		Return To Lobby: Never
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Kill Cam: Off
+			Kill Feed: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Doomfist
+			{
+				Infinite Ultimate Duration: On
+			}
+
+			Lúcio
+			{
+				No Ammunition Requirement: On
+				Soundwave Cooldown Time: 0%
+				Soundwave Knockback Scalar: 0%
+			}
+
+			Reinhardt
+			{
+				Charge Knockback Scalar: 0%
+				Damage Dealt: 200%
+			}
+
+			Winston
+			{
+				Infinite Ultimate Duration: On
+				Spawn With Ultimate Ready: On
+			}
+		}
+	}
+
+	extensions
+	{
+		Spawn More Dummy Bots
+	}
+}
+
+variables
+{
+	global:
+		0: damage_dealer
+		1: damage_receiver
+		2: signal
+		3: hero_detector
+		4: hero_dealer
+		5: dealer_activate_ability_time
+		6: loop_i
+
+	player:
+		0: rolled_position
+		1: has_received_damage
+		2: self_damage_received_time
+		3: damage_received
+		4: player_scale
+}
+
+subroutines
+{
+	0: roll_and_tp
+	1: reset_var
+}
+
+rule("[sub] roll and tp")
+{
+	event
+	{
+		Subroutine;
+		roll_and_tp;
+	}
+
+	actions
+	{
+		"0.1"
+		disabled If(Slot Of(Event Player) <= 3);
+			"1"
+			disabled Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-0.600, 0.600), Random Real(0.900, 2.200), Random Real(-1, 21.200));
+		"0.5"
+		disabled Else If(Slot Of(Event Player) >= 8);
+			disabled Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-0.800, 0.800), Random Real(0, 2.200), Random Real(-1, 21.200));
+		"1.0"
+		disabled Else;
+			"1"
+			disabled Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(Random Real(-1.100, 1.100), Random Real(-1, 2.200), Random Real(-1, 21.200));
+		disabled End;
+		"2"
+		Event Player.rolled_position = 10 * Up + 5 * Left * Slot Of(Event Player) + Vector(0, 2, Random Real(-1, 21.200));
+		Teleport(Event Player, Event Player.rolled_position);
+	}
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Set Match Time(3599);
+		disabled Pause Match Time;
+		Global.dealer_activate_ability_time = 0;
+		Global.hero_detector = Hero(Baptiste);
+		Global.hero_dealer = Hero(Roadhog);
+		Global.damage_dealer = Empty Array;
+		Global.damage_receiver = Empty Array;
+		Global.signal = False;
+		For Global Variable(loop_i, 0, 12, 1);
+			Create Dummy Bot(Global.hero_detector, Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		End;
+		For Global Variable(loop_i, 0, 12, 1);
+			Create Dummy Bot(Global.hero_dealer, Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 1));
+		End;
+	}
+}
+
+rule("damage_dealer_init (rein)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Modify Global Variable(damage_dealer, Append To Array, Event Player);
+		Set Gravity(Event Player, 0);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+		Start Forcing Player Position(Event Player, Vector(5 * Slot Of(Event Player), 10, 0), False);
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer"), Slot Of(Event Player), 10000 * Position Of(Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("dealer eye"), Slot Of(Event Player), 10000 * Eye Position(Event Player)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		disabled Start Scaling Player(Event Player, 3, False);
+		Wait(3, Ignore Condition);
+		disabled Set Ultimate Charge(Event Player, 100);
+		disabled Press Button(Event Player, Button(Ultimate));
+		disabled Start Facing(Event Player, Vector(0, 1, 1), 10000, To World, Direction and Turn Rate);
+	}
+}
+
+rule("damage_receiver_init (bap)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Disable Movement Collision With Environment(Event Player, True);
+		Set Gravity(Event Player, 0);
+		Set Max Health(Event Player, 1000);
+		Modify Global Variable(damage_receiver, Append To Array, Event Player);
+		If(Slot Of(Event Player) <= 3);
+			Event Player.player_scale = 0.100;
+		Else If(Slot Of(Event Player) >= 8);
+			Event Player.player_scale = 0.500;
+		Else;
+			Event Player.player_scale = 1;
+		End;
+		Start Scaling Player(Event Player, Event Player.player_scale, False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 1000);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("loop")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		Press Button(Global.damage_dealer, Button(Ability 1));
+		disabled Global.dealer_activate_ability_time = 1000 * Total Time Elapsed;
+		Wait(76 * 0.016, Ignore Condition);
+		Global.signal = True;
+		Wait(0.032, Ignore Condition);
+		Global.signal = False;
+		Wait(0.096, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("damage_receiver_detect_damage")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.has_received_damage = True;
+		Event Player.self_damage_received_time = 1000 * Total Time Elapsed;
+		Event Player.damage_received = 10000 * Event Damage;
+	}
+}
+
+rule("damage_receiver_signal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Global.signal == True;
+	}
+
+	actions
+	{
+		If(Event Player.has_received_damage == True);
+			Enable Inspector Recording;
+			"hit"
+			Log To Inspector(Custom String("{0}{1}{2}", 2, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}", 100000 * Event Player.rolled_position, Event Player.self_damage_received_time - Global.dealer_activate_ability_time[Slot Of(Event Player)], Custom String("{0}{1}{2}", Event Player.damage_received, Slot Of(Event Player), Event Player.player_scale))));
+			Disable Inspector Recording;
+		Else;
+			Enable Inspector Recording;
+			"miss [type : pos : rolled_pos : delay : dmg : slot : scale]"
+			Log To Inspector(Custom String("{0}{1}{2}", 1, 100000 * Position Of(Event Player), Custom String("{0}{1}{2}", 100000 * Event Player.rolled_position, Custom String(""), Custom String("{0}{1}{2}", Custom String(""), Slot Of(Event Player), Event Player.player_scale))));
+			Disable Inspector Recording;
+		End;
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(reset_var);
+		Wait(0.032, Ignore Condition);
+		Call Subroutine(roll_and_tp);
+	}
+}
+
+rule("[sub] reset var")
+{
+	event
+	{
+		Subroutine;
+		reset_var;
+	}
+
+	actions
+	{
+		Event Player.has_received_damage = False;
+	}
+}
+
+rule("dealer activating ability")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		disabled Global.dealer_activate_ability_time = 1000 * Total Time Elapsed;
+		Global.dealer_activate_ability_time[Slot Of(Event Player)] = 1000 * Total Time Elapsed;
+	}
+}
+
+disabled rule("set match time rep")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Set Match Time(3599);
+		Wait(60, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("no knockback")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Knockback Dealt(Event Player, 0);
+		Set Knockback Received(Event Player, 0);
+	}
+}
+
+disabled rule("doomult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Doomfist;
+	}
+
+	conditions
+	{
+		Ultimate Charge Percent(Event Player) != 100;
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+		Press Button(Event Player, Button(Ultimate));
+	}
+}
+
+rule("Rule 13")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Hacked, 0.016);
+	}
+}

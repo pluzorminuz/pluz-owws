@@ -2,18 +2,18 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor, Hook. Reddit: u/spadler097, Last Update: 2021 Mar 15. Discord: pluzorminuz#2542."
-	}
-
-	lobby
-	{
-		Max Team 1 Players: 5
-		Max Team 2 Players: 5
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal. Reddit: u/spadler097, Last Update: 2021 Jan 13. Discord: pluzorminuz#2542."
 	}
 
 	modes
 	{
 		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
 
 		General
 		{
@@ -34,11 +34,6 @@ settings
 			Ultimate Generation - Combat: 500%
 			Ultimate Generation - Passive: 500%
 
-			Doomfist
-			{
-				Infinite Ultimate Duration: On
-			}
-
 			Genji
 			{
 				Ultimate Duration: 400%
@@ -55,32 +50,25 @@ settings
 	{
 		Sphere Count: 8
 	}
-
-	extensions
-	{
-		Beam Effects
-		Play More Effects
-	}
 }
 
 variables
 {
 	global:
-		0: mhb_all
+		0: all_mhb
 		1: loop_i
 		2: arr_temp
-		3: mhb_all_indexmatrix
-		4: dimensions_quickmelee
+		3: hero_mhb_indexmatrix
+		4: mhb_dimensions
 		5: global_knockback_disable
-		6: dimensions_hook
+		6: global_total_effect_count
+		7: global_total_hudtext_count
 		8: settings
 		9: color_global
 		10: color_settings
-		11: dimensions_dragon
+		11: dragon_dimensions
 		12: cam_mode_hudtext
-		13: dimensions_shatter
-		14: dimensions_doomfist
-		100: _FX
+		13: shatter_dimensions
 
 	player:
 		0: self_mhb
@@ -100,54 +88,42 @@ variables
 		14: player_dragon_var
 		15: player_cam_mode
 		16: player_effect_visible
-		17: player_posdir_save
+		17: player_flux_var
 		18: player_shatter_var
 		19: melee_hitbox_temp_disable
 		20: player_scale_controls
-		21: player_doomfist_var
-		22: player_static_pos
-		23: enemies
-		24: player_doomfist_enemies_t
-		25: loop_k_doomfist
-		26: player_hook_var
+		21: closest_pt
 }
 
 subroutines
 {
 	0: init_div
-	1: pass
-	2: init_enemies_array
-	3: init_global_hud
-	4: init_global_shatter_var
-	5: dummy
-	6: scale_up
-	7: scale_down
-	8: scale_stop
-	9: scale_reset
-	10: temparr_delete
-	11: decompress_mhb_matrix
-	12: create_hbid0_root
-	13: create_hbid1_root
-	14: create_hbid1_quickmelee
-	15: create_hbid1_reinhammer
-	16: create_hbid1_primal
-	17: destroy_hbid1
-	18: create_hbid2_root
-	19: create_cone1_offset
-	20: create_cone1_offset_lockv
-	21: create_cone1_std
-	22: destory_hbid2
-	23: create_hbid3_root
-	24: destroy_hbid3
-	25: create_hbid4_root
-	26: destroy_hbid4
-	27: create_hbid5_root
-	28: destroy_hbid5
-	29: create_hbid6_root
-	30: destroy_hbid6
-	31: init_global_color_settings
-	32: create_hbid7_root
-	33: destroy_hbid7
+	1: create_body_mhb
+	2: create_melee_hitbox_quick
+	3: create_melee_hitbox_root
+	4: destroy_melee_hitbox
+	5: create_melee_hitbox_reinhammer
+	6: pass
+	7: create_cone1_hitbox_root
+	8: destory_cone1_hitbox
+	9: create_cone1_hitbox_offset
+	10: create_cone1_hitbox_offset_lockv
+	11: create_cone1_hitbox_std
+	12: create_dragon_hitbox_root
+	13: destroy_dragon_hitbox
+	14: create_flux_hitbox_root
+	15: destroy_flux_hitbox
+	16: init_global_shatter_var
+	17: create_shatter_hitbox_root
+	18: destroy_shatter_hitbox
+	19: dummy
+	20: scale_up
+	21: scale_down
+	22: scale_stop
+	23: scale_reset
+	24: temparr_delete
+	25: decompress_mhb_matrix
+	26: create_primal_hitbox
 }
 
 disabled rule("bot scale for fun")
@@ -208,56 +184,94 @@ rule("init")
 	actions
 	{
 		Disable Inspector Recording;
-		Global.global_knockback_disable = Workshop Setting Toggle(Custom String("Global"), Custom String("Disable Knockback?"), True, 0);
-		"sphere, shaft 1.053046257, ringout 1.052807897, ringin 1.062128122"
-		Global._FX = Array(10155.377 / 10000, 10530.462 / 10000, 10528.079 / 10000, 10621.281 / 10000);
 		Call Subroutine(init_global_shatter_var);
-		"meteor strike [0]fo.start [1]fo.end [2]fo.startdmg [3] fo.enddmg [4]maxdmg [5]oobdmg // uppercut [6] r"
-		Global.dimensions_doomfist = Array(2, 8, 200, 15, 300, 0, 2);
-		"melee hitbox dimensions [0]r [1]dist_from_eye"
-		Global.dimensions_quickmelee = Array(1, 1.500);
-		"melee hitbox dimensions [0]r [1]dist_from_eye"
-		Global.dimensions_hook = Array(0.500, 0.500, 1.820, 2.780, 3.740, 4.700, 5.660, 6.620, 7.580, 8.540, 9.500, 10.460, 11.420, 12.380,
-			13.340, 14.300, 15.260, 16.220, 17.180, 18.140, 19.100, 20);
 		Global.cam_mode_hudtext = Array(Custom String("1st Person"), Custom String("3rd Person Left"), Custom String("Selected Enemy"),
 			Custom String("Shatter Side"), Custom String("Shatter Top-Down"));
 		"for hanzo dragon [0]r [1]center_r [2]plane_dist [3]vel [4]travel_len [5]center_display_count"
-		Global.dimensions_dragon = Array(4, 2.400, 11, 12, 240, Workshop Setting Integer(Custom String("Display - Dragon"), Custom String(
+		Global.dragon_dimensions = Array(4, 2.400, 11, 12, 240, Workshop Setting Integer(Custom String("Display - Dragon"), Custom String(
 			"Center Zone Sphere Count (representing the cylinder)"), 12, 8, 32, 2));
-		Call Subroutine(init_global_color_settings);
+		Global.color_settings = Array(Workshop Setting Combo(Custom String("Display - Body Melee Hurtbox"), Custom String("Color"), 1,
+			Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"),
+			Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 0), Workshop Setting Combo(
+			Custom String("Display - Melee Hitbox"), Custom String("Idle Color"), 2, Array(Custom String("White"), Custom String("Green"),
+			Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"),
+			Custom String("Aqua"), Custom String("Rose")), 0), Workshop Setting Combo(Custom String("Display - Melee Hitbox"),
+			Custom String("Active Color"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
+			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
+			"Rose")), 1), Workshop Setting Combo(Custom String("Display - Cone"), Custom String("Cone Color"), 4, Array(Custom String(
+			"White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"), Custom String("Red"),
+			Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 7), Workshop Setting Combo(Custom String(
+			"Display - Dragon"), Custom String("Body Color (150dps zone)"), 2, Array(Custom String("White"), Custom String("Green"),
+			Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"),
+			Custom String("Aqua"), Custom String("Rose")), 0), Workshop Setting Combo(Custom String("Display - Dragon"), Custom String(
+			"Center Color (300dps zone)"), 5, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
+			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
+			"Rose")), 1), Workshop Setting Combo(Custom String("Display - Flux"), Custom String("Flux Color"), 6, Array(Custom String(
+			"White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"), Custom String("Red"),
+			Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 0), Workshop Setting Combo(Custom String(
+			"Display - Earthshatter"), Custom String("Shatter Color"), 7, Array(Custom String("White"), Custom String("Green"),
+			Custom String("Blue"), Custom String("Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"),
+			Custom String("Aqua"), Custom String("Rose")), 0));
+		Global.color_global = Array(Color(White), Color(Green), Color(Blue), Color(Yellow), Color(Gray), Color(Red), Color(Turquoise),
+			Color(Aqua), Color(Rose));
 		Global.settings = Array(Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Use Beams"), True, 0),
 			Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Show Circle (lag warning!!!)"), False, 1),
 			Workshop Setting Toggle(Custom String("Display - Cone"), Custom String("Use Spheres"), False, 3), Workshop Setting Integer(
-			Custom String("Display - Cone"), Custom String("Beam Count"), 8, 4, 16, 2), Workshop Setting Integer(Custom String(
+			Custom String("Display - Cone"), Custom String("Beam Count"), 6, 4, 16, 2), Workshop Setting Integer(Custom String(
 			"Display - Cone"), Custom String("Animation Speed (deg/s)"), 30, 1, 360, 5), Workshop Setting Integer(Custom String(
 			"Display - Cone"), Custom String("Sphere Count"), 12, 4, 32, 4));
-		Global.mhb_all_indexmatrix = Array(Array(0, 0, 0), Array(0, 6, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 5, 0), Array(1, 1, 1),
+		Global.global_knockback_disable = Workshop Setting Toggle(Custom String("Global"), Custom String("Disable Knockback?"), True, 0);
+		"melee hitbox dimensions [0]r [1]dist_from_eye"
+		Global.mhb_dimensions = Array(1, 1.500);
+		Global.hero_mhb_indexmatrix = Array(Array(0, 0, 0), Array(0, 6, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 5, 0), Array(1, 1, 1),
 			Array(0, 0, 0), Array(1, 2, 1), Array(0, 0, 0), Array(1, 1, 1), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(1, 1, 1),
 			Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(0, 0, 0), Array(1, 0, 1), Array(0, 3, 0), Array(0, 4, 0),
 			Array(1, 1, 1), Array(0, 0, 0), Array(1, 1, 1), Array(0, 0, 0), Array(0, 0, 0), Array(2, 0, 3), Array(0, 0, 0), Array(0, 0, 0),
 			Array(0, 0, 0), Array(1, 2, 2));
-		Global.mhb_all = Empty Array;
+		Global.all_mhb = Empty Array;
 		Global.arr_temp = Empty Array;
 		"mhb radius"
 		disabled Global.arr_temp = Array(500, 699.707, 949.707);
 		"mhb radius 2"
 		Global.arr_temp = Array(500, 700, 950);
 		Call Subroutine(init_div);
-		Global.mhb_all[0] = Global.arr_temp;
+		Global.all_mhb[0] = Global.arr_temp;
 		"mhb standing height"
 		disabled Global.arr_temp = Array(1999.020, 2298.830, 2499.020, 1968.750, 1885.740, 1548.830, 1992.190);
 		"mhb standing height 2"
 		Global.arr_temp = Array(2000, 2300, 2500, 1968.750, 2000, 1548.830, 1993);
 		Call Subroutine(init_div);
-		Global.mhb_all[1] = Global.arr_temp;
+		Global.all_mhb[1] = Global.arr_temp;
 		"mhb ducking height"
 		disabled Global.arr_temp = Array(1298.830, 1718.750, 2048.830, 1999.020);
 		"mhb ducking height"
 		Global.arr_temp = Array(1298.830, 1718.750, 2048.830, 1999.020);
 		Call Subroutine(init_div);
-		Global.mhb_all[2] = Global.arr_temp;
+		Global.all_mhb[2] = Global.arr_temp;
 		Global.arr_temp = Empty Array;
-		Call Subroutine(init_global_hud);
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (210113)"), Custom String(
+			"by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", Custom String("effect count"),
+			Global.global_total_effect_count), Right, -999, Color(White), Color(White), Color(Gray), Visible To and String,
+			Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1}", Custom String("hud text count"),
+			Global.global_total_hudtext_count), Right, -998, Color(Gray), Color(White), Color(Gray), Visible To and String,
+			Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1} {2}", Server Load, Server Load Average, Server Load Peak),
+			Right, -1000, Color(White), Color(White), Color(Yellow), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Hitbox Legend"), Null, Null, Right, -500, Color(White), Color(White), Color(
+			Yellow), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[ACKNOWLEDGE] Switch Hero"), Left, -99, Color(White), Color(
+			White), Color(White), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Group Up] Toggle Melee hitbox"), Left, -98, Color(White),
+			Color(White), Color(White), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Jump + Crouch] Reset Scale"), Left, -95, Color(White), Color(
+			White), Color(White), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Interact + Jump + Crouch] Reset Bot Scale"), Left, -94, Color(
+			White), Color(White), Color(White), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Hello] Teleport Bot to self"), Left, -93, Color(White), Color(
+			White), Color(White), Visible To, Default Visibility);
+		Global.global_total_hudtext_count += 10;
 		Wait(1, Ignore Condition);
 		Call Subroutine(dummy);
 	}
@@ -273,10 +287,11 @@ rule("Dummy Bot Test")
 
 	actions
 	{
+		disabled Create Dummy Bot(Random Value In Array(All Heroes), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
+		disabled Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Random Value In Array(All Tank Heroes), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Random Value In Array(All Support Heroes), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
 		Create Dummy Bot(Random Value In Array(All Damage Heroes), Team 2, -1, Vector(0, -1000, 0), Vector(0, 0, 0));
-		Disable Movement Collision With Players(Filtered Array(All Players(All Teams), Is Dummy Bot(Current Array Element) == True));
 	}
 }
 
@@ -299,14 +314,10 @@ rule("player_init_once")
 		Event Player.player_scale = 1;
 		"for hanzo dragon. [0]arrow_ro [1]arrow_rd [2]arrow_ro_temp [3]arrow_rd_temp"
 		Event Player.player_dragon_var = Array(Vector(0, -1000, 0), Down, Vector(0, -1000, 0), Down, Vector(0, 0, 0));
-		Call Subroutine(create_hbid0_root);
-		Create In-World Text(All Players(All Teams), Local Player.player_doomfist_enemies_t[Slot Of(Event Player)
-			] <= 0 ? Global.dimensions_doomfist[4] : (Local Player.player_doomfist_enemies_t[Slot Of(Event Player)
-			] > 1 ? Global.dimensions_doomfist[5] : (1 - Local Player.player_doomfist_enemies_t[Slot Of(Event Player)])
-			* Global.dimensions_doomfist[2] + Local Player.player_doomfist_enemies_t[Slot Of(Event Player)
-			] * Global.dimensions_doomfist[3]), Event Player, 2, Do Not Clip, Visible To Position String and Color, Hero Of(Local Player)
-			!= Hero(Doomfist) ? Custom Color(255, 255, 0, 0) : (Team Of(Event Player) == Team Of(Local Player) ? Custom Color(255, 255, 0,
-			0) : Global.color_global[Global.color_settings[9]]), Visible Never);
+		Call Subroutine(create_body_mhb);
+		disabled Wait(2, Ignore Condition);
+		disabled Start Scaling Player(Event Player, Event Player.player_scale, True);
+		disabled Chase Player Variable At Rate(Event Player, player_scale, 15, 1, Destination and Rate);
 	}
 }
 
@@ -327,30 +338,20 @@ rule("player_change_hero_init")
 
 	actions
 	{
-		Event Player.melee_hitbox_temp_disable = False;
+		Event Player.melee_hitbox_temp_disable = 0;
 		Event Player.player_hero = Hero Of(Event Player);
-		If(Event Player.player_posdir_save != 0);
-			Teleport(Event Player, Event Player.player_posdir_save[0]);
-			Set Facing(Event Player, Event Player.player_posdir_save[1], To World);
-		End;
-		Event Player.self_mhb_temp = Global.mhb_all_indexmatrix[Index Of Array Value(All Heroes, Hero Of(Event Player))];
+		Event Player.self_mhb_temp = Global.hero_mhb_indexmatrix[Index Of Array Value(All Heroes, Hero Of(Event Player))];
 		Call Subroutine(decompress_mhb_matrix);
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid1_root);
+		Call Subroutine(create_melee_hitbox_root);
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid2_root);
+		Call Subroutine(create_cone1_hitbox_root);
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid3_root);
+		Call Subroutine(create_dragon_hitbox_root);
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid4_root);
+		Call Subroutine(create_flux_hitbox_root);
 		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid5_root);
-		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid6_root);
-		Wait(0.016, Ignore Condition);
-		Call Subroutine(create_hbid7_root);
-		Wait(0.016, Ignore Condition);
-		Call Subroutine(init_enemies_array);
+		Call Subroutine(create_shatter_hitbox_root);
 	}
 }
 
@@ -365,7 +366,7 @@ rule("[sub] decompress mhb matrix")
 	actions
 	{
 		For Player Variable(Event Player, loop_j, 0, Count Of(Event Player.self_mhb_temp), 1);
-			Event Player.self_mhb_temp[Event Player.loop_j] = Global.mhb_all[Event Player.loop_j][Event Player.self_mhb_temp[Event Player.loop_j]];
+			Event Player.self_mhb_temp[Event Player.loop_j] = Global.all_mhb[Event Player.loop_j][Event Player.self_mhb_temp[Event Player.loop_j]];
 		End;
 		Event Player.self_mhb = Array(Event Player.self_mhb_temp[0], Vector(0, Event Player.self_mhb_temp[0], 0), Vector(0,
 			Event Player.self_mhb_temp[1] - Event Player.self_mhb_temp[0], 0), Null, Vector(0,
@@ -439,7 +440,7 @@ rule("player_crouch_false_mhb_switch")
 	}
 }
 
-rule("change self hero")
+rule("kill self")
 {
 	event
 	{
@@ -455,10 +456,7 @@ rule("change self hero")
 
 	actions
 	{
-		Event Player.player_posdir_save[0] = Position Of(Event Player);
-		Event Player.player_posdir_save[1] = Facing Direction Of(Event Player);
-		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
-		Set Player Allowed Heroes(Event Player, All Heroes);
+		Kill(Event Player, Null);
 	}
 }
 
@@ -495,9 +493,6 @@ rule("select_player_near_crosshair_mhb_target")
 	actions
 	{
 		Event Player.mhb_target = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
-		Disallow Button(Event Player, Button(Ability 1));
-		Wait Until(!Is Button Held(Event Player, Button(Interact)), 99999);
-		Allow Button(Event Player, Button(Ability 1));
 	}
 }
 
@@ -563,7 +558,7 @@ rule("[sub] all hero body melee hurtbox")
 	event
 	{
 		Subroutine;
-		create_hbid0_root;
+		create_body_mhb;
 	}
 
 	actions
@@ -573,10 +568,44 @@ rule("[sub] all hero body melee hurtbox")
 			Create Effect(All Players(Opposite Team Of(Team Of(Event Player))), Sphere, Global.color_global[Global.color_settings[0]],
 				Update Every Frame(Position Of(Event Player) + Event Player.player_scale * (Evaluate Once(1 - Event Player.loop_j / 3)
 				* Event Player.self_mhb[1] + Evaluate Once(Event Player.loop_j / 3) * Event Player.self_mhb[2])),
-				Event Player.player_scale * Event Player.self_mhb[0] * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+				Event Player.player_scale * Event Player.self_mhb[0] / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"end create melee hurtbox"
 		End;
+		"no need to create hud text for dummies"
+		If(Is Dummy Bot(Event Player) != True);
+			Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Melee Hurtbox of"), Hero Icon String(Hero Of(
+				Event Player)), Custom String("Capsule")), Null, Null, Right, -499, Global.color_global[Global.color_settings[0]], Color(
+				White), Color(White), Visible To and String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"mhb looking at"
+			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Event Player,
+				Opposite Team Of(Team Of(Event Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Event Player, Opposite Team Of(
+				Team Of(Event Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"mhb selected target"
+			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("[Interact] Selected"), Event Player.mhb_target,
+				Hero Icon String(Hero Of(Event Player.mhb_target))), Null, Null, Left, 1, Global.color_global[Global.color_settings[1]], Color(
+				White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"reload camera mode"
+			Create HUD Text(Event Player, Null, Null, String("{0}: {1}", Custom String("[RELOAD] Camera Mode"),
+				Global.cam_mode_hudtext[Event Player.player_cam_mode]), Left, -100, Color(White), Color(White), Color(White), String,
+				Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"player scale"
+			Create HUD Text(Event Player, Null, Null, String("{0}: {1}", Custom String("[HOLD Jump / Crouch] Player Scale"),
+				Event Player.player_scale), Left, -97, Color(White), Color(White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+			"selected player scale, can only modify bots scale"
+			Create HUD Text(Event Player, Null, Null, String("{0}: {1}", Custom String("[HOLD Interact + Jump / Crouch] Bot Scale"),
+				Event Player.mhb_target.player_scale), Left, -96, Color(White), Color(White), Color(White), String, Default Visibility);
+			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
+		End;
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 		"player_effect_id[0] for mhb body"
 		Event Player.player_effect_id[0] = Event Player.temp_arr;
 		Event Player.player_hudtext_id[0] = Event Player.temp_arr2;
@@ -590,7 +619,7 @@ rule("[sub] create melee hitbox quick + hud")
 	event
 	{
 		Subroutine;
-		create_hbid1_quickmelee;
+		create_melee_hitbox_quick;
 	}
 
 	actions
@@ -603,15 +632,15 @@ rule("[sub] create melee hitbox quick + hud")
 			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 			"melee predict"
 			Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Melee Distance"), 100 * (Distance Between(Eye Position(
-				Event Player) + Global.dimensions_quickmelee[1] * Event Player.player_scale * Facing Direction Of(Event Player), Position Of(
+				Event Player) + Global.mhb_dimensions[1] * Event Player.player_scale * Facing Direction Of(Event Player), Position Of(
 				Event Player.mhb_target) + Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Min(Max(Dot Product(
-				Eye Position(Event Player) + Global.dimensions_quickmelee[1] * Event Player.player_scale * Facing Direction Of(Event Player)
+				Eye Position(Event Player) + Global.mhb_dimensions[1] * Event Player.player_scale * Facing Direction Of(Event Player)
 				- Position Of(Event Player.mhb_target) - Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale,
 				Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale) / Dot Product(
 				Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale,
 				Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale), 0), 1)
 				* Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[3])
-				- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - Global.dimensions_quickmelee[0] * Event Player.player_scale),
+				- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - Global.mhb_dimensions[0] * Event Player.player_scale),
 				Custom String("cm")), Null, Null, Left, 2, Global.color_global[Global.color_settings[2]], Color(White), Color(White), String,
 				Default Visibility);
 			Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
@@ -620,11 +649,14 @@ rule("[sub] create melee hitbox quick + hud")
 		Event Player.player_effect_colors_melee = Array(Global.color_global[Global.color_settings[1]]);
 		"create melee hitbox"
 		Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[0], Update Every Frame(Eye Position(
-			Event Player) + Global.dimensions_quickmelee[1] * Facing Direction Of(Event Player) * Event Player.player_scale),
-			Event Player.melee_hitbox_temp_disable ? 0 : Event Player.player_scale * Global.dimensions_quickmelee[0] * Evaluate Once(
-			Global._FX[0]), Visible To Position Radius and Color);
+			Event Player) + Global.mhb_dimensions[1] * Facing Direction Of(Event Player) * Event Player.player_scale),
+			Event Player.player_scale * Global.mhb_dimensions[0] / 0.985, Visible To Position Radius and Color);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		disabled Event Player.player_effect_id[1] = Array(Event Player.temp_arr);
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 		"player_effect_id[1] for melee"
 		Modify Player Variable At Index(Event Player, player_effect_id, 1, Append To Array, Event Player.temp_arr);
 		Modify Player Variable At Index(Event Player, player_hudtext_id, 1, Append To Array, Event Player.temp_arr2);
@@ -640,18 +672,18 @@ rule("[sub] create melee hitbox root")
 	event
 	{
 		Subroutine;
-		create_hbid1_root;
+		create_melee_hitbox_root;
 	}
 
 	actions
 	{
-		Call Subroutine(destroy_hbid1);
+		Call Subroutine(destroy_melee_hitbox);
 		If(Hero Of(Event Player) == Hero(Reinhardt));
-			Call Subroutine(create_hbid1_reinhammer);
+			Call Subroutine(create_melee_hitbox_reinhammer);
 		Else If(Hero Of(Event Player) == Hero(Brigitte));
 			Call Subroutine(pass);
 		Else;
-			Call Subroutine(create_hbid1_quickmelee);
+			Call Subroutine(create_melee_hitbox_quick);
 		End;
 	}
 }
@@ -661,7 +693,7 @@ rule("[sub] destory melee hitbox")
 	event
 	{
 		Subroutine;
-		destroy_hbid1;
+		destroy_melee_hitbox;
 	}
 
 	actions
@@ -679,7 +711,7 @@ rule("[sub] create melee hitbox rein hammer")
 	event
 	{
 		Subroutine;
-		create_hbid1_reinhammer;
+		create_melee_hitbox_reinhammer;
 	}
 
 	actions
@@ -710,20 +742,22 @@ rule("[sub] create melee hitbox rein hammer")
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j])) + Direction From Angles(Horizontal Facing Angle Of(Event Player),
 				Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Event Player.temp_arr3[Event Player.loop_j]))
 				+ Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Event Player.temp_arr3[Event Player.loop_j]))),
-				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
-				Visible To Position Radius and Color);
+				1 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[Evaluate Once(Event Player.loop_j)],
 				Eye Position(Event Player) + Event Player.player_scale * (World Vector Of(Left, Event Player, Rotation) * Evaluate Once(
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j]) / 2) + Direction From Angles(Horizontal Facing Angle Of(
 				Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(
-				Event Player.temp_arr3[Event Player.loop_j]) / 2)),
-				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Event Player.temp_arr3[Event Player.loop_j]) / 2)), 0.500 * Event Player.player_scale / 0.985,
 				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 		"player_effect_id[1] for melee"
 		Modify Player Variable At Index(Event Player, player_effect_id, 1, Append To Array, Event Player.temp_arr);
 		Modify Player Variable At Index(Event Player, player_hudtext_id, 1, Append To Array, Event Player.temp_arr2);
@@ -838,15 +872,15 @@ rule("[sub] create cone1 hitbox root")
 	event
 	{
 		Subroutine;
-		create_hbid2_root;
+		create_cone1_hitbox_root;
 	}
 
 	actions
 	{
-		Call Subroutine(destory_hbid2);
+		Call Subroutine(destory_cone1_hitbox);
 		If(Hero Of(Event Player) == Hero(Winston));
 			Event Player.player_cone1_dimensions = Array(8, 20);
-			Call Subroutine(create_cone1_offset);
+			Call Subroutine(create_cone1_hitbox_offset);
 			"no need to create hud text for dummies"
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Primary Fire)), Custom String(
@@ -856,7 +890,7 @@ rule("[sub] create cone1 hitbox root")
 			End;
 		Else If(Hero Of(Event Player) == Hero(Reinhardt));
 			Event Player.player_cone1_dimensions = Array(2, 15);
-			Call Subroutine(create_cone1_offset_lockv);
+			Call Subroutine(create_cone1_hitbox_offset_lockv);
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ability 1)), Custom String(
 					"Cone")), Null, Null, Right, -497, Global.color_global[Global.color_settings[3]], Color(White), Color(White), String and Color,
@@ -865,7 +899,7 @@ rule("[sub] create cone1 hitbox root")
 			End;
 		Else If(Hero Of(Event Player) == Hero(Genji));
 			Event Player.player_cone1_dimensions = Array(5, 45);
-			Call Subroutine(create_cone1_std);
+			Call Subroutine(create_cone1_hitbox_std);
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ultimate)), Custom String(
 					"Cone")), Null, Null, Right, -497, Global.color_global[Global.color_settings[3]], Color(White), Color(White), String and Color,
@@ -874,7 +908,7 @@ rule("[sub] create cone1 hitbox root")
 			End;
 		Else If(Hero Of(Event Player) == Hero(Lúcio));
 			Event Player.player_cone1_dimensions = Array(7, 35);
-			Call Subroutine(create_cone1_std);
+			Call Subroutine(create_cone1_hitbox_std);
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Secondary Fire)), Custom String(
 					"Cone")), Null, Null, Right, -497, Global.color_global[Global.color_settings[3]], Color(White), Color(White), String and Color,
@@ -884,6 +918,8 @@ rule("[sub] create cone1 hitbox root")
 		Else;
 			Call Subroutine(pass);
 		End;
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 		"player_effect_id[2] for cone1"
 		Event Player.player_effect_id[2] = Event Player.temp_arr;
 		Event Player.player_hudtext_id[2] = Event Player.temp_arr2;
@@ -897,7 +933,7 @@ rule("[sub] destory cone1 hitbox")
 	event
 	{
 		Subroutine;
-		destory_hbid2;
+		destory_cone1_hitbox;
 	}
 
 	actions
@@ -915,14 +951,14 @@ rule("[sub] create_cone1_offset (offset 0,k,0)")
 	event
 	{
 		Subroutine;
-		create_cone1_offset;
+		create_cone1_hitbox_offset;
 	}
 
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Position Of(Event Player) + Vector(0,
-			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(
-			Global._FX[0]), Visible To Position and Radius);
+			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985,
+			Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -970,8 +1006,7 @@ rule("[sub] create_cone1_offset (offset 0,k,0)")
 					Event Player.loop_j * Event Player.player_cone1_dimensions[0]) * Event Player.player_scale / Evaluate Once((
 					Global.settings[5] - 1) * Cosine From Degrees(Event Player.player_cone1_dimensions[1]))),
 					Event Player.player_scale * Evaluate Once(Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(
-					Event Player.player_cone1_dimensions[1]) / (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]),
-					Visible To Position and Radius);
+					Event Player.player_cone1_dimensions[1]) / (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -984,14 +1019,14 @@ rule("[sub] create_cone1_offset_novert (offset 0,k,0)")
 	event
 	{
 		Subroutine;
-		create_cone1_offset_lockv;
+		create_cone1_hitbox_offset_lockv;
 	}
 
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Position Of(Event Player) + Vector(0,
-			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(
-			Global._FX[0]), Visible To Position and Radius);
+			Event Player.player_scale, 0), Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985,
+			Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -1034,7 +1069,7 @@ rule("[sub] create_cone1_offset_novert (offset 0,k,0)")
 					Event Player.loop_j * Event Player.player_cone1_dimensions[0]) / Evaluate Once((Global.settings[5] - 1) * Cosine From Degrees(
 					Event Player.player_cone1_dimensions[1]))), Event Player, Rotation), Event Player.player_scale * Evaluate Once(
 					Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(Event Player.player_cone1_dimensions[1])
-					/ (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+					/ (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -1047,14 +1082,13 @@ rule("[sub] create_cone1_standard (origin at eye)")
 	event
 	{
 		Subroutine;
-		create_cone1_std;
+		create_cone1_hitbox_std;
 	}
 
 	actions
 	{
 		Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[3]], Eye Position(Event Player),
-			Event Player.player_cone1_dimensions[0] * Event Player.player_scale * Evaluate Once(Global._FX[0]),
-			Visible To Position and Radius);
+			Event Player.player_cone1_dimensions[0] * Event Player.player_scale / 0.985, Visible To Position and Radius);
 		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		If(Global.settings[0] == True);
 			For Player Variable(Event Player, loop_j, 0, Global.settings[3], 1);
@@ -1108,7 +1142,7 @@ rule("[sub] create_cone1_standard (origin at eye)")
 					* Event Player.player_scale / Evaluate Once((Global.settings[5] - 1) * Cosine From Degrees(
 					Event Player.player_cone1_dimensions[1]))), Event Player.player_scale * Evaluate Once(
 					Event Player.player_cone1_dimensions[0] * Event Player.loop_j * Tangent From Degrees(Event Player.player_cone1_dimensions[1])
-					/ (Global.settings[5] - 1)) * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+					/ (Global.settings[5] - 1)) / 0.985, Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.032, Ignore Condition);
 			End;
@@ -1132,21 +1166,21 @@ rule("[HANZO] dragon_fire_set_variables")
 
 	actions
 	{
-		"1 sec cast time [0.928s / 58t actual number]"
-		Wait(0.936, Ignore Condition);
+		"1 sec cast time"
+		Wait(1, Ignore Condition);
 		"set arrow launch pos and dir to temp [7] and [8]"
 		Event Player.player_dragon_var[2] = Eye Position(Event Player);
 		"account for straight U/D"
 		Event Player.player_dragon_var[3] = Vertical Facing Angle Of(Event Player) < -89 ? World Vector Of(Up, Event Player, Rotation) : (
 			Vertical Facing Angle Of(Event Player) > 89 ? World Vector Of(Down, Event Player, Rotation) : Facing Direction Of(
 			Event Player));
-		"wait for the dragon to appear (38t -1t + extra 4t from microadjustments)"
-		Wait(0.672, Ignore Condition);
+		"wait for the dragon to appear (38t -1t)"
+		Wait(0.608, Ignore Condition);
 		Event Player.player_dragon_t = 0;
 		"so that the hitbox will update when the dragon starts visually"
 		Event Player.player_dragon_var[0] = Event Player.player_dragon_var[2];
 		Event Player.player_dragon_var[1] = Event Player.player_dragon_var[3];
-		Chase Player Variable At Rate(Event Player, player_dragon_t, Global.dimensions_dragon[4], Global.dimensions_dragon[3], None);
+		Chase Player Variable At Rate(Event Player, player_dragon_t, Global.dragon_dimensions[4], Global.dragon_dimensions[3], None);
 	}
 }
 
@@ -1179,38 +1213,38 @@ rule("[sub] create dragon hitbox root")
 	event
 	{
 		Subroutine;
-		create_hbid3_root;
+		create_dragon_hitbox_root;
 	}
 
 	actions
 	{
-		Call Subroutine(destroy_hbid3);
+		Call Subroutine(destroy_dragon_hitbox);
 		If(Hero Of(Event Player) == Hero(Hanzo));
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Dist to Dragon Plane"), String("{0} {1}", Dot Product(
 					Event Player.player_dragon_var[1], Position Of(Event Player.mhb_target) - Event Player.player_dragon_var[0])
-					- Global.dimensions_dragon[2], Custom String("m")), String("({0})", Dot Product(Facing Direction Of(Event Player), Position Of(
-					Event Player.mhb_target) - Eye Position(Event Player)) - Global.dimensions_dragon[2])), Null, Null, Left, 20,
+					- Global.dragon_dimensions[2], Custom String("m")), String("({0})", Dot Product(Facing Direction Of(Event Player), Position Of(
+					Event Player.mhb_target) - Eye Position(Event Player)) - Global.dragon_dimensions[2])), Null, Null, Left, 20,
 					Global.color_global[Global.color_settings[4]], Color(White), Color(White), String, Default Visibility);
 				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 				Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Dist to Dragon Body"), String("{0} {1}", 100 * (
 					Distance Between(Event Player.player_dragon_var[0] + (Round To Integer(Min(Max(Dot Product(Event Player.player_dragon_var[1],
 					Event Player.player_dragon_var[4] - Event Player.player_dragon_var[0]) - Event Player.player_dragon_t, -20), 10) / 5,
 					To Nearest) * 5 + Event Player.player_dragon_t) * Event Player.player_dragon_var[1], Event Player.player_dragon_var[4])
-					- Global.dimensions_dragon[0] - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0]), Custom String(
+					- Global.dragon_dimensions[0] - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0]), Custom String(
 					"cm")), String("({0})", 100 * (Distance Between(Event Player.player_dragon_var[4], Eye Position(Event Player)
 					+ Facing Direction Of(Event Player) * Dot Product(Facing Direction Of(Event Player),
 					Event Player.player_dragon_var[4] - Eye Position(Event Player)))
-					- Global.dimensions_dragon[0] - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0]))), Null, Null,
+					- Global.dragon_dimensions[0] - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0]))), Null, Null,
 					Left, 21, Global.color_global[Global.color_settings[4]], Color(White), Color(White), String, Default Visibility);
 				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 				Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Dist to Dragon Center"), String("{0} {1}", 100 * (
 					Distance Between(Vector(0, 0, 0), Event Player.player_dragon_var[0] - Position Of(Event Player.mhb_target) - Dot Product(
 					Event Player.player_dragon_var[0] - Position Of(Event Player.mhb_target), Event Player.player_dragon_var[1])
-					* Event Player.player_dragon_var[1]) - Global.dimensions_dragon[1]), Custom String("cm")), String("({0})", 100 * (
+					* Event Player.player_dragon_var[1]) - Global.dragon_dimensions[1]), Custom String("cm")), String("({0})", 100 * (
 					Distance Between(Vector(0, 0, 0), Eye Position(Event Player) - Position Of(Event Player.mhb_target) - Dot Product(Eye Position(
 					Event Player) - Position Of(Event Player.mhb_target), Facing Direction Of(Event Player)) * Facing Direction Of(Event Player))
-					- Global.dimensions_dragon[1]))), Null, Null, Left, 22, Global.color_global[Global.color_settings[5]], Color(White), Color(
+					- Global.dragon_dimensions[1]))), Null, Null, Left, 22, Global.color_global[Global.color_settings[5]], Color(White), Color(
 					White), String, Default Visibility);
 				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ultimate)), Custom String(
@@ -1226,19 +1260,23 @@ rule("[sub] create dragon hitbox root")
 			For Player Variable(Event Player, loop_j, 0, 7, 1);
 				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[4]], Event Player.player_dragon_var[0] + (
 					10 + Event Player.player_dragon_t - 5 * Evaluate Once(Event Player.loop_j)) * Event Player.player_dragon_var[1],
-					Global.dimensions_dragon[0], Visible To Position and Radius);
+					Global.dragon_dimensions[0], Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.016, Ignore Condition);
 			End;
 			"the center of the dragon 300dps"
-			For Player Variable(Event Player, loop_j, 0, Global.dimensions_dragon[5], 1);
+			For Player Variable(Event Player, loop_j, 0, Global.dragon_dimensions[5], 1);
 				Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[5]], Event Player.player_dragon_var[0] + (
-					Evaluate Once((1 - Event Player.loop_j / (Global.dimensions_dragon[5] - 1)) * 14 + Event Player.loop_j / (
-					Global.dimensions_dragon[5] - 1) * -24) + Event Player.player_dragon_t) * Event Player.player_dragon_var[1],
-					Global.dimensions_dragon[1], Visible To Position and Radius);
+					Evaluate Once((1 - Event Player.loop_j / (Global.dragon_dimensions[5] - 1)) * 14 + Event Player.loop_j / (
+					Global.dragon_dimensions[5] - 1) * -24) + Event Player.player_dragon_t) * Event Player.player_dragon_var[1],
+					Global.dragon_dimensions[1], Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.016, Ignore Condition);
 			End;
+			"temp_arr for EFFECTS"
+			Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+			"temp_arr2 for HUD TEXT"
+			Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 			"player_effect_id[3] for dragon"
 			Event Player.player_effect_id[3] = Event Player.temp_arr;
 			Event Player.player_hudtext_id[3] = Event Player.temp_arr2;
@@ -1253,7 +1291,7 @@ rule("[sub] destory dragon hitbox")
 	event
 	{
 		Subroutine;
-		destroy_hbid3;
+		destroy_dragon_hitbox;
 	}
 
 	actions
@@ -1399,12 +1437,12 @@ rule("[sub] create flux hitbox root")
 	event
 	{
 		Subroutine;
-		create_hbid4_root;
+		create_flux_hitbox_root;
 	}
 
 	actions
 	{
-		Call Subroutine(destroy_hbid4);
+		Call Subroutine(destroy_flux_hitbox);
 		If(Hero Of(Event Player) == Hero(Sigma));
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ultimate)), Custom String(
@@ -1417,28 +1455,29 @@ rule("[sub] create flux hitbox root")
 				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
 			End;
 			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[6]],
-				Event Player.player_static_pos[0], 8 * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
-			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[6]],
-				Event Player.player_static_pos[0] + 5.500 * Up, 8 * Evaluate Once(Global._FX[3]), Visible To Position and Radius);
+				Event Player.player_flux_var + Vector(0, -5.500, 0), 8 / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"Previous"
-			disabled Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Event Player.player_static_pos[0], 8 * Evaluate Once(
-				Global._FX[1]), Visible To Position and Radius);
+			disabled Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Event Player.player_flux_var + Vector(0, -5.500, 0), 8 / 0.985,
+				Visible To Position and Radius);
 			disabled Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[6]], Event Player.player_static_pos[0],
-				15.500 * Evaluate Once(Global._FX[0]), Visible To Position and Radius);
+			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[6]], Event Player.player_flux_var + Vector(
+				0, -5.500, 0), 15.500 / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"Previous"
-			disabled Create Effect(All Players(All Teams), Sphere, Color(Blue), Event Player.player_static_pos[0], 15.500 * Evaluate Once(
-				Global._FX[0]), Visible To Position and Radius);
+			disabled Create Effect(All Players(All Teams), Sphere, Color(Blue), Event Player.player_flux_var + Vector(0, -5.500, 0), 15.500 / 0.985,
+				Visible To Position and Radius);
 			disabled Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
+			"temp_arr for EFFECTS"
+			Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+			"temp_arr2 for HUD TEXT"
+			Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 			"player_effect_id[4] for flux"
 			Event Player.player_effect_id[4] = Event Player.temp_arr;
 			Event Player.player_hudtext_id[4] = Event Player.temp_arr2;
 			Event Player.temp_arr = Empty Array;
 			Event Player.temp_arr2 = Empty Array;
-			Event Player.player_static_pos[0] = Vector(0, -100000, 0);
+			Event Player.player_flux_var = Vector(10000, 10000, 10000);
 		End;
 	}
 }
@@ -1448,7 +1487,7 @@ rule("[sub] destory flux hitbox")
 	event
 	{
 		Subroutine;
-		destroy_hbid4;
+		destroy_flux_hitbox;
 	}
 
 	actions
@@ -1461,7 +1500,7 @@ rule("[sub] destory flux hitbox")
 	}
 }
 
-rule("[SIGMA] use_ult")
+rule("[SIGMA] ultimate_select_location")
 {
 	event
 	{
@@ -1473,16 +1512,13 @@ rule("[SIGMA] use_ult")
 	conditions
 	{
 		Is Using Ultimate(Event Player) == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
 	}
 
 	actions
 	{
-		Event Player.player_static_pos[0] = Vector(0, -100000, 0);
-		Wait(0.608, Ignore Condition);
-		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)), 99999);
-		Wait Until(Is Button Held(Event Player, Button(Primary Fire)), 99999);
-		Event Player.player_static_pos[0] = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
-			+ 1000 * Facing Direction Of(Event Player), Null, Event Player, False) + Vector(0, -5.500, 0);
+		Event Player.player_flux_var = Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), Null, Event Player, False);
 	}
 }
 
@@ -1496,12 +1532,12 @@ rule("[sub] init_shatter_dimensions")
 
 	actions
 	{
-		Global.dimensions_shatter = Array(19.835, 25, 1.770, -1, 7);
-		For Global Variable(loop_i, 0, Global.dimensions_shatter[4], 1);
-			Modify Global Variable(dimensions_shatter, Append To Array, Global.dimensions_shatter[0] * Sine From Degrees(2 * (Global.loop_i / (
-				Global.dimensions_shatter[4] - 1)) * Global.dimensions_shatter[1] - Global.dimensions_shatter[1]));
-			Modify Global Variable(dimensions_shatter, Append To Array, Global.dimensions_shatter[0] * Cosine From Degrees(2 * (
-				Global.loop_i / (Global.dimensions_shatter[4] - 1)) * Global.dimensions_shatter[1] - Global.dimensions_shatter[1]));
+		Global.shatter_dimensions = Array(19.835, 25, 1.770, -1, 7);
+		For Global Variable(loop_i, 0, Global.shatter_dimensions[4], 1);
+			Modify Global Variable(shatter_dimensions, Append To Array, Global.shatter_dimensions[0] * Sine From Degrees(2 * (Global.loop_i / (
+				Global.shatter_dimensions[4] - 1)) * Global.shatter_dimensions[1] - Global.shatter_dimensions[1]));
+			Modify Global Variable(shatter_dimensions, Append To Array, Global.shatter_dimensions[0] * Cosine From Degrees(2 * (
+				Global.loop_i / (Global.shatter_dimensions[4] - 1)) * Global.shatter_dimensions[1] - Global.shatter_dimensions[1]));
 		End;
 	}
 }
@@ -1511,12 +1547,12 @@ rule("[sub] create_shatter_hitbox_root")
 	event
 	{
 		Subroutine;
-		create_hbid5_root;
+		create_shatter_hitbox_root;
 	}
 
 	actions
 	{
-		Call Subroutine(destroy_hbid5);
+		Call Subroutine(destroy_shatter_hitbox);
 		If(Hero Of(Event Player) == Hero(Reinhardt));
 			If(Is Dummy Bot(Event Player) != True);
 				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ultimate)), Custom String(
@@ -1530,92 +1566,96 @@ rule("[sub] create_shatter_hitbox_root")
 			End;
 			"r"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				0.050 * Global.dimensions_shatter[5], 0, 0.050 * Global.dimensions_shatter[6]) + Vector(0, Global.dimensions_shatter[2], 0),
-				Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.dimensions_shatter[5], 0,
-				Global.dimensions_shatter[6]) + Vector(0, Global.dimensions_shatter[2], 0), Event Player, Rotation And Translation),
+				0.050 * Global.shatter_dimensions[5], 0, 0.050 * Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[2], 0),
+				Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.shatter_dimensions[5], 0,
+				Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation),
 				Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"l"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				0.050 * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0,
-				0.050 * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0, Global.dimensions_shatter[2], 0),
+				0.050 * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
+				0.050 * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[2], 0),
 				Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0,
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0, Global.dimensions_shatter[2], 0), Event Player,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
 				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"rdown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				Global.dimensions_shatter[5], 0, Global.dimensions_shatter[6]) + Vector(0, Global.dimensions_shatter[2], 0), Event Player,
-				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.dimensions_shatter[5], 0,
-				Global.dimensions_shatter[6]) + Vector(0, Global.dimensions_shatter[3], 0), Event Player, Rotation And Translation),
+				Global.shatter_dimensions[5], 0, Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
+				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.shatter_dimensions[5], 0,
+				Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation),
 				Global.color_global[Global.color_settings[6]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"ldown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0,
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0, Global.dimensions_shatter[2], 0), Event Player,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
 				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0,
-				Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0, Global.dimensions_shatter[3], 0), Event Player,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
+				Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0, Global.shatter_dimensions[3], 0), Event Player,
 				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_rdown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				Total Time Elapsed / 4 % 1 * Global.dimensions_shatter[5], 0, Total Time Elapsed / 4 % 1 * Global.dimensions_shatter[6])
-				+ Vector(0, Global.dimensions_shatter[2], 0), Event Player, Rotation And Translation), World Vector Of(
-				Event Player.player_scale * Vector(Total Time Elapsed / 4 % 1 * Global.dimensions_shatter[5], 0,
-				Total Time Elapsed / 4 % 1 * Global.dimensions_shatter[6]) + Vector(0, Global.dimensions_shatter[3], 0), Event Player,
+				Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[5], 0, Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[6])
+				+ Vector(0, Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(
+				Event Player.player_scale * Vector(Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[5], 0,
+				Total Time Elapsed / 4 % 1 * Global.shatter_dimensions[6]) + Vector(0, Global.shatter_dimensions[3], 0), Event Player,
 				Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_ldown"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(Absolute Value(
-				Total Time Elapsed / 4 % 1 - 1) * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0, Absolute Value(
-				Total Time Elapsed / 4 % 1 - 1) * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0,
-				Global.dimensions_shatter[2], 0), Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
-				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 3], 0,
-				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.dimensions_shatter[2 * Global.dimensions_shatter[4] + 4]) + Vector(0,
-				Global.dimensions_shatter[3], 0), Event Player, Rotation And Translation), Global.color_global[Global.color_settings[7]],
+				Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0, Absolute Value(
+				Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0,
+				Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(
+				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 3], 0,
+				Absolute Value(Total Time Elapsed / 4 % 1 - 1) * Global.shatter_dimensions[2 * Global.shatter_dimensions[4] + 4]) + Vector(0,
+				Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation), Global.color_global[Global.color_settings[7]],
 				Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"anim_curve"
 			Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Vector(
-				Global.dimensions_shatter[0] * Sine From Degrees(2 * Global.dimensions_shatter[1] * (Total Time Elapsed / 4 % 1)
-				- Global.dimensions_shatter[1]), 0, Global.dimensions_shatter[0] * Cosine From Degrees(2 * Global.dimensions_shatter[1] * (
-				Total Time Elapsed / 4 % 1) - Global.dimensions_shatter[1])) + Vector(0, Global.dimensions_shatter[2], 0), Event Player,
-				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.dimensions_shatter[0] * Sine From Degrees(
-				2 * Global.dimensions_shatter[1] * (Total Time Elapsed / 4 % 1) - Global.dimensions_shatter[1]), 0,
-				Global.dimensions_shatter[0] * Cosine From Degrees(2 * Global.dimensions_shatter[1] * (Total Time Elapsed / 4 % 1)
-				- Global.dimensions_shatter[1])) + Vector(0, Global.dimensions_shatter[3], 0), Event Player, Rotation And Translation),
+				Global.shatter_dimensions[0] * Sine From Degrees(2 * Global.shatter_dimensions[1] * (Total Time Elapsed / 4 % 1)
+				- Global.shatter_dimensions[1]), 0, Global.shatter_dimensions[0] * Cosine From Degrees(2 * Global.shatter_dimensions[1] * (
+				Total Time Elapsed / 4 % 1) - Global.shatter_dimensions[1])) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
+				Rotation And Translation), World Vector Of(Event Player.player_scale * Vector(Global.shatter_dimensions[0] * Sine From Degrees(
+				2 * Global.shatter_dimensions[1] * (Total Time Elapsed / 4 % 1) - Global.shatter_dimensions[1]), 0,
+				Global.shatter_dimensions[0] * Cosine From Degrees(2 * Global.shatter_dimensions[1] * (Total Time Elapsed / 4 % 1)
+				- Global.shatter_dimensions[1])) + Vector(0, Global.shatter_dimensions[3], 0), Event Player, Rotation And Translation),
 				Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			For Player Variable(Event Player, loop_j, 0, Global.dimensions_shatter[4] - 1, 1);
+			For Player Variable(Event Player, loop_j, 0, Global.shatter_dimensions[4] - 1, 1);
 				"Curve"
 				Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Evaluate Once(Vector(
-					Global.dimensions_shatter[5 + 2 * Event Player.loop_j], 0, Global.dimensions_shatter[6 + 2 * Event Player.loop_j])) + Vector(0,
-					Global.dimensions_shatter[2], 0), Event Player, Rotation And Translation), World Vector Of(
-					Event Player.player_scale * Evaluate Once(Vector(Global.dimensions_shatter[7 + 2 * Event Player.loop_j], 0,
-					Global.dimensions_shatter[8 + 2 * Event Player.loop_j])) + Vector(0, Global.dimensions_shatter[2], 0), Event Player,
+					Global.shatter_dimensions[5 + 2 * Event Player.loop_j], 0, Global.shatter_dimensions[6 + 2 * Event Player.loop_j])) + Vector(0,
+					Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(
+					Event Player.player_scale * Evaluate Once(Vector(Global.shatter_dimensions[7 + 2 * Event Player.loop_j], 0,
+					Global.shatter_dimensions[8 + 2 * Event Player.loop_j])) + Vector(0, Global.shatter_dimensions[2], 0), Event Player,
 					Rotation And Translation), Global.color_global[Global.color_settings[7]], Visible To Position and Radius);
 				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				"Down"
 				disabled Create Beam Effect(All Players(All Teams), Good Beam, World Vector Of(Event Player.player_scale * Evaluate Once(Vector(
-					Global.dimensions_shatter[7 + 2 * Event Player.loop_j], 0, Global.dimensions_shatter[8 + 2 * Event Player.loop_j])) + Vector(0,
-					Global.dimensions_shatter[2], 0), Event Player, Rotation And Translation), World Vector Of(
-					Event Player.player_scale * Evaluate Once(Vector(Global.dimensions_shatter[7 + 2 * Event Player.loop_j], 0,
-					Global.dimensions_shatter[8 + 2 * Event Player.loop_j])) + Vector(0, Global.dimensions_shatter[3], 0), Event Player,
+					Global.shatter_dimensions[7 + 2 * Event Player.loop_j], 0, Global.shatter_dimensions[8 + 2 * Event Player.loop_j])) + Vector(0,
+					Global.shatter_dimensions[2], 0), Event Player, Rotation And Translation), World Vector Of(
+					Event Player.player_scale * Evaluate Once(Vector(Global.shatter_dimensions[7 + 2 * Event Player.loop_j], 0,
+					Global.shatter_dimensions[8 + 2 * Event Player.loop_j])) + Vector(0, Global.shatter_dimensions[3], 0), Event Player,
 					Rotation And Translation), Color(White), Visible To Position and Radius);
 				disabled Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 				Wait(0.016, Ignore Condition);
 			End;
 			"shaft"
 			Create Effect(All Players(All Teams), Light Shaft, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
-				Event Player.player_scale * Event Player.player_shatter_var * Evaluate Once(Global._FX[1]), Visible To Position and Radius);
+				Event Player.player_scale * Event Player.player_shatter_var / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			"ring"
 			Create Effect(All Players(All Teams), Ring, Global.color_global[Global.color_settings[7]], Position Of(Event Player),
-				Event Player.player_scale * Global.dimensions_shatter[0] * Evaluate Once(Global._FX[3]), Visible To Position and Radius);
+				Event Player.player_scale * Global.shatter_dimensions[0] / 0.985, Visible To Position and Radius);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
+			"temp_arr for EFFECTS"
+			Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+			"temp_arr2 for HUD TEXT"
+			Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 			"player_effect_id[5] for shatter"
 			Event Player.player_effect_id[5] = Event Player.temp_arr;
 			Event Player.player_hudtext_id[5] = Event Player.temp_arr2;
@@ -1632,7 +1672,7 @@ rule("[sub] destory_shatter_hitbox")
 	event
 	{
 		Subroutine;
-		destroy_hbid5;
+		destroy_shatter_hitbox;
 	}
 
 	actions
@@ -1662,7 +1702,7 @@ rule("[REIN] using_shatter")
 	actions
 	{
 		Event Player.player_shatter_var = 0.650;
-		Chase Player Variable Over Time(Event Player, player_shatter_var, Global.dimensions_shatter[0], 0.480, None);
+		Chase Player Variable Over Time(Event Player, player_shatter_var, Global.shatter_dimensions[0], 0.480, None);
 		Wait(1, Ignore Condition);
 		Stop Chasing Player Variable(Event Player, player_shatter_var);
 		Event Player.player_shatter_var = 0;
@@ -1685,7 +1725,21 @@ rule("toggle_melee_hitbox")
 
 	actions
 	{
-		Event Player.melee_hitbox_temp_disable = !Event Player.melee_hitbox_temp_disable;
+		Event Player.melee_hitbox_temp_disable = 2 + (Event Player.melee_hitbox_temp_disable + 1) % 2;
+		"destroy"
+		If(Event Player.melee_hitbox_temp_disable == 3);
+			Call Subroutine(destroy_melee_hitbox);
+		Else If(Event Player.melee_hitbox_temp_disable == 2);
+			If(Is Using Ultimate(Event Player) && Hero Of(Event Player) == Hero(Winston));
+				Call Subroutine(create_primal_hitbox);
+			Else If(Hero Of(Event Player) == Hero(Reinhardt));
+				Call Subroutine(create_melee_hitbox_reinhammer);
+			Else If(Hero Of(Event Player) == Hero(Brigitte));
+				Call Subroutine(pass);
+			Else;
+				Call Subroutine(create_melee_hitbox_quick);
+			End;
+		End;
 	}
 }
 
@@ -2029,6 +2083,9 @@ rule("[sub] effect hudtext temp_arr delete")
 
 	actions
 	{
+		"count subtract"
+		Global.global_total_effect_count -= Count Of(Event Player.temp_arr);
+		Global.global_total_hudtext_count -= Count Of(Event Player.temp_arr2);
 		"destroy effects"
 		While(Event Player.temp_arr != Empty Array);
 			Destroy Effect(Event Player.temp_arr[0]);
@@ -2102,8 +2159,7 @@ rule("teleport_bot_to_this_position")
 
 	conditions
 	{
-		Is Button Held(Event Player, Button(Ability 1)) == True;
-		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Communicating(Event Player, Hello) == True;
 		Is Dummy Bot(Event Player) != True;
 	}
 
@@ -2119,7 +2175,7 @@ rule("[sub] create_primal_hitbox")
 	event
 	{
 		Subroutine;
-		create_hbid1_primal;
+		create_primal_hitbox;
 	}
 
 	actions
@@ -2151,20 +2207,22 @@ rule("[sub] create_primal_hitbox")
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j])) + Direction From Angles(Horizontal Facing Angle Of(Event Player),
 				Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Event Player.temp_arr3[Event Player.loop_j]))
 				+ Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Event Player.temp_arr3[Event Player.loop_j]))),
-				Event Player.melee_hitbox_temp_disable ? 0 : 1 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
-				Visible To Position Radius and Color);
+				1 * Event Player.player_scale / 0.985, Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Create Effect(All Players(All Teams), Sphere, Event Player.player_effect_colors_melee[Evaluate Once(Event Player.loop_j)],
 				Eye Position(Event Player) + Event Player.player_scale * (World Vector Of(Left, Event Player, Rotation) * Evaluate Once(
 				X Component Of(Event Player.temp_arr3[Event Player.loop_j]) / 2) + Direction From Angles(Horizontal Facing Angle Of(
 				Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(
 				Event Player.temp_arr3[Event Player.loop_j]) / 2) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(
-				Event Player.temp_arr3[Event Player.loop_j]) / 2)),
-				Event Player.melee_hitbox_temp_disable ? 0 : 0.500 * Event Player.player_scale * Evaluate Once(Global._FX[0]),
+				Event Player.temp_arr3[Event Player.loop_j]) / 2)), 0.500 * Event Player.player_scale / 0.985,
 				Visible To Position Radius and Color);
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 			Wait(0.016, Ignore Condition);
 		End;
+		"temp_arr for EFFECTS"
+		Global.global_total_effect_count += Count Of(Event Player.temp_arr);
+		"temp_arr2 for HUD TEXT"
+		Global.global_total_hudtext_count += Count Of(Event Player.temp_arr2);
 		"player_effect_id[1] for melee"
 		Modify Player Variable At Index(Event Player, player_effect_id, 1, Append To Array, Event Player.temp_arr);
 		Modify Player Variable At Index(Event Player, player_hudtext_id, 1, Append To Array, Event Player.temp_arr2);
@@ -2192,12 +2250,12 @@ rule("[WINSTON] primal_startend")
 
 	actions
 	{
-		Call Subroutine(destroy_hbid1);
-		Call Subroutine(create_hbid1_primal);
+		Call Subroutine(destroy_melee_hitbox);
+		Call Subroutine(create_primal_hitbox);
 		Event Player.melee_hitbox_temp_disable = 0;
 		Wait Until(!Is Using Ultimate(Event Player), 99999);
-		Call Subroutine(destroy_hbid1);
-		Call Subroutine(create_hbid1_quickmelee);
+		Call Subroutine(destroy_melee_hitbox);
+		Call Subroutine(create_melee_hitbox_quick);
 		Event Player.melee_hitbox_temp_disable = 0;
 	}
 }
@@ -2218,8 +2276,8 @@ disabled rule("[WINSTON] end_primal")
 
 	actions
 	{
-		Call Subroutine(destroy_hbid1);
-		Call Subroutine(create_hbid1_quickmelee);
+		Call Subroutine(destroy_melee_hitbox);
+		Call Subroutine(create_melee_hitbox_quick);
 		Event Player.melee_hitbox_temp_disable = 0;
 	}
 }
@@ -2312,375 +2370,69 @@ rule("[WINSTON] winstonprimal_swing_change_color_off")
 	}
 }
 
-rule("[DOOM] calc meteor distance")
+rule("closest point from target to dragon spheres")
 {
 	event
 	{
 		Ongoing - Each Player;
 		All;
-		Doomfist;
-	}
-
-	conditions
-	{
-		Is Dummy Bot(Event Player) != True;
+		All;
 	}
 
 	actions
 	{
-		"meteor distance calculation t=[0,1] falloff"
-		Event Player.player_doomfist_var[1] = (Distance Between(Position Of(Event Player) + Vector(0, 0.100, 0), Position Of(
-			Event Player.mhb_target) + Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Min(Max(Dot Product(
-			Position Of(Event Player) + Vector(0, 0.100, 0) - Position Of(Event Player.mhb_target)
+		Event Player.closest_pt = Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale * Min(
+			Max(Dot Product(Eye Position(Event Player) - (Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale), Cross Product(Facing Direction Of(Event Player),
+			Cross Product(Facing Direction Of(Event Player), Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale)))
+			/ Dot Product(Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale, Cross Product(Facing Direction Of(
+			Event Player), Cross Product(Facing Direction Of(Event Player),
+			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale))), 0), 1);
+		Wait(0.016, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Rule 74")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Hook"), String("{0} {1}", 2345, String("({0})", 100 * (
+			Distance Between(Event Player.closest_pt, Eye Position(Event Player) + Facing Direction Of(Event Player) * Dot Product(
+			Facing Direction Of(Event Player), Event Player.closest_pt - Eye Position(Event Player)))
+			- 0 - Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[0])))), Null, Null, Left, 21,
+			Global.color_global[Global.color_settings[4]], Color(White), Color(White), String, Default Visibility);
+		"melee predict"
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("hook distance"), 100 * (Distance Between(Eye Position(
+			Event Player) + 20 * Event Player.player_scale * Facing Direction Of(Event Player), Position Of(Event Player.mhb_target)
+			+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Min(Max(Dot Product(Eye Position(Event Player)
+			+ 20 * Event Player.player_scale * Facing Direction Of(Event Player) - Position Of(Event Player.mhb_target)
 			- Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale,
 			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale) / Dot Product(
 			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale,
 			Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale), 0), 1)
 			* Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[3])
-			- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - Global.dimensions_doomfist[0]) / (
-			Global.dimensions_doomfist[1] - Global.dimensions_doomfist[0]);
-		For Player Variable(Event Player, loop_k_doomfist, 0, Count Of(Global.mhb_all), 1);
-			Event Player.player_doomfist_enemies_t[Slot Of(Event Player.enemies[Event Player.loop_k_doomfist])] = (Distance Between(
-				Position Of(Event Player) + Vector(0, 0.100, 0), Position Of(Event Player.enemies[Event Player.loop_k_doomfist])
-				+ Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[1] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale + Min(
-				Max(Dot Product(Position Of(Event Player) + Vector(0, 0.100, 0) - Position Of(
-				Event Player.enemies[Event Player.loop_k_doomfist])
-				- Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[1] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale,
-				Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[3] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale)
-				/ Dot Product(
-				Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[3] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale,
-				Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[3] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale),
-				0), 1)
-				* Event Player.enemies[Event Player.loop_k_doomfist].player_scale * Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[3])
-				- Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[0] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale - Global.dimensions_doomfist[0])
-				/ (Global.dimensions_doomfist[1] - Global.dimensions_doomfist[0]);
-		End;
-		Wait(0.016, Ignore Condition);
-		Loop If Condition Is True;
-	}
-}
-
-rule("[DOOM] use_ult")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Doomfist;
-	}
-
-	conditions
-	{
-		Is Using Ultimate(Event Player) == True;
-	}
-
-	actions
-	{
-		Event Player.player_static_pos[0] = Vector(0, -100000, 0);
-		Wait(1, Ignore Condition);
-		Wait Until(!Is Button Held(Event Player, Button(Primary Fire)), 99999);
-		Wait Until(Is Button Held(Event Player, Button(Primary Fire)), 99999);
-		Event Player.player_static_pos[0] = Position Of(Event Player);
-	}
-}
-
-rule("[DOOM] using_uppercut")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		Doomfist;
-	}
-
-	conditions
-	{
-		Is Using Ability 1(Event Player) == True;
-	}
-
-	actions
-	{
-		Event Player.player_doomfist_var[2] = Global.color_global[Global.color_settings[11]];
-		Wait(0.272, Ignore Condition);
-		Event Player.player_doomfist_var[2] = Global.color_global[Global.color_settings[10]];
-	}
-}
-
-rule("[sub] setup enemy array")
-{
-	event
-	{
-		Subroutine;
-		init_enemies_array;
-	}
-
-	actions
-	{
-		Event Player.enemies = All Players(Opposite Team Of(Team Of(Event Player)));
-	}
-}
-
-rule("[sub] init_global_hud")
-{
-	event
-	{
-		Subroutine;
-		init_global_hud;
-	}
-
-	actions
-	{
-		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.3.210315)"),
-			Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
-		"debug"
-		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,
-			Server Load Average, Server Load Peak), Right, -1000, Color(White), Color(Gray), Color(Yellow), Visible To and String,
+			- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - 0.500 * Event Player.player_scale),
+			Custom String("cm")), Null, Null, Left, 2, Global.color_global[Global.color_settings[2]], Color(White), Color(White), String,
 			Default Visibility);
-		"legend"
-		Create HUD Text(All Players(All Teams), Custom String("Hitbox Legend"), Null, Null, Right, -500, Color(White), Color(White), Color(
-			Yellow), Visible To and String, Default Visibility);
-		"reload camera mode"
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", Custom String("[RELOAD] Camera Mode"),
-			Global.cam_mode_hudtext[Local Player.player_cam_mode]), Left, -100, Color(White), Color(White), Color(White),
-			Visible To and String, Default Visibility);
-		"swtich hero"
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[ACKNOWLEDGE] Switch Hero"), Left, -99, Color(White), Color(
-			White), Color(White), Visible To, Default Visibility);
-		"toggle melee hitbox"
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", Custom String("[Group Up] Toggle Melee hitbox"),
-			Local Player.melee_hitbox_temp_disable ? Custom String("Hidden") : Custom String("Visible")), Left, -98, Color(White), Color(
-			White), Color(White), Visible To and String, Default Visibility);
-		"player scale"
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", Custom String("[HOLD Jump / Crouch] Player Scale"),
-			Local Player.player_scale), Left, -97, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		"selected player scale, can only modify bots scale"
-		Create HUD Text(All Players(All Teams), Null, Null, String("{0}: {1}", Custom String("[HOLD Interact + Jump / Crouch] Bot Scale"),
-			Local Player.mhb_target.player_scale), Left, -96, Color(White), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		"reset scale"
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Jump + Crouch] Reset Scale"), Left, -95, Color(White), Color(
-			White), Color(White), Visible To, Default Visibility);
-		"reset bot scale"
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Interact + Jump + Crouch] Reset Bot Scale"), Left, -94, Color(
-			White), Color(White), Color(White), Visible To, Default Visibility);
-		"teleport bot"
-		Create HUD Text(All Players(All Teams), Null, Null, Custom String("[Interact + Ability 1] Teleport Bot to self"), Left, -93, Color(
-			White), Color(White), Color(White), Visible To, Default Visibility);
-		"mhb looking at"
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Local Player,
-			Opposite Team Of(Team Of(Local Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Local Player, Opposite Team Of(
-			Team Of(Local Player)))))), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String,
-			Default Visibility);
-		"mhb selected target"
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("[Interact] Selected"), Local Player.mhb_target,
-			Hero Icon String(Hero Of(Local Player.mhb_target))), Null, Null, Left, 1, Global.color_global[Global.color_settings[1]], Color(
-			White), Color(White), Visible To and String, Default Visibility);
-		"capsule"
-		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Melee Hurtbox of"), Hero Icon String(Hero Of(
-			Local Player)), Custom String("Capsule")), Null, Null, Right, -499, Global.color_global[Global.color_settings[0]], Color(
-			White), Color(White), Visible To and String, Default Visibility);
+		Create Effect(All Players(All Teams), Sphere, Color(White), Eye Position(Event Player) + 20 * Facing Direction Of(Event Player),
+			0.500 * 1.015, Visible To Position and Radius);
 	}
 }
 
-rule("[sub] create_doomfist_hitbox_root")
+rule("Rule 75")
 {
 	event
 	{
-		Subroutine;
-		create_hbid6_root;
-	}
-
-	actions
-	{
-		Call Subroutine(destroy_hbid6);
-		If(Hero Of(Event Player) == Hero(Doomfist));
-			If(Is Dummy Bot(Event Player) != True);
-				"meteor damage prediction"
-				Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Meteor Strike Damage"),
-					Event Player.player_doomfist_var[1] <= 0 ? Global.dimensions_doomfist[4] : (
-					Event Player.player_doomfist_var[1] > 1 ? Global.dimensions_doomfist[5] : (1 - Event Player.player_doomfist_var[1])
-					* Global.dimensions_doomfist[2] + Event Player.player_doomfist_var[1] * Global.dimensions_doomfist[3]), Custom String("hp")),
-					Null, Null, Left, 4, Global.color_global[Global.color_settings[9]], Color(White), Color(White), String, Default Visibility);
-				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-				"uppercut hitbox distance"
-				Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Uppercut Distance"), 100 * (Distance Between(Position Of(
-					Event Player) + World Vector Of(Vector(0, 1, 2), Event Player, Rotation), Position Of(Event Player.mhb_target)
-					+ Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale + Min(Max(Dot Product(Position Of(Event Player)
-					+ World Vector Of(Vector(0, 1, 2), Event Player, Rotation) - Position Of(Event Player.mhb_target)
-					- Event Player.mhb_target.self_mhb[1] * Event Player.mhb_target.player_scale,
-					Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale) / Dot Product(
-					Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale,
-					Event Player.mhb_target.self_mhb[3] * Event Player.mhb_target.player_scale), 0), 1)
-					* Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[3])
-					- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - Global.dimensions_doomfist[6]), Custom String(
-					"cm")), Null, Null, Left, 3, Event Player.player_doomfist_var[2], Color(White), Color(White), String and Color,
-					Default Visibility);
-				"uppercut legend"
-				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ability 1)), Custom String(
-					"Sphere")), Null, Null, Right, -493, Event Player.player_doomfist_var[2], Color(White), Color(White), String and Color,
-					Default Visibility);
-				"ult legend"
-				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ultimate)), Custom String(
-					"Sphere + Falloff")), Null, Null, Right, -492.900, Global.color_global[Global.color_settings[9]], Color(White), Color(White),
-					String and Color, Default Visibility);
-				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-			End;
-			"meteor 300"
-			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[8]],
-				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[0] * Evaluate Once(Global._FX[0]),
-				Visible To Position Radius and Color);
-			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			"meteor falloff"
-			Create Effect(All Players(All Teams), Sphere, Global.color_global[Global.color_settings[9]],
-				Event Player.player_static_pos[0] + Vector(0, 0.100, 0), Global.dimensions_doomfist[1] * Evaluate Once(Global._FX[0]),
-				Visible To Position Radius and Color);
-			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			"uppercut hitbox"
-			Create Effect(All Players(All Teams), Sphere, Event Player.player_doomfist_var[2], Update Every Frame(Position Of(Event Player)
-				+ World Vector Of(Vector(0, 1, 2), Event Player, Rotation)), Global.dimensions_doomfist[6] * Evaluate Once(Global._FX[0]),
-				Visible To Position Radius and Color);
-			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			"player_effect_id[6] for doom"
-			Event Player.player_effect_id[6] = Event Player.temp_arr;
-			Event Player.player_hudtext_id[6] = Event Player.temp_arr2;
-			Event Player.temp_arr = Empty Array;
-			Event Player.temp_arr2 = Empty Array;
-			"DO NOT DELETE UNTIL _visible HAVE OTHER USES"
-			disabled Event Player.player_effect_visible[5] = Empty Array;
-			Event Player.player_static_pos[0] = Vector(0, -100000, 0);
-			"doomfist uppercut idle color"
-			Event Player.player_doomfist_var[2] = Global.color_global[Global.color_settings[10]];
-		End;
-	}
-}
-
-rule("[sub] destory_doomfist_hitbox")
-{
-	event
-	{
-		Subroutine;
-		destroy_hbid6;
-	}
-
-	actions
-	{
-		Event Player.temp_arr = Event Player.player_effect_id[6];
-		Event Player.temp_arr2 = Event Player.player_hudtext_id[6];
-		Event Player.player_effect_id[6] = Empty Array;
-		Event Player.player_hudtext_id[6] = Empty Array;
-		Call Subroutine(temparr_delete);
-	}
-}
-
-rule("[sub] init_global_color_settings")
-{
-	event
-	{
-		Subroutine;
-		init_global_color_settings;
-	}
-
-	actions
-	{
-		Global.color_global = Array(Color(White), Color(Green), Color(Blue), Color(Yellow), Color(Gray), Color(Red), Color(Turquoise),
-			Color(Aqua), Color(Rose));
-		Global.color_settings = Empty Array;
-		"[0] body mhb"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Body Melee Hurtbox"),
-			Custom String("Color"), 1, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 0));
-		"[1] quick melee idle"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Melee Hitbox"),
-			Custom String("Idle Color"), 2, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 0));
-		"[2] quick melee active"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Melee Hitbox"),
-			Custom String("Active Color"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 1));
-		"[3] cone"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Cone"), Custom String(
-			"Cone Color"), 4, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
-			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 7));
-		"[4] dragon 150"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Dragon"), Custom String(
-			"Body Color (150dps zone)"), 2, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 0));
-		"[5] dragon 300"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Dragon"), Custom String(
-			"Center Color (300dps zone)"), 5, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 1));
-		"[6] flux"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Flux"), Custom String(
-			"Flux Color"), 6, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
-			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 0));
-		"[7] shatter"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Earthshatter"),
-			Custom String("Shatter Color"), 7, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 0));
-		"[8] meteor center"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
-			"Meteor Strike - Center"), 5, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 0));
-		"[9] meteor falloff"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
-			"Meteor Strike - Falloff"), 7, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 1));
-		"[10] uppercut idle"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
-			"Uppercut - Idle"), 2, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
-			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 2));
-		"[11] uppercut active"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Doomfist"), Custom String(
-			"Uppercut - Active"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
-			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 3));
-		"[12] hook idle"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Roadhog"), Custom String(
-			"Chain Hook - Idle"), 4, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String("Yellow"),
-			Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String("Rose")), 2));
-		"[13] hook active"
-		Modify Global Variable(color_settings, Append To Array, Workshop Setting Combo(Custom String("Display - Roadhog"), Custom String(
-			"Chain Hook - Active"), 3, Array(Custom String("White"), Custom String("Green"), Custom String("Blue"), Custom String(
-			"Yellow"), Custom String("Gray"), Custom String("Red"), Custom String("Turquoise"), Custom String("Aqua"), Custom String(
-			"Rose")), 3));
-	}
-}
-
-rule("ult_charge_refill")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Ultimate Charge Percent(Event Player) != 100;
-	}
-
-	actions
-	{
-		Set Ultimate Charge(Event Player, 100);
-	}
-}
-
-rule("[HOG] is_using_hook")
-{
-	event
-	{
-		Ongoing - Each Player;
+		Player Dealt Damage;
 		All;
 		Roadhog;
 	}
@@ -2692,99 +2444,6 @@ rule("[HOG] is_using_hook")
 
 	actions
 	{
-		Wait(0.160, Ignore Condition);
-		Event Player.player_hook_var[1] = Eye Position(Event Player);
-		Event Player.player_hook_var[2] = Facing Direction Of(Event Player);
-		While(Is Using Ability 1(Event Player));
-			Event Player.player_hook_var[0] += 1;
-			Wait(0.016, Ignore Condition);
-		End;
-		Event Player.player_hook_var[0] = 0;
-	}
-}
-
-rule("[HOG] hook_land_cancel")
-{
-	event
-	{
-		Player Dealt Damage;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Event Ability == Button(Ability 1);
-	}
-
-	actions
-	{
-		Cancel Primary Action(Event Player);
-	}
-}
-
-rule("[sub] create_hook_hitbox_root")
-{
-	event
-	{
-		Subroutine;
-		create_hbid7_root;
-	}
-
-	actions
-	{
-		Call Subroutine(destroy_hbid7);
-		If(Hero Of(Event Player) == Hero(Roadhog));
-			If(Is Dummy Bot(Event Player) != True);
-				"meteor damage prediction"
-				disabled Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("Meteor Strike Damage"),
-					Event Player.player_doomfist_var[1] <= 0 ? Global.dimensions_doomfist[4] : (
-					Event Player.player_doomfist_var[1] > 1 ? Global.dimensions_doomfist[5] : (1 - Event Player.player_doomfist_var[1])
-					* Global.dimensions_doomfist[2] + Event Player.player_doomfist_var[1] * Global.dimensions_doomfist[3]), Custom String("hp")),
-					Null, Null, Left, 4, Global.color_global[Global.color_settings[9]], Color(White), Color(White), String, Default Visibility);
-				disabled Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-				"hook legend"
-				Create HUD Text(Event Player, String("{0} {1}", Ability Icon String(Hero Of(Event Player), Button(Ability 1)), Custom String(
-					"Moving Spheres")), Null, Null, Right, -492,
-					Event Player.player_hook_var[0] > 0 ? Global.color_global[Global.color_settings[13]] : Global.color_global[Global.color_settings[12]],
-					Color(White), Color(White), String and Color, Default Visibility);
-				Modify Player Variable(Event Player, temp_arr2, Append To Array, Last Text ID);
-			End;
-			For Player Variable(Event Player, loop_j, 1, 22, 1);
-				Create Effect(All Players(All Teams), Sphere, Event Player.player_hook_var[0] == Evaluate Once(Event Player.loop_j)
-					? Global.color_global[Global.color_settings[13]] : Global.color_global[Global.color_settings[12]], Update Every Frame((
-					Event Player.player_hook_var[0] > 0 ? Event Player.player_hook_var[1] : Eye Position(Event Player)) + Evaluate Once(
-					Global.dimensions_hook[Event Player.loop_j]) * Event Player.player_scale * (
-					Event Player.player_hook_var[0] > 0 ? Event Player.player_hook_var[2] : Facing Direction Of(Event Player))), Evaluate Once(
-					Global.dimensions_hook[0]) * Event Player.player_scale * Evaluate Once(Global._FX[0]), Visible To Position Radius and Color);
-				Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
-			End;
-			"player_effect_id[7] for hook"
-			Event Player.player_effect_id[7] = Event Player.temp_arr;
-			Event Player.player_hudtext_id[7] = Event Player.temp_arr2;
-			Event Player.temp_arr = Empty Array;
-			Event Player.temp_arr2 = Empty Array;
-			"DO NOT DELETE UNTIL _visible HAVE OTHER USES"
-			disabled Event Player.player_effect_visible[5] = Empty Array;
-			Event Player.player_hook_var[0] = 0;
-		End;
-	}
-}
-
-rule("[sub] destory_hook_hitbox")
-{
-	event
-	{
-		Subroutine;
-		destroy_hbid7;
-	}
-
-	actions
-	{
-		Event Player.temp_arr = Event Player.player_effect_id[7];
-		Event Player.temp_arr2 = Event Player.player_hudtext_id[7];
-		Event Player.player_effect_id[7] = Empty Array;
-		Event Player.player_hudtext_id[7] = Empty Array;
-		Call Subroutine(temparr_delete);
+		Set Status(Event Player, Null, Hacked, 0.016);
 	}
 }

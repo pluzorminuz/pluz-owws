@@ -1,0 +1,72 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: locked
+		1: eye
+		2: fac
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.160, Ignore Condition);
+		Event Player.eye = Eye Position(Event Player);
+		Event Player.fac = Facing Direction Of(Event Player);
+		Event Player.locked = True;
+		Wait Until(!Is Using Ability 1(Event Player), 99999);
+		Event Player.locked = False;
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Update Every Frame(Event Player.locked ? Event Player.eye : Eye Position(
+			Event Player)), Update Every Frame(Event Player.locked ? Event Player.eye + 20 * Event Player.fac : Eye Position(Event Player)
+			+ 20 * Facing Direction Of(Event Player)), Color(White), Visible To Position and Radius);
+		Start Camera(Event Player, Vector(0, 20, 0), Vector(0, 0, 0), 0);
+	}
+}
