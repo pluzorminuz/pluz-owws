@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: All melee (excl. Flail and Torb Hammer), Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor, Hook. Reddit: u/spadler097, Last Update: 2021 Mar 15. Discord: pluzorminuz#2542."
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: Quick Melee, Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor, Hook. Reddit: u/spadler097, Last Update: 2021 Mar 17. Discord: pluzorminuz#2542."
 	}
 
 	lobby
@@ -13,7 +13,7 @@ settings
 
 	modes
 	{
-		Team Deathmatch
+		Skirmish
 
 		General
 		{
@@ -247,7 +247,7 @@ rule("init")
 		"mhb standing height"
 		disabled Global.arr_temp = Array(1999.020, 2298.830, 2499.020, 1968.750, 1885.740, 1548.830, 1992.190);
 		"mhb standing height 2"
-		Global.arr_temp = Array(2000, 2300, 2500, 1968.750, 2000, 1548.830, 1993);
+		Global.arr_temp = Array(2000, 2300, 2500, 1968.750, 1885.742, 1548.830, 1993);
 		Call Subroutine(init_div);
 		Global.mhb_all[1] = Global.arr_temp;
 		"mhb ducking height"
@@ -2339,7 +2339,7 @@ rule("[DOOM] calc meteor distance")
 			* Event Player.mhb_target.player_scale * Event Player.mhb_target.self_mhb[3])
 			- Event Player.mhb_target.self_mhb[0] * Event Player.mhb_target.player_scale - Global.dimensions_doomfist[0]) / (
 			Global.dimensions_doomfist[1] - Global.dimensions_doomfist[0]);
-		For Player Variable(Event Player, loop_k_doomfist, 0, Count Of(Global.mhb_all), 1);
+		For Player Variable(Event Player, loop_k_doomfist, 0, Count Of(Event Player.enemies), 1);
 			Event Player.player_doomfist_enemies_t[Slot Of(Event Player.enemies[Event Player.loop_k_doomfist])] = (Distance Between(
 				Position Of(Event Player) + Vector(0, 0.100, 0), Position Of(Event Player.enemies[Event Player.loop_k_doomfist])
 				+ Event Player.enemies[Event Player.loop_k_doomfist].self_mhb[1] * Event Player.enemies[Event Player.loop_k_doomfist].player_scale + Min(
@@ -2431,7 +2431,7 @@ rule("[sub] init_global_hud")
 	actions
 	{
 		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.3.210315)"),
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.4.210317)"),
 			Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		"debug"
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,
