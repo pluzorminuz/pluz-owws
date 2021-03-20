@@ -1,0 +1,164 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: attack
+		1: damage
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("bot")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(2, Ignore Condition);
+		Press Button(Event Player, Button(Ability 1));
+		disabled Start Forcing Player Position(Event Player, Vector(0, 100, 0), False);
+		Set Max Health(Event Player, 1000);
+		Start Heal Over Time(Event Player, Event Player, 9999, 900);
+		Start Forcing Player Position(Event Player, Vector(0, 1, 0), False);
+	}
+}
+
+rule("player")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Start Facing(Event Player, Vector(0, 1, 0), 10000, To World, Direction and Turn Rate);
+		Create HUD Text(All Players(All Teams), Custom String("att{0} dmg{1} dist{2}", 1000*Global.attack, 1000*Global.damage, Distance Between(Eye Position(
+			Event Player), Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + 1000 * Up, All Players(
+			All Teams), Event Player, True)) / (Global.damage - Global.attack - 0.672)), Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Set Projectile Gravity(Event Player, 0);
+	}
+}
+
+rule("attack")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.attack = Total Time Elapsed;
+	}
+}
+
+rule("damage")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.damage = Total Time Elapsed;
+	}
+}

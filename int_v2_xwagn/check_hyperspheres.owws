@@ -1,0 +1,24 @@
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Facing(Event Player, Vector(1, 0, 0), To World);
+		Create HUD Text(All Players(All Teams), Position Of(Event Player), Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Start Camera(Event Player,Ray Cast Hit Position(Eye Position(Event Player), Eye Position(
+			Event Player) + 40 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) + Vector(0, 0, 8),  Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + 40 * Facing Direction Of(
+			Event Player), All Players(All Teams), Event Player, True), 0);
+	}
+}

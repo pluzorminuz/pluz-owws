@@ -1,0 +1,62 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Projectile Gravity: 0%
+
+			enabled heroes
+			{
+				Sigma
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: eye
+		1: dir
+		2: vel
+		3: t
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+	}
+
+	actions
+	{
+		disabled Set Slow Motion(10);
+		Event Player.vel = 49.700;
+		Event Player.eye = Eye Position(Event Player);
+		Event Player.dir = Facing Direction Of(Event Player);
+		Event Player.t = 0;
+		Chase Player Variable At Rate(Event Player, t, 99999, Event Player.vel, Destination and Rate);
+		Start Camera(Event Player, Update Every Frame(Event Player.eye + Event Player.t * Event Player.dir + 4 * Up), Update Every Frame(
+			Event Player.eye + Event Player.t * Event Player.dir), 0);
+	}
+}	

@@ -1,0 +1,161 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		100: freecam_freeeye
+		101: freecam_accel
+		102: freecam_bool
+		103: freecam_initdir
+		104: freecam_vel
+}
+
+rule("freecam_toggle")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		disabled Event Player.freecam_bool = !Event Player.freecam_bool;
+		Event Player.freecam_bool = True;
+		Event Player.freecam_freeeye = Eye Position(Event Player);
+		Event Player.freecam_initdir = Facing Direction Of(Event Player);
+		Start Forcing Player Position(Event Player, Position Of(Event Player), False);
+		Start Camera(Event Player, Update Every Frame(Event Player.freecam_freeeye), Update Every Frame(Event Player.freecam_freeeye + Facing Direction Of(Event Player)), 0);
+		Wait Until(!Is Communicating(Event Player, Thanks), 99999);
+		Wait Until(Is Communicating(Event Player, Thanks), 99999);
+		Event Player.freecam_bool = False;
+		Set Facing(Event Player, Event Player.freecam_initdir, To World);
+		Stop Forcing Player Position(Event Player);
+		Stop Camera(Event Player);
+		Wait Until(!Is Communicating(Event Player, Thanks), 99999);
+	}
+}
+
+rule("freecam_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+	}
+
+	actions
+	{
+		"get controls"
+		Event Player.freecam_accel = Throttle Of(Event Player) + Up * Is Button Held(Event Player, Button(Jump)) + Down * Is Button Held(Event Player, Button(Crouch));
+		"normalize if non-zero vector"
+		If(Event Player.freecam_accel != 0 * Up);
+			Event Player.freecam_accel = Normalize(Event Player.freecam_accel);
+			"transform the accel to local space"
+			Event Player.freecam_accel = X Component Of(Event Player.freecam_accel) * World Vector Of(Left, Event Player, Rotation) + Y Component Of(Event Player.freecam_accel) * Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) + Z Component Of(Event Player.freecam_accel) * Facing Direction Of(Event Player);
+			"add accel to vel"
+			Event Player.freecam_vel += 0.090 * Event Player.freecam_accel;
+			"if norm(vel) > 1"
+			If(Distance Between(0 * Up, Event Player.freecam_vel) > 1);
+				Event Player.freecam_vel = Normalize(Event Player.freecam_vel);
+			End;
+		"no accel, decel"
+		Else;
+			If(Distance Between(0 * Up, Event Player.freecam_vel) < 0.080);
+				Event Player.freecam_vel = 0 * Up;
+			Else;
+				Event Player.freecam_vel -= 0.060 * Event Player.freecam_vel;
+			End;
+		End;
+		disabled Event Player.freecam_freeeye += Z Component Of(Throttle Of(Event Player)) * Facing Direction Of(Event Player);
+		disabled Event Player.freecam_freeeye += X Component Of(Throttle Of(Event Player)) * World Vector Of(Left, Event Player, Rotation);
+		Event Player.freecam_freeeye += 0.250 * Event Player.freecam_vel;
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
+
+disabled rule("freecam on")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+	}
+
+	actions
+	{
+		Event Player.freecam_freeeye = Eye Position(Event Player);
+		Event Player.freecam_initdir = Facing Direction Of(Event Player);
+		Start Forcing Player Position(Event Player, Position Of(Event Player), False);
+		Start Camera(Event Player, Update Every Frame(Event Player.freecam_freeeye), Update Every Frame(Event Player.freecam_freeeye + 20 * Facing Direction Of(Event Player)), 0);
+	}
+}
+
+disabled rule("freecam off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == False;
+	}
+
+	actions
+	{
+		Set Facing(Event Player, Event Player.freecam_initdir, To World);
+		Stop Forcing Player Position(Event Player);
+		Stop Camera(Event Player);
+	}
+}
+
+disabled rule("debug hud")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Custom String("accel norm {0}", Update Every Frame(Event Player.freecam_accel)), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("vel {0}", Update Every Frame(Event Player.freecam_vel)), Null, Null, Left, 1, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}

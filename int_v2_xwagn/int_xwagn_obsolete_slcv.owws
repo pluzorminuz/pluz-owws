@@ -1,0 +1,1765 @@
+settings
+{
+	main
+	{
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 20 Obsolete"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Max Spectators: 1
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Eichenwalde
+			}
+		}
+
+		General
+		{
+			Hero Limit: Off
+			Limit Roles: 2 Of Each Role Per Team
+			Respawn Time Scalar: 50%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			Sigma
+			{
+				Projectile Gravity: 100%
+			}
+
+			Torbjörn
+			{
+				Infinite Ultimate Duration: On
+			}
+		}
+	}
+
+	workshop
+	{
+		Loop Boost: 8
+		Use Fibonacci Sphere: On
+	}
+}
+
+variables
+{
+	global:
+		0: control_points
+		1: constants
+		2: anim_offset
+		3: apex_t
+		4: t_ray_cast
+		5: proj_hit_pos
+		6: ray_cast_s
+		7: ray_cast_e
+		8: t_hit_pos
+		9: camera_view_dist
+		10: pos_lock
+		11: lock_hud_id
+		12: cam_on
+		13: chase_cam_on
+		14: chase_cam_dist
+		15: chase_cam_chasing
+		16: trajectory_visible_to
+		17: proj_launch_norm
+		18: hanzo_charge
+		19: hero_allowed
+		20: for_loop_i
+		21: spherecast
+		22: spherecast_settings
+		23: spherecast_i
+		24: proj_dir
+		25: spherecast_fib_temp
+		26: spherecast_hit_arr
+		27: spherecast_hit_temp
+		28: traj_lock
+		29: map_deathplane_y
+
+	player:
+		0: curr_hero
+		1: lock_pos_fac
+		2: eye_height
+}
+
+subroutines
+{
+	0: update_constants
+	1: trajectory_display
+	2: chase_cam_sub
+	3: debug_hud_display
+	4: hud_final
+	5: chase_cam_sub_old
+	6: spherecast_arr
+	7: chase_cam_camera
+	8: calc
+	9: init_map_deathplane_y
+	10: mod_incre
+	11: mod_decre
+}
+
+rule("mod incre")
+{
+	event
+	{
+		Subroutine;
+		mod_incre;
+	}
+
+	actions
+	{
+		"gravity"
+		Global.constants[0] += 0.005;
+		"speed"
+		disabled Global.constants[1] += 0.100;
+		"launch delta"
+		disabled Global.constants[5] += 0.001;
+		"proj_radius"
+		disabled Global.constants[7] += 0.005;
+	}
+}
+
+rule("mod decre")
+{
+	event
+	{
+		Subroutine;
+		mod_decre;
+	}
+
+	actions
+	{
+		"gravity"
+		Global.constants[0] += -0.005;
+		"speed"
+		disabled Global.constants[1] += -0.100;
+		"launch delta"
+		disabled Global.constants[5] += -0.001;
+		"proj_radius"
+		disabled Global.constants[7] += -0.005;
+	}
+}
+
+rule("[sub] update constants")
+{
+	event
+	{
+		Subroutine;
+		update_constants;
+	}
+
+	actions
+	{
+		Disallow Button(Event Player, Button(Crouch));
+		Event Player.curr_hero = Hero Of(Event Player);
+		"start hero specific constants"
+		disabled Wait(0, Ignore Condition);
+		"ana perfect and done"
+		If(Hero Of(Event Player) == Hero(Ana));
+			Global.constants = Array(-9.840, 30, 4, 7, 0.350, 0, 0, 0, 0, 0, 0);
+		"baptiste done"
+		Else If(Hero Of(Event Player) == Hero(Baptiste));
+			Global.constants = Array(-20.100, 60, 3, 7, 0.100, 0.007, 0, 0, 1, 6.500, 0);
+		"orisa done"
+		Else If(Hero Of(Event Player) == Hero(Orisa));
+			Global.constants = Array(-9.840, 25, 0, 7, 0.400, 0, 0, 0, 1, 0, 0);
+		"zarya done"
+		Else If(Hero Of(Event Player) == Hero(Zarya));
+			Global.constants = Array(-9.840, 25, 2.500, 7, 0.500, 0.100, 6, 0, 0, 0, 0);
+		"sombra done"
+		Else If(Hero Of(Event Player) == Hero(Sombra));
+			Global.constants = Array(-20.200, 25, 0, 5, 0.200, 0.090, 15, 0, 1, 0, 0);
+		"ashe done"
+		Else If(Hero Of(Event Player) == Hero(Ashe));
+			Global.constants = Array(-8.030, 25, 5, 7, 0.400, 0.070, 0, 0, 1, 0, 0);
+		"hanzo done"
+		Else If(Hero Of(Event Player) == Hero(Hanzo));
+			Global.constants = Array(-9.815, 110, 9, 15, 0.032, 0, 0, 0, 0, 0, 0);
+		"tracer done"
+		Else If(Hero Of(Event Player) == Hero(Tracer));
+			Global.constants = Array(-30.800, 15, 5, 2, 0.150, 0.190, 0, 0, 1, 0, 0);
+		"mccree done"
+		Else If(Hero Of(Event Player) == Hero(McCree));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
+			Global.constants = Array(-9.840, 30, 3, 7 / 30, 0, 0, 0, 0, 0, 0, 0);
+		"sigma done"
+		Else If(Hero Of(Event Player) == Hero(Sigma));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
+			disabled Global.constants = Array(-18.350, 37.400, 2.500, 6, 0.224, 0.100, 0, 0, 1, 0, 0.672);
+			Global.constants = Array(-5.954, 49.700, 3, 3 / 7, 0.048, 0, 0, 0, 1, 0, 0);
+		"junkrat done"
+		Else If(Hero Of(Event Player) == Hero(Junkrat));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2, [7]proj.coll_r, [8]warning, [9]cylin_r"
+			Global.constants = Array(-12.350, 25, 2, 7, 0.100, 0.075, 3, 0, 1, 0, 0);
+		"torbjorn done"
+		Else If(Hero Of(Event Player) == Hero(Torbjörn));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2"
+			Global.constants = Array(-9.810, 70, 0, 15, 0.100, 0.015, 2.500, 0, 1, 0, 0);
+		"mei done"
+		Else If(Hero Of(Event Player) == Hero(Mei));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2, [7]proj.coll_r, [8]warning, [9]cylin_r [10]cast_time"
+			Global.constants = Array(-9.900, 20, 10, 7, 0.600, 0.090, 0, 0, 1, 0, 0.500);
+		"widowmaker done"
+		Else If(Hero Of(Event Player) == Hero(Widowmaker));
+			"[0]grav, [1]speed, [2]radius1, [3]simtime, [4]chasecam.startdelay, [5]launch.delta, [6]radius2, [7]proj.coll_r, [8]warning, [9]cylin_r [10]cast_time"
+			Global.constants = Array(-9.840, 20, 3, 7, 0.160, 0, 0, 0, 1, 0, 0.160);
+		"end hero specific constants"
+		End;
+		disabled Wait(0, Ignore Condition);
+		Wait(0.032, Ignore Condition);
+		Event Player.eye_height = Eye Position(Event Player) - Position Of(Event Player);
+		Wait(0.032, Ignore Condition);
+		Allow Button(Event Player, Button(Crouch));
+	}
+}
+
+rule("mod1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 1)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(mod_incre);
+		Wait(0.250, Abort When False);
+		While(True);
+			Call Subroutine(mod_incre);
+			Wait(0.016, Abort When False);
+		End;
+	}
+}
+
+rule("mod2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(mod_decre);
+		Wait(0.250, Abort When False);
+		While(True);
+			Call Subroutine(mod_decre);
+			Wait(0.016, Abort When False);
+		End;
+	}
+}
+
+rule("[sub] chase cam action post210106")
+{
+	event
+	{
+		Subroutine;
+		chase_cam_sub;
+	}
+
+	actions
+	{
+		Global.chase_cam_chasing = True;
+		Start Rule(calc, Restart Rule);
+		Wait(Global.constants[10], Ignore Condition);
+		Modify Global Variable(trajectory_visible_to, Remove From Array By Value, Event Player);
+		Set Invisible(Event Player, All);
+		Global.chase_cam_dist = 0;
+		Chase Global Variable At Rate(chase_cam_dist, Global.t_hit_pos, 1 / Global.constants[3], Destination and Rate);
+		"ensures that most of the time the projectile will correct itself from 3rd person trajectory to 1st person"
+		Wait(0.016, Ignore Condition);
+		Call Subroutine(chase_cam_camera);
+		Global.cam_on = True;
+		Wait(Global.t_hit_pos * Global.constants[3] + Global.constants[4] + 1.500 - 0.016, Ignore Condition);
+		Stop Chasing Global Variable(chase_cam_dist);
+		Stop Camera(Event Player);
+		Set Invisible(Event Player, None);
+		Modify Global Variable(trajectory_visible_to, Append To Array, Event Player);
+		Global.cam_on = False;
+		Global.chase_cam_dist = 0;
+		Global.chase_cam_chasing = False;
+	}
+}
+
+rule("[sub] chase cam action old")
+{
+	event
+	{
+		Subroutine;
+		chase_cam_sub_old;
+	}
+
+	actions
+	{
+		Modify Global Variable(trajectory_visible_to, Remove From Array By Value, Event Player);
+		Set Invisible(Event Player, All);
+		Global.chase_cam_dist = 0;
+		"ensures that most of the time the projectile will correct itself from 3rd person trajectory to 1st person"
+		Wait(0.016, Ignore Condition);
+		"original"
+		Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], Max(1 - Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) ^ 2 * Global.control_points[0] + 2 * Max(1 - Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) * Min(Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) * Global.control_points[1] + Min(Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) ^ 2 * Global.control_points[2], 0);
+		"debug levelled"
+		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Vector(2.800, 0, 0), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+		Wait(Global.constants[4] - 0.016, Ignore Condition);
+		Chase Global Variable At Rate(chase_cam_dist, Global.t_ray_cast - Global.constants[4] / Global.constants[3], 1 / Global.constants[3], None);
+		Wait(Global.t_hit_pos * Global.constants[3] + 1.500, Ignore Condition);
+		Stop Chasing Global Variable(chase_cam_dist);
+		Stop Camera(Event Player);
+		Set Invisible(Event Player, None);
+		Modify Global Variable(trajectory_visible_to, Append To Array, Event Player);
+		Global.cam_on = False;
+	}
+}
+
+rule("Init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.spherecast_settings = Array(Workshop Setting Toggle(Custom String("Spherecast"), Custom String("Use Fibonacci Sphere"), False, 0), Workshop Setting Integer(Custom String("Spherecast"), Custom String("Fibonacci Vertex Count"), 64, 1, 192, 1), Workshop Setting Integer(Custom String("Spherecast"), Custom String("Loop Boost"), 16, 1, 24, 2));
+		Start Rule(spherecast_arr, Do Nothing);
+		Global.hero_allowed = Array(Hero(Ana), Hero(Ashe), Hero(Baptiste), Hero(Hanzo), Hero(Orisa), Hero(Sombra), Hero(Tracer), Hero(Zarya), Hero(McCree), Hero(Junkrat), Hero(Torbjörn), Hero(Mei), Hero(Sigma), Hero(Widowmaker));
+		Global.constants[5] = 0;
+		Global.trajectory_visible_to = Empty Array;
+		Global.chase_cam_chasing = False;
+		Global.chase_cam_on = False;
+		Global.cam_on = False;
+		Global.pos_lock = False;
+		Global.control_points = Array(Vector(13, 2, 0), Vector(0, 12, 0), Vector(-14, 1, 1));
+		Global.camera_view_dist = 0.800;
+		"ana"
+		Global.constants = Array(-9.840, 30, 4, 7, 0.350, 0, 0);
+		Global.anim_offset = -0.040;
+		Call Subroutine(trajectory_display);
+		"hit position marker"
+		Create Effect(All Players(All Teams), Sphere, Color(Red), Global.proj_hit_pos, 0.300, Visible To Position and Radius);
+		"proj collision size"
+		Create Effect(All Players(All Teams), Sphere, Color(Yellow), Global.proj_hit_pos, Global.constants[7], Visible To Position and Radius);
+		"spherecast progress size"
+		disabled Create Effect(All Players(All Teams), Sphere, Color(Yellow), Global.ray_cast_s, Global.constants[7], Visible To Position and Radius);
+		"primary range"
+		Create Effect(All Players(All Teams), Sphere, Color(Sky Blue), Global.proj_hit_pos, Global.constants[2] / 0.985, Visible To Position and Radius);
+		"secondary range"
+		Create Effect(All Players(All Teams), Sphere, Color(Blue), Global.proj_hit_pos, Global.constants[6] / 0.985, Visible To Position and Radius);
+		"cylinder range"
+		Create Effect(All Players(All Teams), Light Shaft, Color(Blue), Global.proj_hit_pos, Global.constants[9] / 0.985, Visible To Position and Radius);
+		Call Subroutine(init_map_deathplane_y);
+		Call Subroutine(hud_final);
+		Call Subroutine(debug_hud_display);
+	}
+}
+
+rule("Hero Limit")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Global.hero_allowed);
+	}
+}
+
+rule("Initial Spawn Setup")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Host Player == True;
+	}
+
+	actions
+	{
+		Modify Global Variable(trajectory_visible_to, Append To Array, Event Player);
+		Event Player.curr_hero = Hero Of(Event Player);
+		Create HUD Text(Event Player, Global.constants[8] == 1 ? Custom String("NON-ZERO PROJECTILE RADIUS. TRAJECTORY MAY NOT MATCH") : Custom String(""), Null, Null, Top, 3, Color(Red), Color(White), Color(White), String, Default Visibility);
+		Call Subroutine(update_constants);
+		"debug"
+		disabled Wait(1, Ignore Condition);
+		disabled Start Forcing Player Position(Event Player, Vector(0, 0, 0), True);
+		disabled Start Facing(Event Player, Direction From Angles(0, -60), 10000, To World, Direction and Turn Rate);
+		disabled Set Slow Motion(20);
+		disabled Teleport(Event Player, Vector(-70.616, 17.242, 124.675));
+		disabled Set Status(Event Player, Null, Phased Out, 9999);
+		disabled Set Slow Motion(10);
+	}
+}
+
+rule("Calc")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Global.traj_lock == False;
+		Global.chase_cam_chasing == False;
+	}
+
+	actions
+	{
+		Call Subroutine(calc);
+		Wait(0.016, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Landing Spot Camera (controls: Melee)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Melee)) == True;
+	}
+
+	actions
+	{
+		Global.cam_on = !Global.cam_on;
+	}
+}
+
+rule("Landing Spot Cam On")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.cam_on == True;
+	}
+
+	actions
+	{
+		If(Global.chase_cam_chasing == False);
+			disabled Start Camera(Event Player, Min(1, 1 - Global.t_hit_pos + Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * Min(1, 1 - Global.t_hit_pos + Global.camera_view_dist) * Max(0, Global.t_hit_pos - Global.camera_view_dist) * Global.control_points[1] + Max(0, Global.t_hit_pos - Global.camera_view_dist) ^ 2 * Global.control_points[2], Global.proj_hit_pos, 10);
+			disabled Start Camera(Event Player, (1 - Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.t_hit_pos * Global.camera_view_dist) * Global.t_hit_pos * Global.camera_view_dist * Global.control_points[1] + (Global.t_hit_pos * Global.camera_view_dist) ^ 2 * Global.control_points[2], Global.proj_hit_pos, 10);
+			"landing spot level"
+			Start Camera(Event Player, Global.proj_hit_pos + Vector(3, 0, 0), Global.proj_hit_pos, 10);
+			disabled Start Camera(Event Player, (1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t) * Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2] + Vector(2.800, 0, 0), (1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t) * Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2], 0);
+			disabled Set Slow Motion(10);
+		Else;
+			Call Subroutine(chase_cam_camera);
+		End;
+	}
+}
+
+rule("Landing Spot Cam Off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.cam_on == False;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+		disabled Set Slow Motion(100);
+	}
+}
+
+rule("Lock (controls: Reload)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Reload)) == True;
+	}
+
+	actions
+	{
+		Global.pos_lock = !Global.pos_lock;
+	}
+}
+
+rule("Lock On")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.pos_lock == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Environment(Event Player, True);
+		Event Player.lock_pos_fac = Array(Eye Position(Event Player) - Event Player.eye_height, Facing Direction Of(Event Player));
+		Start Forcing Player Position(Event Player, Event Player.lock_pos_fac[0], False);
+		Start Facing(Event Player, Event Player.lock_pos_fac[1], 10000, To World, None);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("LOCK ENGAGED!"), Input Binding String(Button(Jump)), String("{0} {1} {2}", Custom String("--> Zoom Out,"), Input Binding String(Button(Crouch)), Custom String("--> Zoom In"))), Null, Null, Top, 1, Color(Red), Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.lock_hud_id[0] = Last Text ID;
+	}
+}
+
+rule("Lock Off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.pos_lock == False;
+	}
+
+	actions
+	{
+		Enable Movement Collision With Environment(Event Player);
+		Stop Forcing Player Position(Event Player);
+		Stop Facing(Event Player);
+		Destroy HUD Text(Global.lock_hud_id[0]);
+	}
+}
+
+rule("Lock Trajectory Preview (controls: Interact)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Global.traj_lock = !Global.traj_lock;
+	}
+}
+
+rule("Traj Lock On")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.traj_lock == True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Custom String("Trajectory Preview Locked."), Null, Null, Top, 2, Color(Aqua), Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.lock_hud_id[2] = Last Text ID;
+	}
+}
+
+rule("Traj Lock Off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.traj_lock == False;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Global.lock_hud_id[2]);
+	}
+}
+
+rule("Zoom Out (controls: Jump)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.pos_lock == True;
+		Is Button Held(Event Player, Button(Jump)) == True;
+	}
+
+	actions
+	{
+		Global.camera_view_dist = Max(Global.camera_view_dist + -0.003, 0);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Zoom In (controls: Crouch)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.pos_lock == True;
+		Is Button Held(Event Player, Button(Crouch)) == True;
+	}
+
+	actions
+	{
+		Global.camera_view_dist = Min(Global.camera_view_dist + 0.003, 1);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Detect player change")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.curr_hero != Hero Of(Event Player);
+		Host Player == True;
+	}
+
+	actions
+	{
+		Call Subroutine(update_constants);
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("Chase Camera (controls: Ult Status)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Global.chase_cam_on = !Global.chase_cam_on;
+	}
+}
+
+rule("Chase Cam On")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Custom String("Chase Camera On. Activate Ability to start camera."), Null, Null, Top, 2, Color(Blue), Color(White), Color(White), Visible To and String, Default Visibility);
+		Global.lock_hud_id[1] = Last Text ID;
+	}
+}
+
+rule("Chase Cam Off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == False;
+	}
+
+	actions
+	{
+		Destroy HUD Text(Global.lock_hud_id[1]);
+	}
+}
+
+rule("[sub] trajectory display")
+{
+	event
+	{
+		Subroutine;
+		trajectory_display;
+	}
+
+	actions
+	{
+		Create Effect(Global.trajectory_visible_to, Sphere, Color(Yellow), (1 - Total Time Elapsed / Global.constants[3] % 1) ^ 2 * Global.control_points[0] + 2 * (1 - Total Time Elapsed / Global.constants[3] % 1) * (Total Time Elapsed / Global.constants[3] % 1) * Global.control_points[1] + (Total Time Elapsed / Global.constants[3] % 1) ^ 2 * Global.control_points[2], 0.200, Visible To Position and Radius);
+		"apex"
+		Create Effect(All Players(All Teams), Sphere, Color(Green), (1 - Global.apex_t) ^ 2 * Global.control_points[0] + 2 * (1 - Global.apex_t) * Global.apex_t * Global.control_points[1] + Global.apex_t ^ 2 * Global.control_points[2], 0.200, Visible To Position and Radius);
+		For Global Variable(for_loop_i, 1, 4, 1);
+			Create Effect(Global.trajectory_visible_to, Sphere, Color(White), (1 - (Total Time Elapsed / Global.constants[3] + Evaluate Once(Global.for_loop_i) * Global.anim_offset) % 1) ^ 2 * Global.control_points[0] + 2 * (1 - (Total Time Elapsed / Global.constants[3] + Evaluate Once(Global.for_loop_i) * Global.anim_offset) % 1) * ((Total Time Elapsed / Global.constants[3] + Evaluate Once(Global.for_loop_i) * Global.anim_offset) % 1) * Global.control_points[1] + ((Total Time Elapsed / Global.constants[3] + Evaluate Once(Global.for_loop_i) * Global.anim_offset) % 1) ^ 2 * Global.control_points[2], 0.100, Visible To Position and Radius);
+		End;
+		For Global Variable(for_loop_i, 0.020, 1, 0.020);
+			Create Effect(Global.trajectory_visible_to, Sphere, Color(Blue), (1 - Evaluate Once(Global.for_loop_i)) ^ 2 * Global.control_points[0] + 2 * (1 - Evaluate Once(Global.for_loop_i)) * Evaluate Once(Global.for_loop_i) * Global.control_points[1] + Evaluate Once(Global.for_loop_i) ^ 2 * Global.control_points[2], 0.100, Visible To Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("sucide")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Fall Back) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Event Player);
+	}
+}
+
+rule("debug tele")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Current Map == Map(Workshop Expanse Night);
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(380, 0, 380));
+	}
+}
+
+rule("Hanzo: Primary Fire Charge")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Hanzo;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Is Using Ability 2(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.hanzo_charge = 25;
+		Chase Global Variable At Rate(hanzo_charge, 110, 120, None);
+	}
+}
+
+rule("Hanzo: Primary Fire Release")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Hanzo;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Is Using Ability 2(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.constants[1] = Global.hanzo_charge;
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+		disabled Wait(0.016, Ignore Condition);
+		Stop Chasing Global Variable(hanzo_charge);
+		Global.constants[1] = Global.hanzo_charge;
+		If(Global.chase_cam_on == True);
+			Call Subroutine(chase_cam_sub);
+		End;
+	}
+}
+
+rule("Hanzo: Using Storm Arrow")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Hanzo;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.constants[1] = 110;
+	}
+}
+
+rule("Hanzo: Fire Storm Arrow")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Hanzo;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Global.chase_cam_on == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+disabled rule("Chase Camera Action (Hanzo storm arrow)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Using Ability 2(Event Player) == True;
+		disabled (Is Button Held(Event Player, Button(Ability 2)) || Is Button Held(Event Player, Button(Secondary Fire))) == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Hero Of(Event Player) == Hero(Hanzo);
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Junkrat: Using Primary Fire")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		"grenade g"
+		Global.constants[0] = -12.350;
+		"grenade delta"
+		Global.constants[5] = 0.075;
+		"grenade vel"
+		Global.constants[1] = 25;
+		"grenade delay"
+		Global.constants[4] = 0.100;
+		"grenade colli_r"
+		Global.constants[7] = 0;
+	}
+}
+
+rule("Junkrat: Using Concuss Mine")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Is Using Ability 1(Event Player) == True;
+	}
+
+	actions
+	{
+		"mine g"
+		Global.constants[0] = -20.300;
+		"mine delta"
+		Global.constants[5] = 0.090;
+		"mine vel"
+		Global.constants[1] = 25;
+		"mine delay"
+		Global.constants[4] = 0.250;
+		"trap colli_r"
+		Global.constants[7] = 0;
+	}
+}
+
+rule("Junkrat: Using Steel Trap")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		"trap g"
+		Global.constants[0] = -20.200;
+		"trap delta"
+		Global.constants[5] = 0.095;
+		"trap v"
+		Global.constants[1] = 10;
+		"trap delay"
+		Global.constants[4] = 0.250;
+		"trap colli_r"
+		Global.constants[7] = 0;
+	}
+}
+
+rule("Torbjorn: Using Ultimate")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		"goo g"
+		Global.constants[0] = -30.050;
+		"goo delta"
+		Global.constants[5] = 0;
+		"goo vel"
+		Global.constants[1] = 40;
+		"goo simtime"
+		Global.constants[3] = 4;
+	}
+}
+
+rule("Torbjorn: Rivet")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) != True;
+	}
+
+	actions
+	{
+		"rivet g"
+		Global.constants[0] = -9.810;
+		"rivet delta"
+		Global.constants[5] = 0.015;
+		"rivet vel"
+		Global.constants[1] = 70;
+		"rivet simtime"
+		Global.constants[3] = 15;
+	}
+}
+
+rule("Chase Camera: Ana")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Ana;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Ashe")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Ashe;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Baptiste")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Baptiste;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		(Is Button Held(Event Player, Button(Ability 2)) || Is Button Held(Event Player, Button(Secondary Fire))) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Sombra")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sombra;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Zarya")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Zarya;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		(Is Button Held(Event Player, Button(Ultimate)) || Is Button Held(Event Player, Button(Secondary Fire))) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Orisa")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Orisa;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Sigma")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sigma;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: McCree (why would you need it?)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		McCree;
+	}
+}
+
+rule("Chase Camera: Junkrat")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		(Is Firing Primary(Event Player) || Is Button Held(Event Player, Button(Ability 2)) || Is Using Ability 1(Event Player)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Torbjorn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Tracer")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Tracer;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Chase Camera: Mei")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Mei;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("refill ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Ultimate Charge Percent(Event Player) != 100;
+		Has Spawned(Event Player) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("[sub] debug hud")
+{
+	event
+	{
+		Subroutine;
+		debug_hud_display;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Custom String("Camera Dist"), Global.camera_view_dist), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Custom String("Constants"), String("{0} == {1}", Global.constants[0], 1000 * Global.constants[0]), Global.constants[1]), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Custom String("controls"), Null, String("{0} {1} {2}", Global.control_points[0], Global.control_points[1], Global.control_points[2])), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Custom String("delta"), Global.constants[5], Global.constants[5] * 1000), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Distance Between(Global.ray_cast_s, Global.ray_cast_e), Distance Between(Global.ray_cast_s, Global.ray_cast_e) * 1000, Distance Between(Global.ray_cast_s, Global.proj_hit_pos) * 1000), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Global.t_hit_pos, Global.t_hit_pos + 0.002 * (Distance Between(Global.ray_cast_s, Global.proj_hit_pos) / Distance Between(Global.ray_cast_s, Global.ray_cast_e)), (Global.t_hit_pos + 0.002 * (Distance Between(Global.ray_cast_s, Global.proj_hit_pos) / Distance Between(Global.ray_cast_s, Global.ray_cast_e))) * Global.constants[3]), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} - {1} - {2}", Custom String("proj radius"), String("{0} == {1}", Global.constants[7], 1000 * Global.constants[7])), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("[sub] final hud")
+{
+	event
+	{
+		Subroutine;
+		hud_final;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Custom String("Code: XWAGN"), Custom String("Improved Nade Tool (210219)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Server Load"), String("{0} - {1} - {2}", Server Load, Server Load Average, Server Load Peak), Left, -1, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Instructions"), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String("- toggle chase camera"), Left, 0.050, Color(White), Color(Blue), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Melee), String("({0})", Input Binding String(Button(Melee)))), Custom String("- toggle landing spot view"), Left, 0.100, Color(White), Color(Green), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(Reload)))), Custom String("- lock position and view"), Left, 0.200, Color(White), Color(Red), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} and {1}", String("{0} {1}", Button(Jump), String("({0})", Input Binding String(Button(Jump)))), String("{0} {1}", Button(Crouch), String("({0})", Input Binding String(Button(Crouch))))), Custom String("- zoom out or in while locked and in landing spot view"), Left, 0.250, Color(White), Color(Yellow), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Interact), String("({0})", Input Binding String(Button(Interact)))), Custom String("- toggle lock trajectory preview / refresh spherecast calc"), Left, 0.300, Color(White), Color(Aqua), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 0.400, Color(White), Color(Turquoise), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Stats"), Null, Null, Left, 3, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Flight Time (Approx)"), Global.constants[3] * Global.t_hit_pos, Left, 3.050, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Position"), Position Of(Host Player), Left, 3.100, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Angles (Horz, Vert)"), String("{0}, {1}", Horizontal Facing Angle Of(Host Player), Vertical Facing Angle Of(Host Player)), Left, 3.200, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Proj Dir"), Normalize(Vector Towards((1 - Global.chase_cam_dist) * Global.control_points[0] + Global.chase_cam_dist * Global.control_points[1], (1 - Global.chase_cam_dist) * Global.control_points[1] + Global.chase_cam_dist * Global.control_points[2])), Left, 100, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		"B'(t) definition"
+		Create HUD Text(All Players(All Teams), Null, Custom String("Proj Speed"), Distance Between(2 * (1 - Global.chase_cam_dist) * (Global.control_points[1] - Global.control_points[0]) + 2 * Global.chase_cam_dist * (Global.control_points[2] - Global.control_points[1]), Vector(0, 0, 0)) / Global.constants[3], Left, 100.100, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("t_hit_pos / t_ray_cast"), String("{0}, {1}", Global.t_hit_pos, Global.t_ray_cast), Left, 101, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("ultimate refill")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("kill self")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+	}
+}
+
+rule("[sub] build spherecast arr")
+{
+	event
+	{
+		Subroutine;
+		spherecast_arr;
+	}
+
+	actions
+	{
+		If(Global.spherecast_settings[0] == True);
+			Global.spherecast = Empty Array;
+			For Global Variable(spherecast_i, 0, Global.spherecast_settings[1], 1);
+				Global.spherecast_fib_temp[0] = Global.spherecast_i + 0.500;
+				"phi r"
+				Global.spherecast_fib_temp[1] = Arccosine In Radians(1 - 2 * (Global.spherecast_fib_temp[0] / Global.spherecast_settings[1]));
+				"theta d"
+				Global.spherecast_fib_temp[2] = Global.spherecast_fib_temp[0] * 180 * (1 + Square Root(5));
+				"x, y, z = cos(theta) * sin(phi), sin(theta) * sin(phi), cos(phi)"
+				Global.spherecast[Global.spherecast_i] = Vector(Cosine From Degrees(Global.spherecast_fib_temp[2]) * Sine From Radians(Global.spherecast_fib_temp[1]), Cosine From Radians(Global.spherecast_fib_temp[1]), Sine From Degrees(Global.spherecast_fib_temp[2]) * Sine From Radians(Global.spherecast_fib_temp[1]));
+				Wait(0.016, Ignore Condition);
+			End;
+		Else;
+			Global.spherecast = Array(Vector(0, -1, 0), Vector(0.724, -0.447, 0.526), Vector(-0.276, -0.447, 0.851), Vector(-0.894, -0.447, 0), Vector(-0.276, -0.447, -0.851), Vector(0.724, -0.447, -0.526), Vector(0.276, 0.447, 0.851), Vector(-0.724, 0.447, 0.526), Vector(-0.724, 0.447, -0.526), Vector(0.276, 0.447, -0.851), Vector(0.894, 0.447, 0), Vector(0, 1, 0), Vector(-0.162, -0.851, 0.500), Vector(0.425, -0.851, 0.309), Vector(0.263, -0.526, 0.809), Vector(0.851, -0.526, 0), Vector(0.425, -0.851, -0.309), Vector(-0.526, -0.851, 0), Vector(-0.688, -0.526, 0.500), Vector(-0.162, -0.851, -0.500), Vector(-0.688, -0.526, -0.500), Vector(0.263, -0.526, -0.809), Vector(0.951, 0, 0.309), Vector(0.951, 0, -0.309), Vector(0, 0, 1), Vector(0.588, 0, 0.809), Vector(-0.951, 0, 0.309), Vector(-0.588, 0, 0.809), Vector(-0.588, 0, -0.809), Vector(-0.951, 0, -0.309), Vector(0.588, 0, -0.809), Vector(0, 0, -1), Vector(0.688, 0.526, 0.500), Vector(-0.263, 0.526, 0.809), Vector(-0.851, 0.526, 0), Vector(-0.263, 0.526, -0.809), Vector(0.688, 0.526, -0.500), Vector(0.162, 0.851, 0.500), Vector(0.526, 0.851, 0), Vector(-0.425, 0.851, 0.309), Vector(-0.425, 0.851, -0.309), Vector(0.162, 0.851, -0.500));
+		End;
+	}
+}
+
+rule("[sub] chase cam camera all")
+{
+	event
+	{
+		Subroutine;
+		chase_cam_camera;
+	}
+
+	actions
+	{
+		"backward cam"
+		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Normalize(Vector Towards(Eye Position(Event Player), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2])), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+		"original"
+		Start Camera(Event Player, Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) ^ 2 * Global.control_points[0] + 2 * Min(1 - Global.chase_cam_dist + Global.constants[4] / Global.constants[3], 1) * Max(Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) * Global.control_points[1] + Max(Global.chase_cam_dist - Global.constants[4] / Global.constants[3], 0) ^ 2 * Global.control_points[2], (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+		"debug levelled"
+		disabled Start Camera(Event Player, (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2] + Vector(5.800, 0, 0), (1 - Global.chase_cam_dist) ^ 2 * Global.control_points[0] + 2 * (1 - Global.chase_cam_dist) * Global.chase_cam_dist * Global.control_points[1] + Global.chase_cam_dist ^ 2 * Global.control_points[2], 0);
+	}
+}
+
+rule("[sub] calc")
+{
+	event
+	{
+		Subroutine;
+		calc;
+	}
+
+	actions
+	{
+		disabled Wait(Global.constants[10], Ignore Condition);
+		Global.control_points[0] = Eye Position(Event Player);
+		Global.proj_launch_norm = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Vector(0, Global.constants[5], 0)));
+		Global.control_points[1] = Global.control_points[0] + 0.500 * Global.constants[1] * Global.constants[3] * Global.proj_launch_norm;
+		Global.control_points[2] = Eye Position(Event Player) + Global.proj_launch_norm * Global.constants[1] * Global.constants[3] + Vector(0, 0.500 * Global.constants[0] * Global.constants[3] ^ 2, 0);
+		"apex t"
+		Global.apex_t = -1 * Y Component Of(Global.proj_launch_norm) * Global.constants[1] / Global.constants[0] / Global.constants[3];
+		If(Global.constants[7] != 0);
+			For Global Variable(t_ray_cast, 0, Global.constants[3] * 500, 1);
+				Skip If(Global.constants[7] == 0, 22);
+				For Global Variable(for_loop_i, 0, Global.spherecast_settings[2], 1);
+					Global.ray_cast_s = (1 - Global.t_ray_cast * 0.002 / Global.constants[3]) ^ 2 * Global.control_points[0] + 2 * (1 - Global.t_ray_cast * 0.002 / Global.constants[3]) * (Global.t_ray_cast * 0.002 / Global.constants[3]) * Global.control_points[1] + (Global.t_ray_cast * 0.002 / Global.constants[3]) ^ 2 * Global.control_points[2];
+					Global.proj_dir = Normalize(Vector Towards((1 - Global.t_ray_cast * 0.002 / Global.constants[3]) * Global.control_points[0] + Global.t_ray_cast * 0.002 / Global.constants[3] * Global.control_points[1], (1 - Global.t_ray_cast * 0.002 / Global.constants[3]) * Global.control_points[1] + Global.t_ray_cast * 0.002 / Global.constants[3] * Global.control_points[2]));
+					Global.spherecast_hit_arr = Empty Array;
+					For Global Variable(spherecast_i, 0, Count Of(Global.spherecast), 1);
+						If(Dot Product(Global.spherecast[Global.spherecast_i], Global.proj_dir) < 0);
+							Continue;
+						End;
+						Global.ray_cast_e = Global.ray_cast_s + Global.constants[7] * Global.spherecast[Global.spherecast_i];
+						Global.spherecast_hit_temp = Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True);
+						If(Global.spherecast_hit_temp != Global.ray_cast_e);
+							Modify Global Variable(spherecast_hit_arr, Append To Array, Array(Array(Distance Between(Global.ray_cast_s, Global.spherecast_hit_temp), Global.spherecast_hit_temp)));
+						End;
+					End;
+					Skip If(Global.spherecast_hit_arr != Empty Array, 4);
+					Global.t_ray_cast += 1;
+				End;
+				Wait(0.016, Restart When True);
+			End;
+			Global.spherecast_hit_arr = Sorted Array(Global.spherecast_hit_arr, Current Array Element[0]);
+			Global.proj_hit_pos = Global.spherecast_hit_arr[0][1];
+			Global.t_hit_pos = Global.t_ray_cast * 0.002 / Global.constants[3];
+		Else;
+			For Global Variable(t_ray_cast, 0, 1, 0.002);
+				Global.ray_cast_s = (1 - Global.t_ray_cast) ^ 2 * Global.control_points[0] + 2 * (1 - Global.t_ray_cast) * Global.t_ray_cast * Global.control_points[1] + Global.t_ray_cast ^ 2 * Global.control_points[2];
+				If(Y Component Of(Global.ray_cast_s) < Global.map_deathplane_y);
+					Break;
+				End;
+				Global.ray_cast_e = (1 - Global.t_ray_cast - 0.002) ^ 2 * Global.control_points[0] + 2 * (1 - Global.t_ray_cast - 0.002) * (Global.t_ray_cast + 0.002) * Global.control_points[1] + (Global.t_ray_cast + 0.002) ^ 2 * Global.control_points[2];
+				Global.proj_hit_pos = Ray Cast Hit Position(Global.ray_cast_s, Global.ray_cast_e, Null, Event Player, True);
+				If(Global.proj_hit_pos != Global.ray_cast_e);
+					Break;
+				End;
+			End;
+			Global.t_hit_pos = Global.t_ray_cast + 0.002 * (Distance Between(Global.ray_cast_s, Global.proj_hit_pos) / Distance Between(Global.ray_cast_s, Global.ray_cast_e));
+			Wait(0.064, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] map_deathplane")
+{
+	event
+	{
+		Subroutine;
+		init_map_deathplane_y;
+	}
+
+	actions
+	{
+		If(Current Map == Map(Blizzard World));
+			Global.map_deathplane_y = -6.490;
+		Else If(Current Map == Map(Blizzard World Winter));
+			Global.map_deathplane_y = -6.490;
+		Else If(Current Map == Map(Dorado));
+			Global.map_deathplane_y = -9.510;
+		Else If(Current Map == Map(Eichenwalde));
+			Global.map_deathplane_y = -7.720;
+		Else If(Current Map == Map(Eichenwalde Halloween));
+			Global.map_deathplane_y = -7.710;
+		Else If(Current Map == Map(Hanamura));
+			Global.map_deathplane_y = -8.510;
+		Else If(Current Map == Map(Hanamura Winter));
+			Global.map_deathplane_y = -8.500;
+		Else If(Current Map == Map(Havana));
+			Global.map_deathplane_y = -8.500;
+		Else If(Current Map == Map(Hollywood));
+			Global.map_deathplane_y = -30.510;
+		Else If(Current Map == Map(Hollywood Halloween));
+			Global.map_deathplane_y = -30.500;
+		Else If(Current Map == Map(Horizon Lunar Colony));
+			Global.map_deathplane_y = 0.410;
+		Else If(Current Map == Map(Junkertown));
+			Global.map_deathplane_y = -5.500;
+		Else If(Current Map == Map(King's Row));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(King's Row Winter));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(Numbani));
+			Global.map_deathplane_y = -10.500;
+		Else If(Current Map == Map(Paris));
+			Global.map_deathplane_y = 6.150;
+		Else If(Current Map == Map(Rialto));
+			Global.map_deathplane_y = -15.500;
+		Else If(Current Map == Map(Route 66));
+			Global.map_deathplane_y = -15.500;
+		Else If(Current Map == Map(Temple of Anubis));
+			Global.map_deathplane_y = -10.500;
+		Else If(Current Map == Map(Volskaya Industries));
+			Global.map_deathplane_y = -12.500;
+		Else If(Current Map == Map(Watchpoint: Gibraltar));
+			Global.map_deathplane_y = -18.500;
+		Else If(Current Map == Map(Busan));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = 0.410;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 2.020;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = -8.500;
+			End;
+		Else If(Current Map == Map(Ilios));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -37.450;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = -10.190;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 49.360;
+			End;
+		Else If(Current Map == Map(Nepal));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -106.180;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 0.840;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 115.150;
+			End;
+		Else If(Current Map == Map(Oasis));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -8.990;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = -0.510;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 2.080;
+			End;
+		Else If(Current Map == Map(Lijiang Tower));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -12.510;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 82.570;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 250.200;
+			End;
+		Else If(Current Map == Map(Lijiang Tower Lunar New Year));
+			If(Objective Index == 0);
+				Global.map_deathplane_y = -12.510;
+			Else If(Objective Index == 1);
+				Global.map_deathplane_y = 82.570;
+			Else If(Objective Index == 2);
+				Global.map_deathplane_y = 250.200;
+			End;
+		Else If(Current Map == Map(Workshop Chamber));
+			Global.map_deathplane_y = -25.500;
+		Else If(Current Map == Map(Workshop Expanse));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Expanse Night));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Green Screen));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Island));
+			Global.map_deathplane_y = -27;
+		Else If(Current Map == Map(Workshop Island Night));
+			Global.map_deathplane_y = -27;
+		End;
+	}
+}
+
+disabled rule("sigma disable mod buttons")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sigma;
+	}
+
+	actions
+	{
+		Disallow Button(Event Player, Button(Primary Fire));
+		Disallow Button(Event Player, Button(Ability 1));
+	}
+}
+
+rule("Chase Camera: Mei")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Widowmaker;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}
+
+rule("Torbjorn: turret")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 1)) == True;
+	}
+
+	actions
+	{
+		"rivet g"
+		Global.constants[0] = -20;
+		"rivet delta"
+		Global.constants[5] = 0;
+		"rivet vel"
+		Global.constants[1] = 17;
+		"rivet simtime"
+		Global.constants[3] = 5;
+	}
+}
+
+rule("Chase Camera: Torbjorn turret")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Torbjörn;
+	}
+
+	conditions
+	{
+		Global.chase_cam_on == True;
+		Is Button Held(Event Player, Button(Ability 1)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(chase_cam_sub);
+	}
+}

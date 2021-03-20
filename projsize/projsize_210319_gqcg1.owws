@@ -1,0 +1,288 @@
+settings
+{
+	modes
+	{
+		disabled Assault
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Control
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Escort
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Hybrid
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+
+		disabled Practice Range
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+			Training Partner: Off
+		}
+
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		disabled Team Deathmatch
+		{
+			Game Mode Start: Manual
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+			No Ammunition Requirement: On
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: right
+}
+
+rule("global_init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Wrecking Ball), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Global.right = 0.001 / 1 * Left;
+	}
+}
+
+rule("player_init_once")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Projectile Speed(Event Player, 0);
+		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
+		Start Camera(Event Player, Eye Position(Event Player) + Vector(0, 0, 2), Eye Position(Event Player), 0);
+		Create Effect(All Players(All Teams), Sphere, Color(White), Eye Position(Event Player), 0.100, Visible To Position and Radius);
+		Set Invisible(Event Player, All);
+		disabled Set Slow Motion(50);
+		Start Heal Over Time(Event Player, Event Player, 9999, 500);
+		Create HUD Text(All Players(All Teams), Custom String("Eye Position: {0}", 100000 * Eye Position(Event Player)), Null, Null, Left, 1, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Ball Hitbox (x100000): {0}", 100000 * (Distance Between(Eye Position(Event Player), Vector(0, 79085.484 / 100000, 0)) - 0.835)), Null, Null, Left, 0, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Ball Hitbox (x1): {0}", 1 * (Distance Between(Eye Position(Event Player), Vector(0, 79085.484 / 100000, 0)) - 0.835)), Null, Null, Left, 0.100, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("player_reset")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(-0.700, 0, 0));
+		Set Move Speed(Event Player, 0);
+		Start Facing(Event Player, Vector(-1, 0, 0), 10000, To World, Direction and Turn Rate);
+	}
+}
+
+rule("give ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Ultimate Charge Percent(Event Player) != 100;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("set proj speed to 0")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Projectile Speed(Event Player, 0);
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("ball_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(2, Ignore Condition);
+		Press Button(Event Player, Button(Ability 1));
+		disabled Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
+		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
+		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
+	}
+}
+
+rule("teleport_right")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Throttle Of(Event Player) == Right;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Event Player) + Global.right);
+		Wait(0.250, Abort When False);
+		While(True);
+			Teleport(Event Player, Position Of(Event Player) + Global.right);
+			Wait(0.016, Abort When False);
+		End;
+	}
+}
+
+rule("teleport_left")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Throttle Of(Event Player) == Left;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Position Of(Event Player) - Global.right);
+		Wait(0.250, Abort When False);
+		While(True);
+			Teleport(Event Player, Position Of(Event Player) - Global.right);
+			Wait(0.016, Abort When False);
+		End;
+	}
+}
+
+rule("no knockback collision")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Set Knockback Received(Event Player, 0);
+		Set Knockback Dealt(Event Player, 0);
+		Disable Movement Collision With Players(Event Player);
+	}
+}
+
+rule("change hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
+		Set Player Allowed Heroes(Event Player, All Heroes);
+	}
+}
