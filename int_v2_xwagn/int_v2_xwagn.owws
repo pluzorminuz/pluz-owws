@@ -1272,8 +1272,10 @@ rule("[sub] final hud")
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, Custom String("Group Up"), Custom String(
 			"- [{0}] hide trajectory / effects", Local Player.trajectory_hidden_manual ? Custom String("Hidden") : Custom String(
 			"Visible")), Left, 0.500, Color(White), Color(Lime Green), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, Custom String("Thanks"), Custom String("- Toggle Freecam"),
+			Left, 0.600, Color(White), Color(Yellow), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, Custom String("Need Healing"), Custom String("- [{0}] Toggle HUD",
-			Local Player.hudhide_bool ? Custom String("Hidden") : Custom String("Visible")), Left, 0.600, Color(White), Color(Gray), Color(
+			Local Player.hudhide_bool ? Custom String("Hidden") : Custom String("Visible")), Left, 0.700, Color(White), Color(Gray), Color(
 			White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Stats"), Null, Null, Left, 3, Color(White), Color(
 			White), Color(White), Visible To and String, Default Visibility);
