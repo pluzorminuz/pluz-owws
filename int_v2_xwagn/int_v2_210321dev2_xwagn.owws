@@ -96,6 +96,12 @@ variables
 		40: hudhide_bool
 		41: chasecam_interrupt
 		42: proj_dirhorz_hidden
+		100: freecam_freeeye
+		101: freecam_accel
+		102: freecam_bool
+		103: freecam_initdir
+		104: freecam_vel
+		105: freecam_bot
 }
 
 subroutines
@@ -129,18 +135,18 @@ rule("init")
 			0, 0, 0.100, False), Null, Null, Array(-20.300, 25, 0.090, 7, 0, 0.136, 0.250, False), Array(-20.200, 10, 0.095, 7, 0, 0,
 			0.250, False)), 0, Array(2, 3, 0), True), Array(Array(Null, Array(-20.100, 60, 0.007, 7, 0, 0, 0.100, False), Null, Null,
 			Array(-20.100, 60, 0.007, 7, 0, 0, 0.100, False)), 1, Array(3, 0, 6.500), True), Array(Array(Null, Null, Null, Null, Array(
-			-9.840, 25, 0, 7, 0, 0.128, 0.400, False)), 4, Array(0, 0, 0), True), Array(Array(Null, Array(-9.840, 25, 0.100, 7, 0, 0,
-			0.500, False), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Null, Null), 1, Array(2.500, 6, 0), False), Array(Array(Null,
-			Null, Null, Null, Array(-20.200, 25, 0.090, 5, 0, 0.096, 0.200, False)), 4, Array(15, 0, 0), True), Array(Array(Null, Null,
-			Null, Null, Array(-8.030, 25, 0.070, 7, 0, 0.140, 0.400, False)), 4, Array(5, 0, 0), True), Array(Array(Null, Null, Array(
-			-30.800, 15, 0.190, 2, 0, 0.144, 0.150, False), Null, Null), 2, Array(5, 0, 0), True), Array(Array(Null, Null, Null, Null,
-			Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False), Array(Array(Null, Null, Array(-9.900, 20, 0.090,
-			7, 0, 0.484, 0.600, False), Null, Null), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100,
-			True), Null, Array(-30.050, 40, 0, 5, 0, 0, 0.100, True), Array(-20, 17, 0, 4, 0, 0.048, 0.100, True), Null), 0, Array(2.500,
-			40, 0), True), Array(Array(Array(-9.815, 110, 0, 15, 0, 0, 0.032, True), Null, Null, Null, Array(-9.815, 110, 0, 15, 0, 0,
-			0.032, True)), 0, Array(0, 9, 0), False), Array(Array(Array(-5.954, 49.700, 0, 3 / 7, 0, 0, 0.048, False), Null, Null, Null,
-			Array(-18.350, 37.400, 0.100, 6, 0, 0.640, 0.256, False)), 4, Array(2.500, 3, 0), True), Array(Array(Null, Null, Null, Null,
-			Array(-9.840, 20, 0, 7, 0, 0.192, 0.160, False)), 4, Array(3, 0, 0), True)));
+			-9.840, 25, 0, 7, 0, 0, 0.400, False)), 4, Array(0, 0, 0), True), Array(Array(Null, Array(-9.840, 25, 0.100, 7, 0, 0, 0.500,
+			False), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Null, Null), 1, Array(2.500, 6, 0), False), Array(Array(Null, Null,
+			Null, Null, Array(-20.200, 25, 0.090, 5, 0, 0, 0.200, False)), 4, Array(15, 0, 0), True), Array(Array(Null, Null, Null, Null,
+			Array(-8.030, 25, 0.070, 7, 0, 0.140, 0.400, False)), 4, Array(5, 0, 0), True), Array(Array(Null, Null, Array(-30.800, 15,
+			0.190, 2, 0, 0, 0.150, False), Null, Null), 2, Array(5, 0, 0), True), Array(Array(Null, Null, Null, Null, Array(-9.840, 30, 0,
+			7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False), Array(Array(Null, Null, Array(-9.900, 20, 0.090, 7, 0, 0.468, 0.600,
+			False), Null, Null), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100, True), Null, Array(
+			-30.050, 40, 0, 5, 0, 0, 0.100, True), Array(-20, 17, 0, 4, 0, 0.048, 0.100, True), Null), 0, Array(2.500, 40, 0), True),
+			Array(Array(Array(-9.815, 110, 0, 15, 0, 0, 0.032, True), Null, Null, Null, Array(-9.815, 110, 0, 15, 0, 0, 0.032, True)), 0,
+			Array(0, 9, 0), False), Array(Array(Array(-5.954, 49.700, 0, 3 / 7, 0, 0, 0.048, False), Null, Null, Null, Array(-18.350,
+			37.400, 0.100, 6, 0, 0.640, 0.256, False)), 4, Array(2.500, 3, 0), True), Array(Array(Null, Null, Null, Null, Array(-9.840, 20,
+			0, 7, 0, 0.192, 0.160, False)), 4, Array(3, 0, 0), True)));
 		Call Subroutine(init_map_deathplane_y);
 		Call Subroutine(hud_final);
 		Call Subroutine(create_trajectory);
@@ -177,6 +183,7 @@ rule("player_calc_proj_loop")
 	{
 		Event Player.chasecam_chasing != True;
 		Event Player.trajlock_bool != True;
+		Event Player.freecam_bool != True;
 	}
 
 	actions
@@ -221,6 +228,7 @@ rule("player_changed_hero")
 		Event Player.predictcam_dist = 0.800;
 		Event Player.predictcam_bool = False;
 		Event Player.trajectory_hidden = False;
+		Event Player.freecam_bool = False;
 		If(Event Player.chasecam_chasing == True);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
@@ -246,6 +254,7 @@ rule("player_action_change_hero (acknowledge)")
 		Event Player.pos_mem = Array(Position Of(Event Player), Facing Direction Of(Event Player));
 		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
 		Set Player Allowed Heroes(Event Player, Global.data[0]);
+		Event Player.freecam_bool = False;
 	}
 }
 
@@ -327,6 +336,7 @@ rule("player_action_predictcam (melee)")
 	conditions
 	{
 		Is Button Held(Event Player, Button(Melee)) == True;
+		Event Player.freecam_bool != True;
 	}
 
 	actions
@@ -489,7 +499,7 @@ rule("lockpos_toggle_on")
 
 	conditions
 	{
-		Event Player.poslock_bool == True;
+		(Event Player.poslock_bool || Event Player.freecam_bool) == True;
 	}
 
 	actions
@@ -497,7 +507,6 @@ rule("lockpos_toggle_on")
 		Disable Movement Collision With Environment(Event Player, True);
 		Event Player.poslock_posfac = Array(Eye Position(Event Player) - Event Player.eye_height, Facing Direction Of(Event Player));
 		Start Forcing Player Position(Event Player, Event Player.poslock_posfac[0], False);
-		Start Facing(Event Player, Event Player.poslock_posfac[1], 10000, To World, None);
 	}
 }
 
@@ -512,13 +521,52 @@ rule("lockpos_toggle_off")
 
 	conditions
 	{
-		Event Player.poslock_bool == False;
+		!(Event Player.poslock_bool || Event Player.freecam_bool) == True;
 	}
 
 	actions
 	{
 		Enable Movement Collision With Environment(Event Player);
 		Stop Forcing Player Position(Event Player);
+	}
+}
+
+rule("lockpos_toggle_on_normal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.poslock_bool == True;
+	}
+
+	actions
+	{
+		Start Facing(Event Player, Event Player.poslock_posfac[1], 10000, To World, None);
+	}
+}
+
+rule("lockpos_toggle_off_normal")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.poslock_bool != True;
+	}
+
+	actions
+	{
 		Stop Facing(Event Player);
 	}
 }
@@ -696,7 +744,7 @@ rule("Hanzo: Primary Fire Charge")
 		"immediately snap the starting pos and fac"
 		Call Subroutine(save_trajectory_origin);
 		Stop Chasing Player Variable(Event Player, proj_vel);
-		If((Event Player.chasecam_bool || Event Player.trajlock_bool) && !Event Player.chasecam_chasing);
+		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
 	}
@@ -745,9 +793,7 @@ rule("Hanzo: Fire Storm Arrow")
 	{
 		"immediately snap the starting pos and fac"
 		Call Subroutine(save_trajectory_origin);
-		If((Event Player.chasecam_bool || Event Player.trajlock_bool) && !Event Player.chasecam_chasing);
-			Start Rule(chasecam_start, Restart Rule);
-		End;
+		Start Rule(chasecam_start, Restart Rule);
 	}
 }
 
@@ -797,7 +843,7 @@ rule("Torbjorn: Rivet")
 			Event Player.using_ability = 0;
 			Call Subroutine(swap_proj_data);
 		End;
-		If((Event Player.chasecam_bool || Event Player.trajlock_bool) && !Event Player.chasecam_chasing);
+		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
 	}
@@ -822,7 +868,7 @@ rule("Torbjorn: Firing Goo")
 	{
 		"immediately snap the starting pos and fac"
 		Call Subroutine(save_trajectory_origin);
-		If((Event Player.chasecam_bool || Event Player.trajlock_bool) && !Event Player.chasecam_chasing);
+		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
 	}
@@ -851,7 +897,7 @@ rule("Torbjorn: Deploy Turret")
 			Event Player.using_ability = 3;
 			Call Subroutine(swap_proj_data);
 		End;
-		If((Event Player.chasecam_bool || Event Player.trajlock_bool) && !Event Player.chasecam_chasing);
+		If(Event Player.chasecam_bool == True && Event Player.chasecam_chasing == False);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
 	}
@@ -867,46 +913,48 @@ rule("[sub] chasecam_start")
 
 	actions
 	{
-		If(!(Event Player.chasecam_chasing || Event Player.chasecam_interrupt));
+		If(!Event Player.freecam_bool);
+			If(!(Event Player.chasecam_chasing || Event Player.chasecam_interrupt));
+				Stop Chasing Player Variable(Event Player, chasecam_t);
+				Event Player.chasecam_t = 0;
+				"then wait for the cast time if any"
+				If(Event Player.proj_castdelay > 0);
+					Wait(Event Player.proj_castdelay, Ignore Condition);
+					Call Subroutine(save_trajectory_origin);
+				End;
+				"do calc"
+				Start Rule(calc_proj, Restart Rule);
+				"start chasing immediately after casting"
+				Chase Player Variable At Rate(Event Player, chasecam_t, Event Player.proj_predict_land_t, 1 / Event Player.proj_simtime,
+					Destination and Rate);
+				If(Event Player.chasecam_bool);
+					Event Player.predictcam_bool = False;
+					Event Player.chasecam_chasing = True;
+					Event Player.trajectory_hidden = True;
+					Set Invisible(Event Player, All);
+					"ensures projectile correction"
+					Wait(0.016, Ignore Condition);
+					"start camera"
+					Start Camera(Event Player, Min(1 - Event Player.chasecam_t + Event Player.proj_chasedelay / Event Player.proj_simtime, 1)
+						^ 2 * Event Player.proj_p0 + 2 * Min(1 - Event Player.chasecam_t + Event Player.proj_chasedelay / Event Player.proj_simtime, 1)
+						* Max(Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) * Event Player.proj_p1 + Max(
+						Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) ^ 2 * Event Player.proj_p2 - (
+						Event Player.proj_dir == Up || Event Player.proj_dir == Down) * 0.002 * Direction From Angles(Event Player.proj_dirhorz_hidden,
+						0), (1 - Event Player.chasecam_t) ^ 2 * Event Player.proj_p0 + 2 * (1 - Event Player.chasecam_t)
+						* Event Player.chasecam_t * Event Player.proj_p1 + Event Player.chasecam_t ^ 2 * Event Player.proj_p2, 0);
+				End;
+				"wait for proj to hit"
+				Wait(Event Player.proj_predict_land_t * Event Player.proj_simtime + Event Player.proj_chasedelay + 1.500 - 0.016,
+					Abort When False);
+			End;
+			Stop Camera(Event Player);
+			Set Invisible(Event Player, None);
+			Event Player.trajectory_hidden = False;
+			Event Player.chasecam_interrupt = False;
 			Stop Chasing Player Variable(Event Player, chasecam_t);
 			Event Player.chasecam_t = 0;
-			"then wait for the cast time if any"
-			If(Event Player.proj_castdelay > 0);
-				Wait(Event Player.proj_castdelay, Ignore Condition);
-				Call Subroutine(save_trajectory_origin);
-			End;
-			"do calc"
-			Start Rule(calc_proj, Restart Rule);
-			"start chasing immediately after casting"
-			Chase Player Variable At Rate(Event Player, chasecam_t, Event Player.proj_predict_land_t, 1 / Event Player.proj_simtime,
-				Destination and Rate);
-			If(Event Player.chasecam_bool);
-				Event Player.predictcam_bool = False;
-				Event Player.chasecam_chasing = True;
-				Event Player.trajectory_hidden = True;
-				Set Invisible(Event Player, All);
-				"ensures projectile correction"
-				Wait(0.016, Ignore Condition);
-				"start camera"
-				Start Camera(Event Player, Min(1 - Event Player.chasecam_t + Event Player.proj_chasedelay / Event Player.proj_simtime, 1)
-					^ 2 * Event Player.proj_p0 + 2 * Min(1 - Event Player.chasecam_t + Event Player.proj_chasedelay / Event Player.proj_simtime, 1)
-					* Max(Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) * Event Player.proj_p1 + Max(
-					Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) ^ 2 * Event Player.proj_p2 - (
-					Event Player.proj_dir == Up || Event Player.proj_dir == Down) * 0.008 * Direction From Angles(Event Player.proj_dirhorz_hidden,
-					0), (1 - Event Player.chasecam_t) ^ 2 * Event Player.proj_p0 + 2 * (1 - Event Player.chasecam_t)
-					* Event Player.chasecam_t * Event Player.proj_p1 + Event Player.chasecam_t ^ 2 * Event Player.proj_p2, 0);
-			End;
-			"wait for proj to hit"
-			Wait(Event Player.proj_predict_land_t * Event Player.proj_simtime + Event Player.proj_chasedelay + 1.500 - 0.016,
-				Abort When False);
+			Event Player.chasecam_chasing = False;
 		End;
-		Stop Camera(Event Player);
-		Set Invisible(Event Player, None);
-		Event Player.trajectory_hidden = False;
-		Event Player.chasecam_interrupt = False;
-		Stop Chasing Player Variable(Event Player, chasecam_t);
-		Event Player.chasecam_t = 0;
-		Event Player.chasecam_chasing = False;
 	}
 }
 
@@ -1128,9 +1176,9 @@ rule("[sub] final hud")
 	actions
 	{
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Code: XWAGN"), Custom String(
-			"Improved Nade Tool (v2.2.0.210321)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
+			"Improved Nade Tool (v2.1.1.210321)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
 			Visible To, Default Visibility);
-		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.2.0.210321"), Left, -2, Color(
+		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.1.1.210321"), Left, -2, Color(
 			White), Color(White), Color(Yellow), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} - {1}", Entity Count, Text Count), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Right, -1, Color(White), Color(Gray), Color(Gray), Visible To and String,
@@ -1160,6 +1208,8 @@ rule("[sub] final hud")
 		Create HUD Text(All Players(All Teams), Null, Custom String("Need Healing"), Custom String("- [{0}] Toggle HUD",
 			Local Player.hudhide_bool ? Custom String("Hidden") : Custom String("Visible")), Left, 0.600, Color(White), Color(Gray), Color(
 			White), Visible To and String, Default Visibility);
+		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, Custom String("Thanks"), Custom String("- Toggle Freecam"),
+			Left, 0.700, Color(White), Color(Yellow), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Stats"), Null, Null, Left, 3, Color(White), Color(
 			White), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, Custom String("Flight Time (Approx)"),
@@ -1288,6 +1338,97 @@ rule("[sub] calculate_projectile_parameters")
 				Wait(0.016, Ignore Condition);
 			End;
 		End;
+	}
+}
+
+rule("freecam_toggle")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		Event Player.freecam_bool = True;
+		Event Player.poslock_bool = False;
+		Event Player.freecam_freeeye = Eye Position(Event Player);
+		Event Player.freecam_initdir = Facing Direction Of(Event Player);
+		Create Dummy Bot(Hero Of(Event Player), Team Of(Event Player), Slot Of(Event Player) + 6, Position Of(Event Player),
+			Facing Direction Of(Event Player));
+		Event Player.freecam_bot = Players In Slot(Slot Of(Event Player) + 6, Team Of(Event Player));
+		Set Invisible(Event Player, All);
+		Start Camera(Event Player, Update Every Frame(Event Player.freecam_freeeye), Update Every Frame(
+			Event Player.freecam_freeeye + 100 * Facing Direction Of(Event Player)), 0);
+		Call Subroutine(save_trajectory_origin);
+		Call Subroutine(calc_proj);
+		Wait(0.192, Ignore Condition);
+		Start Forcing Player Position(Event Player.freecam_bot, Position Of(Event Player), False);
+		Start Facing(Event Player.freecam_bot, Event Player.freecam_initdir, 10000, To World,
+			None);
+		
+		Wait Until(!Is Communicating(Event Player, Thanks), 99999);
+		Wait Until(Is Communicating(Event Player, Thanks), 99999);
+		Event Player.freecam_bool = False;
+		Event Player.predictcam_bool = False;
+		Set Facing(Event Player, Event Player.freecam_initdir, To World);
+		
+		Stop Camera(Event Player);
+		Set Invisible(Event Player, None);
+		Wait Until(!Is Communicating(Event Player, Thanks), 99999);
+	}
+}
+
+rule("freecam_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+	}
+
+	actions
+	{
+		"get controls"
+		Event Player.freecam_accel = Throttle Of(Event Player) + Up * Is Button Held(Event Player, Button(Jump)) + Down * Is Button Held(
+			Event Player, Button(Crouch));
+		"normalize if non-zero vector"
+		If(Event Player.freecam_accel != 0 * Up);
+			Event Player.freecam_accel = Normalize(Event Player.freecam_accel);
+			"transform the accel to local space"
+			Event Player.freecam_accel = X Component Of(Event Player.freecam_accel) * World Vector Of(Left, Event Player, Rotation)
+				+ Y Component Of(Event Player.freecam_accel) * Direction From Angles(Horizontal Facing Angle Of(Event Player),
+				Vertical Facing Angle Of(Event Player) - 90) + Z Component Of(Event Player.freecam_accel) * Facing Direction Of(Event Player);
+			"add accel to vel"
+			Event Player.freecam_vel += 0.090 * Event Player.freecam_accel;
+			"if norm(vel) > 1"
+			If(Distance Between(0 * Up, Event Player.freecam_vel) > 1);
+				Event Player.freecam_vel = Normalize(Event Player.freecam_vel);
+			End;
+		"no accel, decel"
+		Else;
+			If(Distance Between(0 * Up, Event Player.freecam_vel) < 0.080);
+				Event Player.freecam_vel = 0 * Up;
+			Else;
+				Event Player.freecam_vel -= 0.060 * Event Player.freecam_vel;
+			End;
+		End;
+		Event Player.freecam_freeeye += 0.250 * Event Player.freecam_vel;
+		Wait(0.016, Ignore Condition);
+		Loop;
 	}
 }
 
