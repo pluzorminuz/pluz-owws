@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 21"
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 22"
 	}
 
 	lobby
@@ -95,7 +95,12 @@ variables
 		39: trajectory_hidden_manual
 		40: hudhide_bool
 		41: chasecam_interrupt
-		42: proj_dirhorz_hidden
+		42: proj_dir_raw_hidden
+		100: freecam_freeeye
+		101: freecam_accel
+		102: freecam_bool
+		104: freecam_vel
+		105: freecam_prevdir
 }
 
 subroutines
@@ -109,6 +114,10 @@ subroutines
 	6: hud_final
 	7: save_trajectory_origin
 	8: chasecam_start
+	9: lockpos_only
+	10: lockdir_only
+	11: unlockpos_only
+	12: unlockdir_only
 }
 
 rule("init")
@@ -177,6 +186,7 @@ rule("player_calc_proj_loop")
 	{
 		Event Player.chasecam_chasing != True;
 		Event Player.trajlock_bool != True;
+		Event Player.freecam_bool != True;
 	}
 
 	actions
@@ -327,6 +337,7 @@ rule("player_action_predictcam (melee)")
 	conditions
 	{
 		Is Button Held(Event Player, Button(Melee)) == True;
+		Event Player.freecam_bool != True;
 	}
 
 	actions
@@ -478,7 +489,7 @@ rule("player_action_lockpos (reload)")
 	}
 }
 
-rule("lockpos_toggle_on")
+rule("lockpos_only_toggle_on")
 {
 	event
 	{
@@ -489,37 +500,137 @@ rule("lockpos_toggle_on")
 
 	conditions
 	{
-		Event Player.poslock_bool == True;
+		((!Event Player.poslock_bool && Event Player.freecam_bool) || (Event Player.poslock_bool && !Event Player.freecam_bool)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(lockpos_only);
+	}
+}
+
+rule("lockpos_only_toggle_off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		!((!Event Player.poslock_bool && Event Player.freecam_bool) || (Event Player.poslock_bool && !Event Player.freecam_bool)) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(unlockpos_only);
+	}
+}
+
+rule("lockdir_only_toggle_on")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		(Event Player.poslock_bool && !Event Player.freecam_bool) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(lockdir_only);
+	}
+}
+
+rule("lockdir_only_toggle_off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		!(Event Player.poslock_bool && !Event Player.freecam_bool) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(unlockdir_only);
+	}
+}
+
+rule("[sub] lockpos_only")
+{
+	event
+	{
+		Subroutine;
+		lockpos_only;
 	}
 
 	actions
 	{
 		Disable Movement Collision With Environment(Event Player, True);
-		Event Player.poslock_posfac = Array(Eye Position(Event Player) - Event Player.eye_height, Facing Direction Of(Event Player));
+		Event Player.poslock_posfac[0] = Eye Position(Event Player) - Event Player.eye_height;
 		Start Forcing Player Position(Event Player, Event Player.poslock_posfac[0], False);
-		Start Facing(Event Player, Event Player.poslock_posfac[1], 10000, To World, None);
 	}
 }
 
-rule("lockpos_toggle_off")
+rule("[sub] unlockpos_only")
 {
 	event
 	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Event Player.poslock_bool == False;
+		Subroutine;
+		unlockpos_only;
 	}
 
 	actions
 	{
 		Enable Movement Collision With Environment(Event Player);
 		Stop Forcing Player Position(Event Player);
-		Stop Facing(Event Player);
+	}
+}
+
+rule("[sub] lockdir_only")
+{
+	event
+	{
+		Subroutine;
+		lockdir_only;
+	}
+
+	actions
+	{
+		Event Player.poslock_posfac[1] = Facing Direction Of(Event Player);
+		Start Facing(Event Player, Event Player.poslock_posfac[1], 10000, To World, None);
+	}
+}
+
+rule("[sub] unlockdir_only")
+{
+	event
+	{
+		Subroutine;
+		unlockdir_only;
+	}
+
+	actions
+	{
+		If(Event Player.freecam_bool);
+			Stop Facing(Event Player);
+			Set Facing(Event Player, Event Player.poslock_posfac[1], To World);
+		Else;
+			Stop Facing(Event Player);
+		End;
 	}
 }
 
@@ -880,7 +991,7 @@ rule("[sub] chasecam_start")
 			"start chasing immediately after casting"
 			Chase Player Variable At Rate(Event Player, chasecam_t, Event Player.proj_predict_land_t, 1 / Event Player.proj_simtime,
 				Destination and Rate);
-			If(Event Player.chasecam_bool);
+			If(Event Player.chasecam_bool && !Event Player.freecam_bool);
 				Event Player.predictcam_bool = False;
 				Event Player.chasecam_chasing = True;
 				Event Player.trajectory_hidden = True;
@@ -892,15 +1003,18 @@ rule("[sub] chasecam_start")
 					^ 2 * Event Player.proj_p0 + 2 * Min(1 - Event Player.chasecam_t + Event Player.proj_chasedelay / Event Player.proj_simtime, 1)
 					* Max(Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) * Event Player.proj_p1 + Max(
 					Event Player.chasecam_t - Event Player.proj_chasedelay / Event Player.proj_simtime, 0) ^ 2 * Event Player.proj_p2 - (
-					Event Player.proj_dir == Up || Event Player.proj_dir == Down) * 0.008 * Direction From Angles(Event Player.proj_dirhorz_hidden,
-					0), (1 - Event Player.chasecam_t) ^ 2 * Event Player.proj_p0 + 2 * (1 - Event Player.chasecam_t)
+					Event Player.proj_dir == Up || Event Player.proj_dir == Down) * 0.008 * Direction From Angles(Horizontal Angle From Direction(
+					Event Player.proj_dir_raw_hidden), 0), (1 - Event Player.chasecam_t) ^ 2 * Event Player.proj_p0 + 2 * (
+					1 - Event Player.chasecam_t)
 					* Event Player.chasecam_t * Event Player.proj_p1 + Event Player.chasecam_t ^ 2 * Event Player.proj_p2, 0);
 			End;
 			"wait for proj to hit"
 			Wait(Event Player.proj_predict_land_t * Event Player.proj_simtime + Event Player.proj_chasedelay + 1.500 - 0.016,
 				Abort When False);
 		End;
-		Stop Camera(Event Player);
+		If(Event Player.chasecam_chasing);
+			Stop Camera(Event Player);
+		End;
 		Set Invisible(Event Player, None);
 		Event Player.trajectory_hidden = False;
 		Event Player.chasecam_interrupt = False;
@@ -1128,9 +1242,9 @@ rule("[sub] final hud")
 	actions
 	{
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Code: XWAGN"), Custom String(
-			"Improved Nade Tool (v2.2.0.210321)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
+			"Improved Nade Tool (v2.3.0.210322)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
 			Visible To, Default Visibility);
-		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.2.0.210321"), Left, -2, Color(
+		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.3.0.210322"), Left, -2, Color(
 			White), Color(White), Color(Yellow), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} - {1}", Entity Count, Text Count), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Right, -1, Color(White), Color(Gray), Color(Gray), Visible To and String,
@@ -1140,11 +1254,12 @@ rule("[sub] final hud")
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, Custom String("Ultimate Status"), Custom String(
 			"- toggle chase camera"), Left, 0.050, Color(White), Color(Blue), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, String("{0} {1}", Button(Melee), String("({0})",
-			Input Binding String(Button(Melee)))), Custom String("- toggle landing spot view / cancel chase cam in-progress"), Left, 0.100,
-			Color(White), Color(Green), Color(White), Visible To and String, Default Visibility);
+			Input Binding String(Button(Melee)))), Local Player.chasecam_chasing ? Custom String("- cancel chase cam in-progress")
+			: Custom String("- toggle landing spot view"), Left, 0.100, Color(White), Color(Green), Color(White), Visible To and String,
+			Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, String("{0} {1}", Button(Reload), String("({0})",
-			Input Binding String(Button(Reload)))), Custom String("- lock position and view"), Left, 0.200, Color(White), Color(Red),
-			Color(White), Visible To and String, Default Visibility);
+			Input Binding String(Button(Reload)))), Local Player.freecam_bool ? Custom String("- lock freecam") : Custom String(
+			"- lock position and view"), Left, 0.200, Color(White), Color(Red), Color(White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Null, String("{0} and {1}", String("{0} {1}", Button(Jump),
 			String("({0})", Input Binding String(Button(Jump)))), String("{0} {1}", Button(Crouch), String("({0})", Input Binding String(
 			Button(Crouch))))), Custom String("- zoom out or in while locked and in landing spot view"), Left, 0.250, Color(White), Color(
@@ -1184,7 +1299,8 @@ rule("[sub] final hud")
 			Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.trajlock_bool ? Local Player : Null, Custom String("Trajectory Auto-Lock ON"), Null, Null, Top, 1,
 			Color(Aqua), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(Local Player.poslock_bool ? Local Player : Null, Custom String("LOCK ENGAGED! {0}: Zoom Out, {1}: Zoom In",
+		Create HUD Text(Local Player.poslock_bool ? Local Player : Null, Local Player.freecam_bool ? Custom String(
+			"Freecam View Locked. You can now activate your abilities.") : Custom String("LOCK ENGAGED! {0}: Zoom Out, {1}: Zoom In",
 			Input Binding String(Button(Jump)), Input Binding String(Button(Crouch))), Null, Null, Top, 2, Color(Red), Color(White), Color(
 			White), Visible To and String, Default Visibility);
 		Create HUD Text(Local Player.chasecam_bool ? Local Player : Null, Custom String(
@@ -1237,7 +1353,7 @@ rule("[sub] save_eye_and_fac")
 	actions
 	{
 		Event Player.proj_p0_hidden = Eye Position(Event Player);
-		Event Player.proj_dirhorz_hidden = Horizontal Facing Angle Of(Event Player);
+		Event Player.proj_dir_raw_hidden = Facing Direction Of(Event Player);
 		Event Player.proj_dir_hidden = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
 			> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
 	}
@@ -1308,5 +1424,165 @@ rule("hudhide (need healing)")
 	actions
 	{
 		Event Player.hudhide_bool = !Event Player.hudhide_bool;
+	}
+}
+
+rule("freecam_toggle")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		Event Player.freecam_bool = !Event Player.freecam_bool;
+	}
+}
+
+rule("freecam_movement_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+	}
+
+	actions
+	{
+		If(Event Player.poslock_bool);
+			Event Player.freecam_accel = 0 * Up;
+		Else;
+			"get controls"
+			Event Player.freecam_accel = Throttle Of(Event Player) + Up * Is Button Held(Event Player, Button(Jump)) + Down * Is Button Held(
+				Event Player, Button(Crouch));
+		End;
+		"normalize if non-zero vector"
+		If(Event Player.freecam_accel != 0 * Up);
+			Event Player.freecam_accel = Normalize(Event Player.freecam_accel);
+			"transform the accel to local space"
+			Event Player.freecam_accel = X Component Of(Event Player.freecam_accel) * World Vector Of(Left, Event Player, Rotation)
+				+ Y Component Of(Event Player.freecam_accel) * Direction From Angles(Horizontal Facing Angle Of(Event Player),
+				Vertical Facing Angle Of(Event Player) - 90) + Z Component Of(Event Player.freecam_accel) * Facing Direction Of(Event Player);
+			"add accel to vel"
+			Event Player.freecam_vel += 0.090 * Event Player.freecam_accel;
+			"if norm(vel) > 1"
+			If(Distance Between(0 * Up, Event Player.freecam_vel) > 1);
+				Event Player.freecam_vel = Normalize(Event Player.freecam_vel);
+			End;
+		"no accel, decel"
+		Else;
+			If(Distance Between(0 * Up, Event Player.freecam_vel) < 0.080);
+				Event Player.freecam_vel = 0 * Up;
+			Else;
+				Event Player.freecam_vel -= 0.060 * Event Player.freecam_vel;
+			End;
+		End;
+		Event Player.freecam_freeeye += 0.250 * Event Player.freecam_vel;
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("freecam locked")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+		Event Player.poslock_bool == True;
+	}
+
+	actions
+	{
+		Event Player.freecam_prevdir = Facing Direction Of(Event Player);
+		Set Facing(Event Player, Event Player.proj_dir_raw_hidden, To World);
+	}
+}
+
+rule("freecam unlock")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+		Event Player.poslock_bool != True;
+	}
+
+	actions
+	{
+		Set Facing(Event Player, Event Player.freecam_prevdir, To World);
+	}
+}
+
+rule("freecam on")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == True;
+	}
+
+	actions
+	{
+		Event Player.freecam_bool = True;
+		Event Player.freecam_prevdir = Facing Direction Of(Event Player);
+		Set Facing(Event Player, Event Player.proj_dir_raw_hidden, To World);
+		Event Player.freecam_freeeye = Eye Position(Event Player);
+		Start Camera(Event Player, Update Every Frame(Event Player.freecam_freeeye), Update Every Frame(
+			Event Player.freecam_freeeye + 50 * (Event Player.poslock_bool ? Event Player.freecam_prevdir : Facing Direction Of(
+			Event Player))), 1000);
+	}
+}
+
+rule("freecam off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.freecam_bool == False;
+	}
+
+	actions
+	{
+		Event Player.freecam_bool = False;
+		Stop Camera(Event Player);
 	}
 }
