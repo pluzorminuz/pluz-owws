@@ -92,8 +92,7 @@ rule("axis rotate left")
 	actions
 	{
 		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
-			Global.scan_axis[Global.loop_i] = Vector(Z Component Of(Global.scan_axis[Global.loop_i]), Y Component Of(
-				Global.scan_axis[Global.loop_i]), -1 * X Component Of(Global.scan_axis[Global.loop_i]));
+			Global.scan_axis[Global.loop_i] = Vector(Z Component Of(Global.scan_axis[Global.loop_i]), Y Component Of(Global.scan_axis[Global.loop_i]), -1 * X Component Of(Global.scan_axis[Global.loop_i]));
 		End;
 	}
 }
@@ -109,8 +108,7 @@ rule("axis rotate down")
 	actions
 	{
 		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
-			Global.scan_axis[Global.loop_i] = Vector(X Component Of(Global.scan_axis[Global.loop_i]), -1 * Z Component Of(
-				Global.scan_axis[Global.loop_i]), Y Component Of(Global.scan_axis[Global.loop_i]));
+			Global.scan_axis[Global.loop_i] = Vector(X Component Of(Global.scan_axis[Global.loop_i]), -1 * Z Component Of(Global.scan_axis[Global.loop_i]), Y Component Of(Global.scan_axis[Global.loop_i]));
 		End;
 	}
 }
@@ -156,17 +154,10 @@ rule("scan_test")
 					Global.r_hit_store = Empty Array;
 					Global.thisslice_x = Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0];
 					Global.thisslice_x_copy = Global.thisslice_x * 100000;
-					Global.thisslice_y_bounds_copy = Array(Global.thisscan_batch_y_start, Min(Global.thisscan_batch_y_start + Global.scan_y_batchsize,
-						Global.thisscan_limits_int[3] + 1));
+					Global.thisslice_y_bounds_copy = Array(Global.thisscan_batch_y_start, Min(Global.thisscan_batch_y_start + Global.scan_y_batchsize, Global.thisscan_limits_int[3] + 1));
 					For Global Variable(thisscan_cur_y, Global.thisslice_y_bounds_copy[0], Global.thisslice_y_bounds_copy[1], 1);
-						Modify Global Variable(l_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
-							All Players(All Teams), Null, True)));
-						Modify Global Variable(r_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
-							All Players(All Teams), Null, True)));
+						Modify Global Variable(l_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2], Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2], All Players(All Teams), Null, True)));
+						Modify Global Variable(r_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2], Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2], All Players(All Teams), Null, True)));
 					End;
 					Global.entry += 1;
 					Enable Inspector Recording;
@@ -273,21 +264,13 @@ rule("effects")
 
 	actions
 	{
-		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[0], Color(
-			Red), Visible To Position and Radius);
-		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[1], Color(
-			Green), Visible To Position and Radius);
-		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[2], Color(
-			Blue), Visible To Position and Radius);
-		Create In-World Text(All Players(All Teams), Custom String("X"), Evaluate Once(2 * Up) + Global.scan_axis[0], 1,
-			Clip Against Surfaces, Visible To Position and String, Color(Red), Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("Y"), Evaluate Once(2 * Up) + Global.scan_axis[1], 1,
-			Clip Against Surfaces, Visible To Position and String, Color(Green), Default Visibility);
-		Create In-World Text(All Players(All Teams), Custom String("Z"), Evaluate Once(2 * Up) + Global.scan_axis[2], 1,
-			Clip Against Surfaces, Visible To Position and String, Color(Blue), Default Visibility);
-		Create HUD Text(All Players(All Teams), Custom String("Scanning x:{0} y:{1}", Global.thisscan_cur_x, Global.thisscan_cur_y), Null,
-			Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Custom String("Entry {0}", Global.entry), Null, Null, Left, 0, Color(White), Color(White),
-			Color(White), Visible To and String, Default Visibility);
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[0], Color(Red), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[1], Color(Green), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[2], Color(Blue), Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Custom String("X"), Evaluate Once(2 * Up) + Global.scan_axis[0], 1, Clip Against Surfaces, Visible To Position and String, Color(Red), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Y"), Evaluate Once(2 * Up) + Global.scan_axis[1], 1, Clip Against Surfaces, Visible To Position and String, Color(Green), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Z"), Evaluate Once(2 * Up) + Global.scan_axis[2], 1, Clip Against Surfaces, Visible To Position and String, Color(Blue), Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Scanning x:{0} y:{1}", Global.thisscan_cur_x, Global.thisscan_cur_y), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Entry {0}", Global.entry), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
 	}
 }

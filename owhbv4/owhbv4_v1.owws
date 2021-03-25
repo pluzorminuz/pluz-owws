@@ -1,0 +1,190 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: scan_axis
+		1: scan_axis_display_origin
+		2: loop_i
+		3: thisscan_limits_raw
+		4: thisscan_limits_int
+		5: thisscan_resolution
+		6: scan_y_batchsize
+		7: scan_origin
+		8: thisscan_batch_y_start
+		9: thisscan_cur_x
+		10: thisscan_cur_y
+
+	player:
+		0: l_hit_store
+		1: r_hit_store
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.scan_axis = Array(Left, Up, Forward);
+		Global.scan_y_batchsize = 300;
+		Global.scan_origin = 0 * Up;
+		Global.scan_axis_display_origin = Vector(0, 2, 0);
+		Global.thisscan_resolution = 0.002;
+		Global.thisscan_limits_raw = Array(-0.5, 0.6, -0.300, 1.475);
+		Create Beam Effect(All Players(All Teams), Good Beam, Global.scan_axis_display_origin,
+			Global.scan_axis_display_origin + Global.scan_axis[0], Color(Red), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Global.scan_axis_display_origin,
+			Global.scan_axis_display_origin + Global.scan_axis[1], Color(Green), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Global.scan_axis_display_origin,
+			Global.scan_axis_display_origin + Global.scan_axis[2], Color(Blue), Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Custom String("X"), Global.scan_axis_display_origin + Global.scan_axis[0], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Red), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Y"), Global.scan_axis_display_origin + Global.scan_axis[1], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Green), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Z"), Global.scan_axis_display_origin + Global.scan_axis[2], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Blue), Default Visibility);
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Global.scan_origin, Forward);
+		Global.thisscan_limits_int[0] = Round To Integer(Global.thisscan_limits_raw[0] / Global.thisscan_resolution, Down);
+		Global.thisscan_limits_int[1] = Round To Integer(Global.thisscan_limits_raw[1] / Global.thisscan_resolution, Up);
+		Global.thisscan_limits_int[2] = Round To Integer(Global.thisscan_limits_raw[2] / Global.thisscan_resolution, Down);
+		Global.thisscan_limits_int[3] = Round To Integer(Global.thisscan_limits_raw[3] / Global.thisscan_resolution, Up);
+		Create HUD Text(All Players(All Teams), Custom String("Scanning x:{0} y{1}", Global.thisscan_cur_x, Global.thisscan_cur_y), Null,
+			Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("axis rotate left")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Voice Line Left) == True;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
+			Global.scan_axis[Global.loop_i] = Vector(Z Component Of(Global.scan_axis[Global.loop_i]), Y Component Of(
+				Global.scan_axis[Global.loop_i]), -1 * X Component Of(Global.scan_axis[Global.loop_i]));
+		End;
+	}
+}
+
+rule("axis rotate down")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Voice Line Down) == True;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
+			Global.scan_axis[Global.loop_i] = Vector(X Component Of(Global.scan_axis[Global.loop_i]), -1 * Z Component Of(
+				Global.scan_axis[Global.loop_i]), Y Component Of(Global.scan_axis[Global.loop_i]));
+		End;
+	}
+}
+
+rule("scan_test")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		For Global Variable(thisscan_cur_x, Global.thisscan_limits_int[0], Global.thisscan_limits_int[1] + 1, 1);
+			Global.thisscan_batch_y_start = Global.thisscan_limits_int[2];
+			While(True);
+				Event Player.l_hit_store = Empty Array;
+				Event Player.r_hit_store = Empty Array;
+				For Global Variable(thisscan_cur_y, Global.thisscan_batch_y_start, Min(Global.thisscan_batch_y_start + Global.scan_y_batchsize,
+					Global.thisscan_limits_int[3] + 1), 1);
+					Modify Player Variable(Event Player, l_hit_store, Append To Array, 100000 * Ray Cast Hit Position(
+						Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0] + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
+						Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0] + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
+						All Players(All Teams), Event Player, True));
+					Modify Player Variable(Event Player, r_hit_store, Append To Array, 100000 * Ray Cast Hit Position(
+						Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0] + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
+						Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0] + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
+						All Players(All Teams), Event Player, True));
+				End;
+				Enable Inspector Recording;
+				Disable Inspector Recording;
+				Wait(0.016, Ignore Condition);
+				Global.thisscan_batch_y_start += Global.scan_y_batchsize;
+				If(Global.thisscan_batch_y_start > Global.thisscan_limits_int[3]);
+					Break;
+				End;
+			End;
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Wait(1, Ignore Condition);
+		Set Status(Event Player, Null, Stunned, 6.300);
+		Wait(6.400, Ignore Condition);
+		Set Status(Event Player, Null, Stunned, 9999);
+		Wait(0.016, Ignore Condition);
+		Set Status(Event Player, Null, Frozen, 9999);
+		disabled Set Slow Motion(10);
+	}
+}
