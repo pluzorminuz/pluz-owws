@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Genji/Sigma/D.Va Hitbox Playground by pluzorminuz. Let me know if there are any problems! Last Updated: 2021 Mar 09. Reddit: u/spadler097, Discord: pluzorminuz#2542."
+		Description: "Genji/Sigma/D.Va Hitbox Playground by pluzorminuz. Let me know if there are any problems! Last Updated: 2021 Apr 02. Reddit: u/spadler097, Discord: pluzorminuz#2542."
 	}
 
 	lobby
@@ -163,8 +163,8 @@ rule("init huds")
 			Server Load Peak, Entity Count, Text Count)), Right, -100, Color(Gray), Color(Gray), Color(Gray), Visible To and String,
 			Default Visibility);
 		Create HUD Text(All Players(All Teams), Custom String("Code: 0A3TE"), Custom String(
-			"Genji/Sigma/D.Va Hitbox Playground (v1.0.0.210309)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(
-			Aqua), Visible To, Default Visibility);
+			"Genji/Sigma/D.Va Hitbox Playground (v1.0.1.210402)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White),
+			Color(Aqua), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(
 			Reload)))), Custom String("- toggle camera"), Left, 8, Color(Green), Color(Green), Color(White), Visible To and String,
 			Default Visibility);
@@ -192,8 +192,11 @@ rule("init huds")
 		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Local Player),
 			Facing Direction Of(Local Player.mhb_target))), Null, Null, Left, 22, Color(Yellow), Color(White), Color(White),
 			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("Angle"), Angle Between Vectors(Facing Direction Of(
+			Local Player), Facing Direction Of(Local Player.mhb_target))), Null, Null, Left, 23, Color(Yellow), Color(White), Color(White),
+			Visible To and String, Default Visibility);
 		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Local Player),
-			Facing Direction Of(Local Player.mhb_target)) < 0), Null, Null, Left, 23, Color(Yellow), Color(White), Color(White),
+			Facing Direction Of(Local Player.mhb_target)) < 0), Null, Null, Left, 24, Color(Yellow), Color(White), Color(White),
 			Visible To and String, Default Visibility);
 		Call Subroutine(spawn_bot);
 		"<- primary hero secondary -> ultimate status, change bot hero"
