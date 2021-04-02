@@ -1,0 +1,96 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		1: vel
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Local Player.vel, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Disable Inspector Recording;
+	}
+}
+
+rule("freecam_movement_loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		If(Throttle Of(Event Player) != 0 * Up);
+			"add local space accel to vel"
+			Event Player.vel += 0.354 * World Vector Of(Throttle Of(Event Player), Event Player, Rotation);
+			"if norm(vel) > 1"
+			If(Distance Between(0 * Up, Event Player.vel) > 1);
+				Event Player.vel = Normalize(Event Player.vel);
+			End;
+		"no accel, decel"
+		Else;
+			If(Distance Between(0 * Up, Event Player.vel) < 0.145);
+				Event Player.vel = 0 * Up;
+			Else;
+				Event Player.vel -= 0.140 * Event Player.vel;
+			End;
+		End;
+		disabled Set Move Speed(Event Player, Distance Between(0 * Up, Event Player.vel) * 100);
+		If(Is On Ground(Event Player));
+			Apply Impulse(Event Player, Event Player.vel, Square Root(Distance Between(0 * Up, Event Player.vel)) * 1.200, To World,
+				Incorporate Contrary Motion);
+		Else;
+			Apply Impulse(Event Player, Event Player.vel, Distance Between(0 * Up, Event Player.vel) * 0.300, To World,
+				Incorporate Contrary Motion);
+		End;
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		disabled Start Accelerating(Event Player, Event Player.vel, 30, 5.500, To World, Direction Rate and Max Speed);
+		disabled Apply Impulse(Event Player, Event Player.vel, Distance Between(0 * Up, Event Player.vel) * 5.500, To World,
+			Incorporate Contrary Motion);
+		Set Move Speed(Event Player, 0);
+	}
+}

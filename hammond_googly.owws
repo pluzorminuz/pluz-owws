@@ -1,0 +1,68 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Disable Movement Collision With Players(Event Player);
+		Start Scaling Player(Event Player, 20, False);
+		Set Gravity(Event Player, 0);
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}

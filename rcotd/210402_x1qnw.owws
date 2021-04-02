@@ -1,0 +1,2639 @@
+settings
+{
+	main
+	{
+		Description: "[디바 랜덤 메카 1.3.8 테스트] [패치 노트 blog.naver.com/bugrowin] 궁극기를 모으고 상호작용을 누르면 메카에 재탑승할 수 있습니다. 워크샵 하단의 룰들을 활성화 시키면 무제한 라운드 모드가 켜집니다. -아지#3494-"
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Match Voice Chat: Enabled
+		Max Spectators: 6
+		Team Balancing: After A Mirror Match
+	}
+
+	modes
+	{
+		disabled Assault
+		{
+			Capture Speed Modifier: 200%
+			Competitive Rules: On
+		}
+
+		disabled Capture the Flag
+		{
+			Flag Carrier Abilities: All
+			Flag Dropped Lock Time: 4.0
+			Flag Pickup Time: 4.0
+			Flag Score Respawn Time: 4.0
+			Game Length Minutes: 10
+			Score To Win: 5
+		}
+
+		Control
+		{
+			Capture Speed Modifier: 300%
+
+			enabled maps
+			{
+				Nepal
+			}
+		}
+
+		disabled Deathmatch
+		{
+			Self Initiated Respawn: Off
+		}
+
+		disabled Escort
+		{
+			Competitive Rules: On
+			Payload Speed Modifier: 200%
+		}
+
+		disabled Hybrid
+		{
+			Capture Speed Modifier: 200%
+			Competitive Rules: On
+			Payload Speed Modifier: 200%
+		}
+
+		disabled Team Deathmatch
+		{
+			Self Initiated Respawn: Off
+		}
+
+		General
+		{
+			Allow Hero Switching: Off
+			Game Mode Start: Immediately
+			Health Pack Respawn Time Scalar: 50%
+			Hero Limit: Off
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 25%
+			No Ammunition Requirement: On
+			Spawn With Ultimate Ready: On
+			Ultimate Generation: 200%
+
+			Ana
+			{
+				Ultimate Generation Nano Boost: 400%
+			}
+
+			Ashe
+			{
+				Ultimate Generation B.O.B.: 300%
+			}
+
+			Baptiste
+			{
+				Ultimate Generation Amplification Matrix: 300%
+			}
+
+			Brigitte
+			{
+				Ultimate Generation Rally: 300%
+			}
+
+			D.Va
+			{
+				Boosters Cooldown Time: 0%
+				Boosters Knockback Scalar: 120%
+				Health: 50%
+				Micro Missiles Cooldown Time: 0%
+			}
+
+			Genji
+			{
+				Ultimate Generation Dragonblade: 400%
+			}
+
+			Hanzo
+			{
+				Ultimate Generation Dragonstrike: 300%
+			}
+
+			Mercy
+			{
+				Ultimate Generation Valkyrie: 400%
+			}
+
+			Pharah
+			{
+				Ultimate Generation Barrage: 300%
+			}
+
+			Reinhardt
+			{
+				Movement Speed: 150%
+				Ultimate Generation Earthshatter: 300%
+			}
+
+			Sigma
+			{
+				Ultimate Generation Gravitic Flux: 300%
+			}
+
+			Symmetra
+			{
+				Ultimate Generation Photon Barrier: 300%
+			}
+
+			Tracer
+			{
+				Ultimate Generation Pulse Bomb: 101%
+			}
+
+			Widowmaker
+			{
+				Ultimate Generation Infra-Sight: 400%
+			}
+
+			Winston
+			{
+				Ultimate Generation Primal Rage: 300%
+			}
+
+			Zarya
+			{
+				Ultimate Generation Graviton Surge: 300%
+			}
+
+			Zenyatta
+			{
+				Ultimate Generation Transcendence: 400%
+			}
+
+			disabled heroes
+			{
+				D.Va
+				Echo
+			}
+		}
+	}
+}
+
+rule("HUD")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.F = 1.380;
+		Create HUD Text(All Players(All Teams), String("{0} {1}", String("Best"), String("Player")), Null, Null, Left, 2, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Global.U, Null, Null, Left, 3, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1}", String("Worst"), String("Player")), Null, Null, Left, 4, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Global.W, Null, Null, Left, 5, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", String("{0} {1}", String("Burning"), String("Damage")), Global.S), Null,
+			Null, Right, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("버전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create In-World Text(Event Player, String("{0} {1}", Hero(D.Va), Global.F), Ray Cast Hit Position(Eye Position(Event Player),
+			Eye Position(Event Player) + Facing Direction Of(Event Player) * 50, All Players(All Teams), Event Player, True), 4,
+			Do Not Clip, Visible To Position and String, Color(White), Default Visibility);
+		Wait(10, Ignore Condition);
+		Destroy All In-World Text;
+	}
+}
+
+rule("글로벌 값 [초기화]")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == False;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Global.M = Empty Array;
+		Global.R = Empty Array;
+		Global.N = 0;
+		Global.S = 0;
+		Global.V = False;
+		Destroy All Effects;
+	}
+}
+
+rule("플레이어 값 [초기화]")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == False;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Event Player.C = 0;
+		Event Player.D = 0;
+		Event Player.E = 0;
+		Event Player.F = 0;
+		Event Player.G = 0;
+		Event Player.H = 0;
+		Event Player.I = 100;
+		Event Player.M = 0;
+		Event Player.N = 0;
+		Event Player.Y = 0;
+		Set Max Health(Event Player, 100);
+		Set Damage Received(Event Player, 100);
+		Set Respawn Max Time(Event Player, 3);
+	}
+}
+
+rule("디바 [초기화]")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	actions
+	{
+		Event Player.A = False;
+		Event Player.B = 100;
+		Event Player.J = 0;
+		Event Player.U = False;
+		Set Damage Received(Event Player, 100);
+		Set Move Speed(Event Player, 100);
+		disabled Skip If(Event Player.Y == 3, 1);
+		Set Max Health(Event Player, Event Player.I);
+		Event Player.Y = 0;
+		Set Ability 2 Enabled(Event Player, True);
+		Allow Button(Event Player, Button(Ability 2));
+		Set Ultimate Ability Enabled(Event Player, False);
+		Wait(1, Ignore Condition);
+		Heal(Event Player, Null, 1000);
+		Clear Status(Event Player, Phased Out);
+		Set Invisible(Event Player, None);
+		Set Primary Fire Enabled(Event Player, True);
+		Set Ultimate Charge(Event Player, 0);
+		Set Ultimate Ability Enabled(Event Player, True);
+	}
+}
+
+rule("대기실 [초기화]")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Is In Spawn Room(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Ability Enabled(Event Player, False);
+		Set Move Speed(Event Player, 100);
+		Set Facing(Event Player, Event Player.X, To World);
+	}
+}
+
+rule("대기실 부스터 [초기화]")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is In Spawn Room(Event Player) == False;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Phased Out);
+		Set Invisible(Event Player, None);
+		Set Primary Fire Enabled(Event Player, True);
+		Set Ultimate Charge(Event Player, 0);
+		Set Ultimate Ability Enabled(Event Player, True);
+		Set Move Speed(Event Player, 500);
+		Wait(1, Ignore Condition);
+		Set Move Speed(Event Player, 100);
+	}
+}
+
+rule("죽음 [초기화]")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.Z = Random Value In Array(Remove From Array(All Heroes, Hero(D.Va)));
+		Set Ultimate Ability Enabled(Event Player, True);
+		Event Player.M = 0;
+		Event Player.Y = 0;
+	}
+}
+
+rule("영웅 선택 초기화")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.V == True;
+	}
+
+	actions
+	{
+		Set Match Time(0);
+		Wait(0.100, Ignore Condition);
+		Go To Assemble Heroes;
+	}
+}
+
+rule("영웅 선택 자유")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == True;
+	}
+
+	actions
+	{
+		Stop Forcing Player To Be Hero(Event Player);
+	}
+}
+
+rule("선택한 영웅을 다음 영웅으로")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.Z = Hero Of(Event Player);
+		Event Player.X = Facing Direction Of(Event Player);
+		Start Forcing Player To Be Hero(Event Player, Hero(D.Va));
+		Clear Status(Event Player, Phased Out);
+		Set Invisible(Event Player, None);
+		Set Primary Fire Enabled(Event Player, True);
+	}
+}
+
+rule("대기 시간 감소1")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == True;
+	}
+
+	actions
+	{
+		Set Match Time(10);
+	}
+}
+
+rule("대기 시간 감소2")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == False;
+	}
+
+	actions
+	{
+		Skip If(Match Time > 40, 2);
+		Set Match Time(10);
+		Wait(10.100, Ignore Condition);
+		Global.T = True;
+	}
+}
+
+rule("대기 시간 감소3")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.T == True;
+	}
+
+	actions
+	{
+		Abort If(Match Time > 40);
+		Set Match Time(10);
+	}
+}
+
+rule("디바로 부활")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Forcing Player To Be Hero(Event Player, Hero(D.Va));
+		Wait(0.100, Ignore Condition);
+		Stop Forcing Player To Be Hero(Event Player);
+	}
+}
+
+rule("메카 터짐")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Has Status(Event Player, Invincible) == True;
+	}
+
+	actions
+	{
+		Set Damage Received(Event Player, 0);
+		Abort If(Event Player.M == 1);
+		Event Player.L = Random Integer(1, 31);
+		Skip If(Event Player.L == 1, 10);
+		Preload Hero(Event Player, Event Player.Z);
+		Big Message(Event Player, Event Player.Z);
+		Set Ultimate Ability Enabled(Event Player, False);
+		Wait(1, Ignore Condition);
+		Set Max Health(Event Player, 100);
+		Apply Impulse(Event Player, Up, 14, To World, Cancel Contrary Motion);
+		Wait(0.750, Ignore Condition);
+		Set Ultimate Ability Enabled(Event Player, True);
+		Abort If(Is Dead(Event Player));
+		Start Forcing Player To Be Hero(Event Player, Event Player.Z);
+		Skip If(Event Player.L != 1, 7);
+		Big Message(Event Player, Hero(D.Va));
+		Set Ultimate Ability Enabled(Event Player, False);
+		Wait(1, Ignore Condition);
+		Set Ultimate Ability Enabled(Event Player, True);
+		Set Ultimate Charge(Event Player, 100);
+		Event Player.M = 1;
+		Teleport(Event Player, Nearest Walkable Position(Event Player));
+	}
+}
+
+rule("자폭")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Damage Received(Event Player, 0);
+		Event Player.L = Random Integer(1, 31);
+		Skip If(Event Player.L == 1, 10);
+		Preload Hero(Event Player, Event Player.Z);
+		Set Ultimate Ability Enabled(Event Player, False);
+		Wait(2.500, Ignore Condition);
+		Big Message(Event Player, Event Player.Z);
+		Set Max Health(Event Player, 100);
+		Apply Impulse(Event Player, Up, 14, To World, Cancel Contrary Motion);
+		Wait(0.750, Ignore Condition);
+		Set Ultimate Ability Enabled(Event Player, True);
+		Abort If(Is Dead(Event Player));
+		Start Forcing Player To Be Hero(Event Player, Event Player.Z);
+		Skip If(Event Player.L != 1, 6);
+		Wait(2.500, Ignore Condition);
+		Abort If(Is Dead(Event Player));
+		Big Message(Event Player, Hero(D.Va));
+		Event Player.M = 1;
+		Teleport(Event Player, Nearest Walkable Position(Event Player));
+	}
+}
+
+rule("송하나 무적1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Has Status(Event Player, Invincible) == False;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Phased Out, 5);
+		Set Invisible(Event Player, All);
+		Set Primary Fire Enabled(Event Player, False);
+	}
+}
+
+rule("송하나 무적2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Phased Out, 5);
+		Set Invisible(Event Player, All);
+		Set Primary Fire Enabled(Event Player, False);
+	}
+}
+
+rule("랜덤 영웅이 되면 무적 해제")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Hero Of(Event Player) != Hero(D.Va);
+	}
+
+	actions
+	{
+		Set Damage Received(Event Player, 100);
+		Clear Status(Event Player, Phased Out);
+		Set Invisible(Event Player, None);
+		Set Primary Fire Enabled(Event Player, True);
+	}
+}
+
+rule("자동 궁")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Hero Of(Event Player) != Hero(D.Va);
+		Hero Of(Event Player) != Hero(Symmetra);
+		Hero Of(Event Player) != Hero(Baptiste);
+		Hero Of(Event Player) != Hero(Ana);
+		Is Alive(Event Player) == True;
+		Ultimate Charge Percent(Event Player) == 100;
+		Event Player.A != True;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ultimate));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.A = True;
+	}
+}
+
+rule("메카 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		D.Va;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Event Player.M == 1;
+		Ultimate Charge Percent(Event Player) == 100;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ultimate));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Wait(1, Ignore Condition);
+		Event Player.M = 0;
+	}
+}
+
+rule("시메트라 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Symmetra;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Ultimate Charge Percent(Event Player) == 100;
+		Event Player.A != True;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ultimate));
+		Press Button(Event Player, Button(Primary Fire));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.A = True;
+	}
+}
+
+rule("바티스트 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Baptiste;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Ultimate Charge Percent(Event Player) == 100;
+		Event Player.A != True;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ultimate));
+		Press Button(Event Player, Button(Primary Fire));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.A = True;
+	}
+}
+
+rule("아나 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Ana;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Ultimate Charge Percent(Event Player) == 100;
+		Event Player.A != True;
+	}
+
+	actions
+	{
+		Skip If(Has Status(Event Player, Hacked) == True, 14);
+		Event Player.J = Filtered Array(All Living Players(Team Of(Event Player)), Is In Line of Sight(Eye Position(Event Player),
+			Eye Position(Current Array Element), Barriers Do Not Block LOS) && Is In View Angle(Event Player, Current Array Element, 90)
+			&& Current Array Element != Event Player);
+		Skip If(Count Of(Event Player.J) <= 0, 3);
+		Event Player.J = Sorted Array(Event Player.J, -1 * Dot Product(Facing Direction Of(Event Player), Direction Towards(Eye Position(
+			Event Player), Eye Position(Current Array Element))));
+		Event Player.P = Event Player.J[0];
+		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.P)), To World);
+		Press Button(Event Player, Button(Ultimate));
+		Wait(0.100, Ignore Condition);
+		Skip If(Ultimate Charge Percent(Event Player) == 0, 7);
+		Event Player.J = Filtered Array(All Living Players(Team Of(Event Player)), Is In Line of Sight(Eye Position(Event Player),
+			Eye Position(Current Array Element), Barriers Do Not Block LOS) && Is In View Angle(Event Player, Current Array Element, 90)
+			&& Current Array Element != Event Player);
+		Skip If(Count Of(Event Player.J) <= 0, 3);
+		Event Player.J = Sorted Array(Event Player.J, -1 * Dot Product(Facing Direction Of(Event Player), Direction Towards(Eye Position(
+			Event Player), Eye Position(Current Array Element))));
+		Event Player.P = Event Player.J[1];
+		Set Facing(Event Player, Direction Towards(Eye Position(Event Player), Eye Position(Event Player.J)), To World);
+		Press Button(Event Player, Button(Ultimate));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.A = True;
+	}
+}
+
+disabled rule("둠피스트 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Doomfist;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+		Event Player.U != True;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Primary Fire));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.U = True;
+	}
+}
+
+disabled rule("시그마 궁 시전")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sigma;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+		Event Player.U != True;
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Primary Fire));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+		Event Player.U = True;
+	}
+}
+
+rule("정크랫 궁 보조")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Junkrat;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Nearest Walkable Position(Event Player));
+		Set Status(Event Player, Null, Rooted, 0.200);
+		Set Status(Event Player, Null, Phased Out, 0.100);
+	}
+}
+
+rule("메카 재탑승 가능")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		disabled Hero Of(Event Player) != Hero(D.Va);
+		disabled Ultimate Charge Percent(Event Player) == 0;
+		disabled Event Player.Y == 0;
+		Event Player.A == True;
+	}
+
+	actions
+	{
+		disabled Wait(1, Ignore Condition);
+		Event Player.Y = 1;
+	}
+}
+
+rule("메카 재탑승 메세지")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.Y == 1;
+		Ultimate Charge Percent(Event Player) == 100;
+	}
+
+	actions
+	{
+		Big Message(Event Player, String("{0}!", String("Interact")));
+		Event Player.Y = 2;
+	}
+}
+
+rule("1팀 메카 재탑승")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.Y == 2;
+		Ultimate Charge Percent(Event Player) == 100;
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.Y = 3;
+		Event Player.Z = Random Value In Array(Remove From Array(All Heroes, Hero(D.Va)));
+		Preload Hero(Event Player, Hero(D.Va));
+		Big Message(Event Player, Hero(D.Va));
+		Set Ultimate Ability Enabled(Event Player, False);
+		Create Effect(All Players(All Teams), Light Shaft, Color(Team 1), Event Player, 1, Visible To Position and Radius);
+		Event Player.K = Last Created Entity;
+		Wait(1.750, Ignore Condition);
+		Destroy Effect(Event Player.K);
+		Abort If(Is Dead(Event Player) == True);
+		Start Forcing Player To Be Hero(Event Player, Hero(D.Va));
+		Wait(0.100, Ignore Condition);
+		Set Ultimate Charge(Event Player, 0);
+		Set Ultimate Ability Enabled(Event Player, True);
+	}
+}
+
+rule("2팀 메카 재탑승")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.Y == 2;
+		Ultimate Charge Percent(Event Player) == 100;
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.Y = 3;
+		Event Player.Z = Random Value In Array(Remove From Array(All Heroes, Hero(D.Va)));
+		Preload Hero(Event Player, Hero(D.Va));
+		Big Message(Event Player, Hero(D.Va));
+		Set Ultimate Ability Enabled(Event Player, False);
+		Create Effect(All Players(All Teams), Light Shaft, Color(Team 2), Event Player, 1, Visible To Position and Radius);
+		Event Player.K = Last Created Entity;
+		Wait(1.750, Ignore Condition);
+		Destroy Effect(Event Player.K);
+		Abort If(Is Dead(Event Player) == True);
+		Start Forcing Player To Be Hero(Event Player, Hero(D.Va));
+		Wait(0.100, Ignore Condition);
+		Set Ultimate Charge(Event Player, 0);
+		Set Ultimate Ability Enabled(Event Player, True);
+	}
+}
+
+rule("위도우 우클릭 x2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Widowmaker;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+		Is Firing Primary(Event Player) == False;
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 200);
+	}
+}
+
+rule("위도우 우클릭 x2 해제")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Widowmaker;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == False;
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 100);
+	}
+}
+
+rule("맥크리 궁 이속 5.5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		McCree;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Move Speed(Event Player, 333.400);
+	}
+}
+
+rule("맥크리 궁 이속 해제")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		McCree;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == False;
+	}
+
+	actions
+	{
+		Set Move Speed(Event Player, 100);
+	}
+}
+
+rule("파라 에어샷 x2")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Start Damage Modification(Global.R, Players On Hero(Hero(Pharah), All Teams), 200, Receivers Damagers and Damage Percent);
+	}
+}
+
+rule("파라 에어샷 대상")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is In Air(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(1, Abort When False);
+		Modify Global Variable(R, Append To Array, Event Player);
+	}
+}
+
+rule("파라 에어샷 대상 해제")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is In Air(Event Player) == False;
+	}
+
+	actions
+	{
+		Modify Global Variable(R, Remove From Array By Value, Event Player);
+	}
+}
+
+rule("솜브라 버닝 면제")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sombra;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Burning);
+		Stop All Damage Over Time(Event Player);
+	}
+}
+
+rule("둠피스트 쉴드 피흡")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Doomfist;
+	}
+
+	conditions
+	{
+		Max Health(Event Player) > 250;
+	}
+
+	actions
+	{
+		Damage(Event Player, Null, Min(Max Health(Event Player) - 250, 150));
+		Heal(Event Player, Null, Max Health(Event Player) - 250);
+		Wait(0.500, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("리퍼 피흡 30%")
+{
+	event
+	{
+		Player Received Healing;
+		All;
+		Reaper;
+	}
+
+	conditions
+	{
+		Healer == Event Player;
+		Health(Event Player) < 200;
+	}
+
+	actions
+	{
+		Damage(Event Player, Null, Event Healing * 0.250);
+	}
+}
+
+rule("레킹볼 보호막 20% 감소")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Wrecking Ball;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Damage(Event Player, Null, (Max Health(Event Player) - 600) / 5);
+	}
+}
+
+rule("모이라 -15P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Moira;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C -= 15;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("솜브라 +20P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Sombra;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C += 20;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("오리사 +20P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Orisa;
+	}
+
+	conditions
+	{
+		Is On Objective(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C += 20;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("윈스턴 +30P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Winston;
+	}
+
+	conditions
+	{
+		Is On Objective(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C += 30;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("메르시 부활 +400P")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Mercy;
+	}
+
+	conditions
+	{
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.Q = Filtered Array(All Dead Players(Team Of(Event Player)), Player Closest To Reticle(Event Player, Team Of(
+			Event Player)));
+		Wait(2, Ignore Condition);
+		Skip If(Is Alive(Event Player.Q) == False || Is In Spawn Room(Event Player.Q) == True, 4);
+		Event Player.C += 400;
+		Wait(1, Ignore Condition);
+		Set Ultimate Charge(Event Player.Q, 100);
+		Heal(Event Player.Q, Null, 1000);
+		Event Player.Q = 0;
+	}
+}
+
+rule("자리야 주방 금지")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		Zarya;
+	}
+
+	actions
+	{
+		Set Ability 2 Enabled(Event Player, False);
+	}
+}
+
+rule("자리야 1팀색 주방")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		Zarya;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Event Player.E = Filtered Array(All Living Players(Team Of(Event Player)), Is In Line of Sight(Eye Position(Event Player),
+			Eye Position(Current Array Element), Barriers Do Not Block LOS) && Is In View Angle(Event Player, Current Array Element, 30)
+			&& Current Array Element != Event Player);
+		Abort If(Count Of(Event Player.E) <= 0);
+		Disallow Button(Event Player, Button(Ability 2));
+		Event Player.E = Sorted Array(Event Player.E, -1 * Dot Product(Facing Direction Of(Event Player), Direction Towards(Eye Position(
+			Event Player), Eye Position(Current Array Element))));
+		Event Player.P = Event Player.E[0];
+		Create Effect(All Players(All Teams), Sphere, Color(Team 1), Event Player.P, 1.450, Visible To Position and Radius);
+		Event Player.F = Last Created Entity;
+		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(White), Event Player, 300);
+		Set Damage Received(Event Player.P, 0);
+		Wait(1.500, Ignore Condition);
+		Destroy Effect(Event Player.F);
+		Set Damage Received(Event Player.P, 100);
+		Wait(2, Ignore Condition);
+		Event Player.E = 0;
+		Event Player.F = 0;
+		Event Player.P = 0;
+		Allow Button(Event Player, Button(Ability 2));
+		Small Message(Event Player, String("{0} {1}", String("Ability 2"), String("Ready")));
+	}
+}
+
+rule("자리야 2팀색 주방")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		Zarya;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Event Player.E = Filtered Array(All Living Players(Team Of(Event Player)), Is In Line of Sight(Eye Position(Event Player),
+			Eye Position(Current Array Element), Barriers Do Not Block LOS) && Is In View Angle(Event Player, Current Array Element, 30)
+			&& Current Array Element != Event Player);
+		Abort If(Count Of(Event Player.E) <= 0);
+		Disallow Button(Event Player, Button(Ability 2));
+		Event Player.E = Sorted Array(Event Player.E, -1 * Dot Product(Facing Direction Of(Event Player), Direction Towards(Eye Position(
+			Event Player), Eye Position(Current Array Element))));
+		Event Player.P = Event Player.E[0];
+		Create Effect(All Players(All Teams), Sphere, Color(Team 2), Event Player.P, 1.450, Visible To Position and Radius);
+		Event Player.F = Last Created Entity;
+		Play Effect(All Players(All Teams), Ring Explosion Sound, Color(White), Event Player, 300);
+		Set Damage Received(Event Player.P, 0);
+		Wait(1.500, Ignore Condition);
+		Destroy Effect(Event Player.F);
+		Set Damage Received(Event Player.P, 100);
+		Wait(2, Ignore Condition);
+		Event Player.E = 0;
+		Event Player.F = 0;
+		Event Player.P = 0;
+		Allow Button(Event Player, Button(Ability 2));
+		Small Message(Event Player, String("{0} {1}", String("Ability 2"), String("Ready")));
+	}
+}
+
+rule("거점 점령팀 없음")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		All Teams == Control Mode Scoring Team;
+	}
+
+	actions
+	{
+		Global.B = 0;
+		Global.C = 0;
+	}
+}
+
+rule("거점 점령팀 1팀")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Team 1 == Control Mode Scoring Team;
+	}
+
+	actions
+	{
+		Abort If(Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Percentage(Team 2) >= 99);
+		Global.B = 0;
+		Global.C = 1;
+	}
+}
+
+rule("거점 점령팀 2팀")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Team 2 == Control Mode Scoring Team;
+	}
+
+	actions
+	{
+		Abort If(Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Percentage(Team 2) >= 99);
+		Global.B = 1;
+		Global.C = 0;
+	}
+}
+
+rule("거점 점령팀 양팀")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		(Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Percentage(Team 2) >= 99) == True;
+	}
+
+	actions
+	{
+		Wait(0.500, Ignore Condition);
+		Global.B = 0;
+		Global.C = 0;
+	}
+}
+
+rule("1팀 인원수 = 2팀 인원수")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Players(Team 1) == Number Of Players(Team 2);
+	}
+
+	actions
+	{
+		Global.D = 0;
+		Global.E = 0;
+	}
+}
+
+rule("1팀 인원수 < 2팀 인원수")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Players(Team 1) < Number Of Players(Team 2);
+	}
+
+	actions
+	{
+		Global.D = 1;
+		Global.E = 0;
+	}
+}
+
+rule("1팀 인원수 > 2팀 인원수")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Number Of Players(Team 1) > Number Of Players(Team 2);
+	}
+
+	actions
+	{
+		Global.D = 0;
+		Global.E = 1;
+	}
+}
+
+rule("1팀 위력 버프 +0%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.B + Global.D == 0;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 100);
+		Set Healing Dealt(Event Player, 100);
+	}
+}
+
+rule("1팀 위력 버프 +15%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.B + Global.D == 1;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 115);
+		Set Healing Dealt(Event Player, 115);
+	}
+}
+
+rule("1팀 위력 버프 +30%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Global.B + Global.D == 2;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 130);
+		Set Healing Dealt(Event Player, 130);
+	}
+}
+
+rule("2팀 위력 버프 +0%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Global.C + Global.E == 0;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 100);
+		Set Healing Dealt(Event Player, 100);
+	}
+}
+
+rule("2팀 위력 버프 +15%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Global.C + Global.E == 1;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 115);
+		Set Healing Dealt(Event Player, 115);
+	}
+}
+
+rule("2팀 위력 버프 +30%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Global.C + Global.E == 2;
+		Hero Of(Event Player) != Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 130);
+		Set Healing Dealt(Event Player, 130);
+	}
+}
+
+rule("난입 유저 체력 버프 +90n")
+{
+	event
+	{
+		Player Joined Match;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Game In Progress == True;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Event Player.I += (Global.O - 5) * 6;
+		Set Max Health(Event Player, Event Player.I);
+		Small Message(Event Player, String("{0} + {1}", String("Join"), (Global.O - 5) * 6));
+		Event Player.D += First Of(Global.M) - 0.001;
+	}
+}
+
+rule("킬 +400P")
+{
+	event
+	{
+		Player Dealt Final Blow;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.C += 400;
+	}
+}
+
+rule("어시 +200P")
+{
+	event
+	{
+		Player Earned Elimination;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.C += 200;
+	}
+}
+
+rule("딜x2P")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.C += Event Damage * 2;
+	}
+}
+
+rule("힐x2P")
+{
+	event
+	{
+		Player Dealt Healing;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Healee != Event Player;
+	}
+
+	actions
+	{
+		Event Player.C += Event Healing * 2;
+	}
+}
+
+rule("거점 시간 +25P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is On Objective(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C += 25;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("폭주 +25P/s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Portrait On Fire(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.C += 25;
+		Wait(1, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("데스 -800P")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.D -= 4;
+		Abort If(Event Player.I >= 333.330);
+		Skip If(Event Player.I <= 100, 1);
+		Event Player.I -= 20;
+		Small Message(Event Player, String("{0} - {1}", String("Dead"), 60));
+	}
+}
+
+rule("+200P -> +5%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.C >= 200;
+	}
+
+	actions
+	{
+		Event Player.C -= 200;
+		Event Player.D += 1;
+		Skip If(Event Player.I >= 333.330, 2);
+		Event Player.I += 5;
+		Small Message(Event Player, String("{0} + {1}", String("Life"), 15));
+		Wait(0.100, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("최소 체력")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I < 100;
+	}
+
+	actions
+	{
+		Event Player.I = 100;
+	}
+}
+
+rule("최대 체력")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I > 333.330;
+	}
+
+	actions
+	{
+		Event Player.I = 333.330;
+	}
+}
+
+rule("자동 감소 증가 +5n%/90s 최대 50%")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.T == True;
+		Global.O < 50;
+	}
+
+	actions
+	{
+		Global.O += 5;
+		Wait(90, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("자동 감소 시작 -5n%/10s")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.T == True;
+	}
+
+	actions
+	{
+		Abort If(Event Player.I >= 333.330);
+		Skip If(Event Player.I <= 100, 1);
+		Event Player.I -= Global.O;
+		Small Message(Event Player, String("{0} - {1}", String("Time"), Global.O * 3));
+		Wait(10, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("최대 체력 달성자 자동 감소 증가 +5n")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I >= 333.330;
+	}
+
+	actions
+	{
+		Global.O += 5;
+	}
+}
+
+rule("Player MAX LIFE!")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I >= 333.330;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), String("{0}!", String("{0} {1} {2}", Event Player, String("Max"), String("Life"))));
+	}
+}
+
+rule("1팀 최대 체력 달성자 이펙트")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I >= 333.330;
+	}
+
+	actions
+	{
+		Create Effect(Remove From Array(All Players(All Teams), Event Player), Bad Aura, Color(Team 1), Event Player, 1,
+			Visible To Position and Radius);
+		Event Player.S = Last Created Entity;
+	}
+}
+
+rule("2팀 최대 체력 달성자 이펙트")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 2;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.I >= 333.330;
+	}
+
+	actions
+	{
+		Create Effect(Remove From Array(All Players(All Teams), Event Player), Bad Aura, Color(Team 2), Event Player, 1,
+			Visible To Position and Radius);
+		Event Player.S = Last Created Entity;
+	}
+}
+
+rule("BURNING!")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		((Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Team == Team 1) || (Control Mode Scoring Percentage(Team 2)
+			>= 99 && Control Mode Scoring Team == Team 2)) == True;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), String("{0}!", String("Burning")));
+	}
+}
+
+rule("버닝 데미지 증가 1/7s")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		((Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Team == Team 1) || (Control Mode Scoring Percentage(Team 2)
+			>= 99 && Control Mode Scoring Team == Team 2)) == True;
+	}
+
+	actions
+	{
+		Global.S += 1;
+		Wait(7, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("버닝")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		((Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Team == Team 1) || (Control Mode Scoring Percentage(Team 2)
+			>= 99 && Control Mode Scoring Team == Team 2)) == True;
+		Is On Objective(Event Player) == True;
+		Hero Of(Event Player) != Hero(Sombra);
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Burning, 9999);
+		Start Damage Over Time(Event Player, Null, 9999, Global.S);
+	}
+}
+
+rule("버닝 해제1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		((Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Team == Team 1) || (Control Mode Scoring Percentage(Team 2)
+			>= 99 && Control Mode Scoring Team == Team 2)) == True;
+		Is On Objective(Event Player) == False;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Burning);
+		Stop All Damage Over Time(Event Player);
+	}
+}
+
+rule("버닝 해제2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		((Control Mode Scoring Percentage(Team 1) >= 99 && Control Mode Scoring Team == Team 1) || (Control Mode Scoring Percentage(Team 2)
+			>= 99 && Control Mode Scoring Team == Team 2)) == False;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Burning);
+		Stop All Damage Over Time(Event Player);
+	}
+}
+
+rule("리스폰 시간 1초 증가")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Control Mode Scoring Percentage(Team Of(Event Player)) >= 99;
+	}
+
+	actions
+	{
+		Set Respawn Max Time(Event Player, 4);
+	}
+}
+
+rule("동점 방지")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.T == True;
+	}
+
+	actions
+	{
+		Players In Slot(0, Team 1).D += 0.120;
+		Players In Slot(1, Team 1).D += 0.100;
+		Players In Slot(2, Team 1).D += 0.080;
+		Players In Slot(3, Team 1).D += 0.060;
+		Players In Slot(4, Team 1).D += 0.040;
+		Players In Slot(5, Team 1).D += 0.020;
+		Players In Slot(0, Team 2).D += 0.110;
+		Players In Slot(1, Team 2).D += 0.090;
+		Players In Slot(2, Team 2).D += 0.070;
+		Players In Slot(3, Team 2).D += 0.050;
+		Players In Slot(4, Team 2).D += 0.030;
+		Players In Slot(5, Team 2).D += 0.010;
+	}
+}
+
+rule("순위 정렬")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Global.T == True;
+	}
+
+	actions
+	{
+		Global.M[0] = Players In Slot(0, Team 1).D;
+		Global.M[1] = Players In Slot(1, Team 1).D;
+		Global.M[2] = Players In Slot(2, Team 1).D;
+		Global.M[3] = Players In Slot(3, Team 1).D;
+		Global.M[4] = Players In Slot(4, Team 1).D;
+		Global.M[5] = Players In Slot(5, Team 1).D;
+		Global.M[6] = Players In Slot(0, Team 2).D;
+		Global.M[7] = Players In Slot(1, Team 2).D;
+		Global.M[8] = Players In Slot(2, Team 2).D;
+		Global.M[9] = Players In Slot(3, Team 2).D;
+		Global.M[10] = Players In Slot(4, Team 2).D;
+		Global.M[11] = Players In Slot(5, Team 2).D;
+		Global.M = Filtered Array(Global.M, Current Array Element != 0);
+		Global.M = Sorted Array(Global.M, Current Array Element);
+		Wait(5, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("현재 MVP")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Last Of(Global.M) != 0;
+		Event Player.D == Last Of(Global.M);
+	}
+
+	actions
+	{
+		Global.U = Event Player;
+	}
+}
+
+rule("현재 LVP")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		First Of(Global.M) != 0;
+		Event Player.D == First Of(Global.M);
+	}
+
+	actions
+	{
+		Global.W = Event Player;
+	}
+}
+
+rule("라운드 MVP LVP 출력 [초기화]")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Between Rounds == True;
+		Is Match Complete == False;
+	}
+
+	actions
+	{
+		Global.T = False;
+		Global.O = 0;
+		Big Message(All Players(All Teams), String("{0} {1} {2}", String("Best"), String("Player"), Global.U));
+		Big Message(All Players(All Teams), String("{0} {1} {2}", String("Worst"), String("Player"), Global.W));
+		Wait(5, Ignore Condition);
+		Global.S = 0;
+		Global.U = 0;
+		Global.W = 0;
+	}
+}
+
+rule("경기 종료 MVP LVP 출력")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Match Complete == True;
+	}
+
+	actions
+	{
+		Global.T = False;
+		Big Message(All Players(All Teams), String("{0} {1} {2}", String("Best"), String("Player"), Global.U));
+		Big Message(All Players(All Teams), String("{0} {1} {2}", String("Worst"), String("Player"), Global.W));
+	}
+}
+
+rule("영웅 재선택 준비")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Between Rounds == False;
+	}
+
+	actions
+	{
+		Global.V = True;
+	}
+}
+
+rule("기타 모드 시작")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Match Time > 70;
+	}
+
+	actions
+	{
+		Global.T = True;
+		Global.B = 0;
+		Global.C = 0;
+	}
+}
+
+rule("인공지능 자동 부활")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dead(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(8, Abort When False);
+		Respawn(Event Player);
+	}
+}
+
+rule("아래 룰들 ON/OFF 여부로 무제한 라운드 모드")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+}
+
+rule("1팀 라운드 승리")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Team Score(Team 1) == 1;
+	}
+
+	actions
+	{
+		disabled Big Message(All Players(Team 1), String("{0}!", String("You Win")));
+		disabled Big Message(All Players(Team 2), String("{0}!", String("You Lose")));
+		Global.X += 1;
+		Global.Z += 1;
+	}
+}
+
+rule("2팀 라운드 승리")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Team Score(Team 2) == 1;
+	}
+
+	actions
+	{
+		disabled Big Message(All Players(Team 2), String("{0}!", String("You Win")));
+		disabled Big Message(All Players(Team 1), String("{0}!", String("You Lose")));
+		Global.Y += 1;
+		Global.Z += 1;
+	}
+}
+
+rule("승수 초기화")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Between Rounds == False;
+	}
+
+	actions
+	{
+		Set Team Score(Team 1, 0);
+		Set Team Score(Team 2, 0);
+	}
+}
+
+rule("글로벌 HUD")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), String("Round {0}", Global.Z), Null, Null, Left, 0, Color(White), Color(White), Color(
+			White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}:{1}", Global.X, Global.Y), Null, Null, Left, 1, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", String("{0} {1}", String("Go"), String("Next Game")), String(
+			"{0} / {1}", Global.N, 3)), Null, Null, Right, 0.100, Color(White), Color(White), Color(White), Visible To and String,
+			Default Visibility);
+	}
+}
+
+rule("플레이어 HUD")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0}: {1}", String("Interact"), Event Player.H), Null, Null, Right, 0.200, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("투표 토글")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Is In Spawn Room(Event Player) == True;
+	}
+
+	actions
+	{
+		Skip If(Event Player.G == 1, 2);
+		Event Player.G = 1;
+		Skip(1);
+		Event Player.G = 2;
+	}
+}
+
+rule("새 게임 찬성")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.G == 1;
+	}
+
+	actions
+	{
+		Global.N += 1;
+		Event Player.H = True;
+	}
+}
+
+rule("새 게임 반대")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.G == 2;
+	}
+
+	actions
+	{
+		Global.N -= 1;
+		Event Player.H = False;
+	}
+}
+
+rule("투표 의사 표현")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is In Spawn Room(Event Player) == True;
+		Event Player.G == 1;
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Big Message(All Players(All Teams), String("{0}: {1}", Event Player, String("{0} {1}", String("Go"), String("Next Game"))));
+	}
+}
+
+rule("1팀 승리")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.N == 3;
+		Global.X > Global.Y;
+	}
+
+	actions
+	{
+		Declare Team Victory(Team 1);
+	}
+}
+
+rule("2팀 승리")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.N == 3;
+		Global.X < Global.Y;
+	}
+
+	actions
+	{
+		Declare Team Victory(Team 2);
+	}
+}
+
+rule("양팀 무승부")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.N == 4;
+		Global.X == Global.Y;
+	}
+
+	actions
+	{
+		Declare Match Draw;
+	}
+}

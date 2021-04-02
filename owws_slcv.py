@@ -121,7 +121,7 @@ else:
 	f.close()
 
 	total_line_count = len(data)
-	print('Total Line Count:',total_line_count)
+	print('Raw Line Count:',total_line_count)
 
 	cur_line = 0
 	final_lines = []
@@ -156,5 +156,10 @@ else:
 	for line in final_lines:
 	 	w.write(line)
 	w.close()
+	w = open(file_path+file_name+'_slcv'+file_ext,'r')
+	print('Converted Line Count:',len(w.readlines()))
+	w.close()
+
+
 
 		

@@ -1,0 +1,292 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Respawn Time Scalar: 0%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Health: 500%
+			No Ammunition Requirement: On
+
+			Pharah
+			{
+				Hover Jets Unlimited Fuel: On
+				Jump Jet Acceleration Scalar: 158%
+				Jump Jet Cooldown Time: 0%
+			}
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: vel_dir
+		1: prev_pos
+		2: target
+		3: proj_speed
+		4: calc_sigma
+}
+
+rule("calc dir")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		If(Event Player.prev_pos != Position Of(Event Player));
+			"set unit vector for velocity"
+			Event Player.vel_dir = Normalize(Vector Towards(Event Player.prev_pos, Position Of(Event Player)));
+		Else;
+			Event Player.vel_dir = 0 * Up;
+		End;
+		Event Player.prev_pos = Position Of(Event Player);
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("Rule 2")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(0.700 * Up + Position Of(Local Player.target)
+			+ Local Player.target.vel_dir * Speed Of(Local Player.target) * Local Player.calc_sigma), 0.200,
+			Visible To Position and Radius);
+		Create HUD Text(All Players(All Teams), Custom String("selected {0}", Local Player.target), Null, Null, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create Dummy Bot(Hero(Lúcio), Team 2, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create HUD Text(All Players(All Teams), Custom String("enemy speed {0}", Speed Of(Local Player.target)), Null, Null, Left, 0,
+			Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("enemy dir {0}", Local Player.target.vel_dir), Null, Null, Left, 0, Color(
+			White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("sigma {0}", Local Player.calc_sigma), Null, Null, Left, 0, Color(White),
+			Color(White), Color(White), Visible To and String, Default Visibility);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+		Create Dummy Bot(Hero(Pharah), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Wait(0.130, Ignore Condition);
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Throttle In Direction(Event Player, Direction From Angles(Random Real(0, 360), 0), 1, To World, Replace existing throttle,
+			Direction and Magnitude);
+		Wait(2.500, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("Rule 4")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.target = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+	}
+}
+
+rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.proj_speed = 35;
+		Start Facing(Event Player, Direction Towards(Eye Position(Event Player), 0.700 * Up + Position Of(Event Player.target)
+			+ Event Player.target.vel_dir * Speed Of(Event Player.target) * Event Player.calc_sigma), 100000, To World,
+			Direction and Turn Rate);
+		Start Holding Button(Event Player, Button(Primary Fire));
+	}
+}
+
+rule("Rule 6")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.calc_sigma = Distance Between((Eye Position(Event Player) - Position Of(Event Player.target) - 0.700 * Up) / (
+			Speed Of(Event Player.target) - Event Player.proj_speed), 0 * Up);
+		Wait(0.016, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Heal Over Time(Event Player, Event Player, 9999, 9999);
+	}
+}
+
+rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Apply Impulse(Event Player, Direction From Angles(Random Real(0, 360), Random Real(-90, -30)), Random Real(10, 40), To World,
+			Incorporate Contrary Motion);
+		Wait(Random Real(2, 4), Ignore Condition);
+		Loop;
+	}
+}
+
+rule("Rule 9")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 1;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(5, Ignore Condition);
+		Event Player.target = Global.A;
+	}
+}
+
+rule("Rule 9")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Team Of(Event Player) == Team 2;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.A = Event Player;
+	}
+}

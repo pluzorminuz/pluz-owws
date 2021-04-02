@@ -4,7 +4,6 @@ settings
 	{
 		Max Team 1 Players: 0
 		Max Team 2 Players: 0
-		Use Experimental Update If Available: Yes
 	}
 
 	modes
@@ -31,6 +30,8 @@ variables
 		6: scan_axis
 		7: thisscan_extract_axis
 		8: thisscan_limits_int
+		9: thisscan_z_lim_l
+		10: thisscan_z_lim_r
 		12: entry
 		13: this_rot_list
 		14: loop_j
@@ -68,15 +69,11 @@ rule("init")
 		Disable Inspector Recording;
 		Global.scan_origin = 0 * Up;
 		Global.scanlist = Empty Array;
-		"test scan"
-		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 300, 0.002, Array(-0.004, 0.004, -0.300, 1.475))));
-		"probe 1"
-		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 400, 0.002, Array(-1.320, 1.320, -0.050, 2.160))));
-		"probe 2"
-		Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 500, 0.002, Array(-0.750, 0.750, -0.030, 1.500))));
+		"ana kd probe 1"
+		Modify Global Variable(scanlist, Append To Array, Array(Array(Array(1, 0, 0), 400, 0.002, Array(-0.6, 0.5, -1, 0.75), 4, 4)));
 		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(0, 1), 300, 0.200, Array(-0.500, 0.600, -0.300, 1.475))));
 		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 300, 0.002, Array(-0.500, 0.600, -0.300, 1.475))));
-		Create Dummy Bot(Hero(Wrecking Ball), Team 2, -1, Global.scan_origin, Forward);
+		Create Dummy Bot(Hero(Ana), Team 2, -1, Global.scan_origin, Forward);
 		Call Subroutine(effects);
 	}
 }
@@ -147,10 +144,19 @@ rule("scan_test")
 			Global.thisscan_resolution = Global.scanlist[Global.scan_k][2];
 			Global.thisscan_resolution_copy = Global.thisscan_resolution * 100000;
 			Global.thisscan_limits_raw = Global.scanlist[Global.scan_k][3];
+			Global.thisscan_z_lim_l = Global.scanlist[Global.scan_k][4];
+			Global.thisscan_z_lim_r = Global.scanlist[Global.scan_k][5];
+			Call Subroutine(extract_axis);
 			Call Subroutine(limit_raw_to_int);
+			"l below ground"
+			If(Global.scan_axis[2] == Down);
+				Global.thisscan_z_lim_l = Min(0.490, Global.thisscan_z_lim_l);
+			"r below ground"
+			Else If(Global.scan_axis[2] == Up);
+				Global.thisscan_z_lim_r = Min(0.490, Global.thisscan_z_lim_r);
+			End;
 			For Global Variable(thisscan_cur_x, Global.thisscan_limits_int[0], Global.thisscan_limits_int[1] + 1, 1);
 				Global.thisscan_batch_y_start = Global.thisscan_limits_int[2];
-				Call Subroutine(extract_axis);
 				While(True);
 					Global.l_hit_store = Empty Array;
 					Global.r_hit_store = Empty Array;
@@ -160,12 +166,12 @@ rule("scan_test")
 						Global.thisscan_limits_int[3] + 1));
 					For Global Variable(thisscan_cur_y, Global.thisslice_y_bounds_copy[0], Global.thisslice_y_bounds_copy[1], 1);
 						Modify Global Variable(l_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + Global.thisscan_z_lim_l * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - Global.thisscan_z_lim_r * Global.scan_axis[2],
 							All Players(All Teams), Null, True)));
 						Modify Global Variable(r_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - 4 * Global.scan_axis[2],
-							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + 4 * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - Global.thisscan_z_lim_r * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + Global.thisscan_z_lim_l * Global.scan_axis[2],
 							All Players(All Teams), Null, True)));
 					End;
 					Global.entry += 1;
