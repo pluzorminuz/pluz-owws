@@ -1,0 +1,143 @@
+settings
+{
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Rialto
+			}
+		}
+
+		General
+		{
+			Respawn Time Scalar: 0%
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Tracer
+			{
+				Blink Cooldown Time: 0%
+			}
+
+			enabled heroes
+			{
+				Tracer
+			}
+		}
+	}
+
+	extensions
+	{
+		Spawn More Dummy Bots
+	}
+}
+
+variables
+{
+	global:
+		0: blinkDir
+		1: jumpHeight
+		
+	player:
+		0: jumper
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.blinkDir = Array(Vector(0, 0, 1), Vector(1, 0, 1), Vector(1, 0, 0), Vector(1, 0, -1), Vector(0, 0, -1), Vector(-1, 0, -1), Vector(
+			-1, 0, 0), Vector(-1, 0, 1));
+		Global.jumpHeight = Up * (9804.688 / 10000);
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+		Create Dummy Bot(Hero(Tracer), Team 1, -1, Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+}
+
+rule("init bot")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Move Speed(Event Player, 0);
+		Start Throttle In Direction(Event Player, Global.blinkDir[(Slot Of(Event Player) - 1) % 8], 1, To Player, Replace existing throttle,
+			None);
+		Disable Movement Collision With Players(Event Player);
+		If(Slot Of(Event Player) > 8);
+			Event Player.jumper = True;
+			Set Gravity(Event Player, 0);
+		End;
+	}
+}
+
+rule("tele blink loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		If(Event Player.jumper);
+			Teleport(Event Player, Global.jumpHeight + Position Of(Players In Slot(0, Team Of(Event Player))));
+		Else;
+			Teleport(Event Player, Position Of(Players In Slot(0, Team Of(Event Player))));
+		End;
+		Set Facing(Event Player, Facing Direction Of(Players In Slot(0, Team Of(Event Player))), To World);
+		Wait(0.016, Ignore Condition);
+		Press Button(Event Player, Button(Ability 1));
+		Wait(0.250, Ignore Condition);
+		Loop;
+	}
+}

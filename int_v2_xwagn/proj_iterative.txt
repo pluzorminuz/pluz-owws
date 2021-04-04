@@ -1,0 +1,122 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+		}
+	}
+}
+
+variables
+{
+	player:
+		0: proj_vel
+		1: proj_g
+		2: proj_init_vel
+		3: proj_pos
+		4: proj_del
+		5: proj_cast_time
+}
+
+rule("Set up variables")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"projectile initial speed"
+		Event Player.proj_init_vel = 17;
+		"acceleration per frame"
+		Event Player.proj_g = -20 * Up * 0.016;
+		"delta term for initial velocity correction, 0 for torb turret for example"
+		Event Player.proj_del = 0;
+		"projectile cast time"
+		Event Player.proj_cast_time = 0.048;
+	}
+}
+
+rule("Launch projectile + update projecile")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 1)) == True;
+	}
+
+	actions
+	{
+		"first set the initial position to the player's eye"
+		Event Player.proj_pos = Eye Position(Event Player);
+		"then set the initial velocity of the projectile. if facing straight up, return up, else if facing straight down, return down, else, return the corrected velocity against delta"
+		Event Player.proj_vel = (Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
+			> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up))) * Event Player.proj_init_vel;
+		"if the projectile have a cast time, wait the duration, and get the position again"
+		If(Event Player.proj_cast_time > 0);
+			Wait(Event Player.proj_cast_time, Ignore Condition);
+			Event Player.proj_pos = Eye Position(Event Player);
+			Event Player.proj_vel = (Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
+				> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up))) * Event Player.proj_init_vel;
+		End;
+		"then for each frame"
+		While(True);
+			Wait(0.016, Ignore Condition);
+			"update the velocity using the acceleration per frame"
+			Event Player.proj_vel += Event Player.proj_g;
+			"check to see if the projectile will hit something. in general i found rayCast() is more accurate than ifInLineOfSight()"
+			If(Ray Cast Hit Position(Event Player.proj_pos, Event Player.proj_pos + Event Player.proj_vel * 0.016, Null, Event Player, False)
+				== Event Player.proj_pos + Event Player.proj_vel * 0.016);
+				"if hit nothing, update position"
+				Event Player.proj_pos += Event Player.proj_vel * 0.016;
+			Else;
+				"if not, check where it hits"
+				Event Player.proj_pos = Ray Cast Hit Position(Event Player.proj_pos, Event Player.proj_pos + Event Player.proj_vel, Null,
+					Event Player, False);
+				"and break out the loop"
+				Break;
+			End;
+		"done"
+		End;
+	}
+}
+
+rule("Effects")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(Local Player.proj_pos), 0.300,
+			Visible To Position and Radius);
+		Create HUD Text(All Players(All Teams), Local Player.proj_pos, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Local Player.proj_vel, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+	}
+}

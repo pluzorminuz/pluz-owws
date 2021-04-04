@@ -1,0 +1,85 @@
+settings
+{
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+		}
+	}
+}
+
+rule("Rule 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Color(White), World Vector Of(Event Player.A, Event Player,
+			Rotation And Translation), 0.400, Visible To Position and Radius);
+		disabled Start Camera(Event Player, 4 * Up + World Vector Of(Event Player.A, Event Player, Rotation And Translation), World Vector Of(
+			Event Player.A, Event Player, Rotation And Translation), 0);
+		Event Player.A = Vector(6.595, 0.430, 3);
+		Create HUD Text(All Players(All Teams), Event Player.A, Null, Null, Left, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+		Set Slow Motion(10);
+		Start Camera(Event Player, 1 * Left + World Vector Of(Event Player.A, Event Player, Rotation And Translation), World Vector Of(
+			Event Player.A, Event Player, Rotation And Translation), 0);
+	}
+}
+
+disabled rule("Rule 3")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Throttle Of(Event Player) != Vector(0, 0, 0);
+	}
+
+	actions
+	{
+		Event Player.A += 0.010 * Throttle Of(Event Player);
+	}
+}

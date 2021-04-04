@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Mar 22"
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Apr 03"
 	}
 
 	lobby
@@ -101,6 +101,7 @@ variables
 		102: freecam_bool
 		104: freecam_vel
 		105: freecam_prevdir
+		106: tumbleweed_highnoon_swag
 }
 
 subroutines
@@ -142,14 +143,14 @@ rule("init")
 			0.500, False), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Null, Null), 1, Array(2.500, 6, 0), False), Array(Array(Null,
 			Null, Null, Null, Array(-20.200, 25, 0.090, 5, 0, 0.096, 0.200, False)), 4, Array(15, 0, 0), True), Array(Array(Null, Null,
 			Null, Null, Array(-8.030, 25, 0.070, 7, 0, 0.140, 0.400, False)), 4, Array(5, 0, 0), True), Array(Array(Null, Null, Array(
-			-30.800, 15, 0.190, 2, 0, 0.144, 0.150, False), Null, Null), 2, Array(5, 0, 0), True), Array(Array(Null, Null, Null, Null,
-			Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False), Array(Array(Null, Null, Array(-9.900, 20, 0.090,
-			7, 0, 0.484, 0.600, False), Null, Null), 2, Array(10, 0, 0), True), Array(Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100,
-			True), Null, Array(-30.050, 40, 0, 5, 0, 0, 0.100, True), Array(-20, 17, 0, 4, 0, 0.048, 0.100, True), Null), 0, Array(2.500,
-			40, 0), True), Array(Array(Array(-9.815, 110, 0, 15, 0, 0, 0.032, True), Null, Null, Null, Array(-9.815, 110, 0, 15, 0, 0,
-			0.032, True)), 0, Array(0, 9, 0), False), Array(Array(Array(-5.954, 49.700, 0, 3 / 7, 0, 0, 0.048, False), Null, Null, Null,
-			Array(-18.350, 37.400, 0.100, 6, 0, 0.640, 0.256, False)), 4, Array(2.500, 3, 0), True), Array(Array(Null, Null, Null, Null,
-			Array(-9.840, 20, 0, 7, 0, 0.192, 0.160, False)), 4, Array(3, 0, 0), True)));
+			-30.800, 15, 0.190, 2, 0, 0.144, 0.150, False), Null, Null), 2, Array(5, 0, 0), True), Array(Array(Null, Null, Array(-10,
+			4.200, 0.577, 4, 0, 0, 0.300, False), Null, Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False),
+			Array(Array(Null, Null, Array(-9.900, 20, 0.090, 7, 0, 0.484, 0.600, False), Null, Null), 2, Array(10, 0, 0), True), Array(
+			Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100, True), Null, Array(-30.050, 40, 0, 5, 0, 0, 0.100, True), Array(-20, 17, 0, 4,
+			0, 0.048, 0.100, True), Null), 0, Array(2.500, 40, 0), True), Array(Array(Array(-9.815, 110, 0, 15, 0, 0, 0.032, True), Null,
+			Null, Null, Array(-9.815, 110, 0, 15, 0, 0, 0.032, True)), 0, Array(0, 9, 0), False), Array(Array(Array(-5.954, 49.700, 0,
+			3 / 7, 0, 0, 0.048, False), Null, Null, Null, Array(-18.350, 37.400, 0.100, 6, 0, 0.640, 0.256, False)), 4, Array(2.500, 3, 0),
+			True), Array(Array(Null, Null, Null, Null, Array(-9.840, 20, 0, 7, 0, 0.192, 0.160, False)), 4, Array(3, 0, 0), True)));
 		Call Subroutine(init_map_deathplane_y);
 		Call Subroutine(hud_final);
 		Call Subroutine(create_trajectory);
@@ -231,6 +232,7 @@ rule("player_changed_hero")
 		Event Player.predictcam_dist = 0.800;
 		Event Player.predictcam_bool = False;
 		Event Player.trajectory_hidden = False;
+		Event Player.tumbleweed_highnoon_swag = False;
 		If(Event Player.chasecam_chasing == True);
 			Start Rule(chasecam_start, Restart Rule);
 		End;
@@ -1242,9 +1244,9 @@ rule("[sub] final hud")
 	actions
 	{
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Code: XWAGN"), Custom String(
-			"Improved Nade Tool (v2.3.0.210322)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
+			"Improved Nade Tool (v2.3.1.210403)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
 			Visible To, Default Visibility);
-		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.3.0.210322"), Left, -2, Color(
+		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.3.1.210403"), Left, -2, Color(
 			White), Color(White), Color(Yellow), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} - {1}", Entity Count, Text Count), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Right, -1, Color(White), Color(Gray), Color(Gray), Visible To and String,
@@ -1354,10 +1356,16 @@ rule("[sub] save_eye_and_fac")
 
 	actions
 	{
-		Event Player.proj_p0_hidden = Eye Position(Event Player);
-		Event Player.proj_dir_raw_hidden = Facing Direction Of(Event Player);
-		Event Player.proj_dir_hidden = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
-			> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+		If(Event Player.tumbleweed_highnoon_swag);
+			Event Player.proj_p0_hidden = World Vector Of(Vector(6.595, 0.430, 3), Event Player, Rotation And Translation);
+			Event Player.proj_dir_raw_hidden = Facing Direction Of(Event Player);
+			Event Player.proj_dir_hidden = Normalize(World Vector Of(Right, Event Player, Rotation) + Event Player.proj_del * Up);
+		Else;
+			Event Player.proj_p0_hidden = Eye Position(Event Player);
+			Event Player.proj_dir_raw_hidden = Facing Direction Of(Event Player);
+			Event Player.proj_dir_hidden = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player)
+				> 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+		End;
 	}
 }
 
@@ -1586,5 +1594,46 @@ rule("freecam off")
 	{
 		Event Player.freecam_bool = False;
 		Stop Camera(Event Player);
+	}
+}
+
+rule("McCree: HIGH NOON")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		McCree;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.tumbleweed_highnoon_swag = True;
+	}
+}
+
+rule("McCree: NOT HIGH NOON")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		McCree;
+	}
+
+	conditions
+	{
+		Is Using Ultimate(Event Player) != True;
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		Event Player.tumbleweed_highnoon_swag = False;
 	}
 }

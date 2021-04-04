@@ -14,6 +14,12 @@ settings
 	modes
 	{
 		Skirmish
+		{
+			enabled maps
+			{
+				Hollywood
+			}
+		}
 
 		General
 		{
@@ -1495,6 +1501,7 @@ rule("McCree: HIGH NOON")
 	actions
 	{
 		Event Player.tumbleweed_highnoon_swag = True;
+		Global.D += 1;
 	}
 }
 
@@ -1516,5 +1523,39 @@ rule("McCree: NOT HIGH NOON")
 	actions
 	{
 		Event Player.tumbleweed_highnoon_swag = False;
+	}
+}
+
+rule("Rule 54")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Hero(McCree), Team 2, -1, Vector(27.457, 4.206, -53.208), Direction From Angles(-78, -6));
+		Wait(0.250, Ignore Condition);
+		Set Ultimate Charge(Players In Slot(0, Team 2), 100);
+	}
+}
+
+rule("Rule 55")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global.D == 2;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Players In Slot(0, Team 2), 100);
+		Press Button(Players In Slot(0, Team 2), Button(Ultimate));
 	}
 }
