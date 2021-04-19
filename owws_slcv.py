@@ -1,3 +1,6 @@
+import datetime
+import next_ver
+
 def strip(str):
 	return str.replace('\t','').replace('\n','')
 
@@ -151,14 +154,18 @@ else:
 			continue
 		cur_line += 1
 
+	date = datetime.datetime.today().strftime('%y%m%d%H%M%S')
+
 	w = open(file_path+file_name+'_slcv'+file_ext,'w')
 	w = open(file_path+file_name+'_slcv'+file_ext,'a')
+	x = open(file_path+file_name+'_'+date+file_ext,'w')
+	x = open(file_path+file_name+'_'+date+file_ext,'a')
 	for line in final_lines:
 	 	w.write(line)
+	 	x.write(line)
 	w.close()
-	w = open(file_path+file_name+'_slcv'+file_ext,'r')
-	print('Converted Line Count:',len(w.readlines()))
-	w.close()
+	x.close()
+	print('Converted Line Count:',len(final_lines))
 
 
 

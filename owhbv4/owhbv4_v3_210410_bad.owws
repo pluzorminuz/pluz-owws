@@ -1,0 +1,331 @@
+settings
+{
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 0
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Play More Effects
+	}
+}
+
+variables
+{
+	global:
+		0: l_hit_store
+		1: r_hit_store
+		2: thisscan_resolution_copy
+		3: thisslice_x_copy
+		4: thisslice_y_bounds_copy
+		5: scan_y_batchsize
+		6: scan_axis
+		7: thisscan_extract_axis
+		8: thisscan_limits_int
+		9: thisscan_z_lim_l
+		10: thisscan_z_lim_r
+		12: entry
+		13: this_rot_list
+		14: loop_j
+		15: scan_k
+		16: scanlist
+		17: loop_i
+		18: thisscan_limits_raw
+		19: thisscan_resolution
+		20: scan_origin
+		21: thisscan_batch_y_start
+		22: thisscan_cur_x
+		23: thisscan_cur_y
+		24: thisslice_x
+}
+
+subroutines
+{
+	0: extract_axis
+	1: reset_axis
+	2: axis_rot_left
+	3: axis_rot_down
+	4: limit_raw_to_int
+	5: effects
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.scan_origin = 0 * Up;
+		Global.scanlist = Empty Array;
+		"ana kd probe 1"
+		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(1, 0, 0), 400, 0.002, Array(-0.600, 0.500, -1, 0.750), 4, 4)));
+		"rein shield probe 1"
+		Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 800, 0.002, Array(-3.360, 3.400, -0.880, 3.440), 4, 4)));
+		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(0, 1), 300, 0.200, Array(-0.500, 0.600, -0.300, 1.475))));
+		disabled Modify Global Variable(scanlist, Append To Array, Array(Array(Array(), 300, 0.002, Array(-0.500, 0.600, -0.300, 1.475))));
+		Create Dummy Bot(Hero(Reinhardt), Team 2, -1, Global.scan_origin, Forward);
+		Call Subroutine(effects);
+	}
+}
+
+rule("axis rotate left")
+{
+	event
+	{
+		Subroutine;
+		axis_rot_left;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
+			Global.scan_axis[Global.loop_i] = Vector(Z Component Of(Global.scan_axis[Global.loop_i]), Y Component Of(
+				Global.scan_axis[Global.loop_i]), -1 * X Component Of(Global.scan_axis[Global.loop_i]));
+		End;
+	}
+}
+
+rule("axis rotate down")
+{
+	event
+	{
+		Subroutine;
+		axis_rot_down;
+	}
+
+	actions
+	{
+		For Global Variable(loop_i, 0, Count Of(Global.scan_axis), 1);
+			Global.scan_axis[Global.loop_i] = Vector(X Component Of(Global.scan_axis[Global.loop_i]), -1 * Z Component Of(
+				Global.scan_axis[Global.loop_i]), Y Component Of(Global.scan_axis[Global.loop_i]));
+		End;
+	}
+}
+
+disabled rule("scan_test")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Total Time Elapsed > 10;
+	}
+
+	actions
+	{
+		For Global Variable(scan_k, 0, Count Of(Global.scanlist), 1);
+			"reset axis"
+			Call Subroutine(reset_axis);
+			"format, [0]rot [1]batch_y [2]res [3]limits_raw"
+			Global.this_rot_list = Global.scanlist[Global.scan_k][0];
+			For Global Variable(loop_j, 0, Count Of(Global.this_rot_list), 1);
+				If(Global.this_rot_list[Global.loop_j] == 0);
+					Call Subroutine(axis_rot_left);
+				Else If(Global.this_rot_list[Global.loop_j] == 1);
+					Call Subroutine(axis_rot_down);
+				Else;
+					Wait(0.016, Ignore Condition);
+				End;
+			End;
+			Global.scan_y_batchsize = Global.scanlist[Global.scan_k][1];
+			Global.thisscan_resolution = Global.scanlist[Global.scan_k][2];
+			Global.thisscan_resolution_copy = Global.thisscan_resolution * 100000;
+			Global.thisscan_limits_raw = Global.scanlist[Global.scan_k][3];
+			Global.thisscan_z_lim_l = Global.scanlist[Global.scan_k][4];
+			Global.thisscan_z_lim_r = Global.scanlist[Global.scan_k][5];
+			Call Subroutine(extract_axis);
+			Call Subroutine(limit_raw_to_int);
+			"l below ground"
+			If(Global.scan_axis[2] == Down);
+				Global.thisscan_z_lim_l = Min(0.490, Global.thisscan_z_lim_l);
+			"r below ground"
+			Else If(Global.scan_axis[2] == Up);
+				Global.thisscan_z_lim_r = Min(0.490, Global.thisscan_z_lim_r);
+			End;
+			For Global Variable(thisscan_cur_x, Global.thisscan_limits_int[0], Global.thisscan_limits_int[1] + 1, 1);
+				Global.thisscan_batch_y_start = Global.thisscan_limits_int[2];
+				While(True);
+					Global.l_hit_store = Empty Array;
+					Global.r_hit_store = Empty Array;
+					Global.thisslice_x = Global.thisscan_cur_x * Global.thisscan_resolution * Global.scan_axis[0];
+					Global.thisslice_x_copy = Global.thisslice_x * 100000;
+					Global.thisslice_y_bounds_copy = Array(Global.thisscan_batch_y_start, Min(Global.thisscan_batch_y_start + Global.scan_y_batchsize,
+						Global.thisscan_limits_int[3] + 1));
+					For Global Variable(thisscan_cur_y, Global.thisslice_y_bounds_copy[0], Global.thisslice_y_bounds_copy[1], 1);
+						Modify Global Variable(l_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + Global.thisscan_z_lim_l * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - Global.thisscan_z_lim_r * Global.scan_axis[2],
+							All Players(All Teams), Null, True)));
+						Modify Global Variable(r_hit_store, Append To Array, Dot Product(Global.thisscan_extract_axis, 100000 * Ray Cast Hit Position(
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] - Global.thisscan_z_lim_r * Global.scan_axis[2],
+							Global.thisslice_x + Global.thisscan_cur_y * Global.thisscan_resolution * Global.scan_axis[1] + Global.thisscan_z_lim_l * Global.scan_axis[2],
+							All Players(All Teams), Null, True)));
+					End;
+					Global.entry += 1;
+					Enable Inspector Recording;
+					Disable Inspector Recording;
+					Wait(0.064, Ignore Condition);
+					Global.thisscan_batch_y_start += Global.scan_y_batchsize;
+					If(Global.thisscan_batch_y_start > Global.thisscan_limits_int[3]);
+						Break;
+					End;
+				End;
+				Wait(0.064, Ignore Condition);
+			End;
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("bot_init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		"transform ability 1"
+		disabled Press Button(Event Player, Button(Ability 1));
+		"holding 2nd fire (rein shield)"
+		Start Holding Button(Event Player, Button(Secondary Fire));
+		Wait(1, Ignore Condition);
+		disabled Set Slow Motion(10);
+		disabled Set Status(Event Player, Null, Knocked Down, 999999);
+		disabled Set Status(Event Player, Null, Stunned, 6.300);
+		disabled Wait(6.400, Ignore Condition);
+		disabled Set Status(Event Player, Null, Stunned, 9999);
+		disabled Wait(0.016, Ignore Condition);
+		disabled Set Status(Event Player, Null, Frozen, 9999);
+		disabled Set Slow Motion(10);
+	}
+}
+
+rule("extract_axis")
+{
+	event
+	{
+		Subroutine;
+		extract_axis;
+	}
+
+	actions
+	{
+		"Sign"
+		Global.thisscan_extract_axis = Dot Product(Global.scan_axis[2], Vector(1, 1, 1));
+		"Fix"
+		Global.thisscan_extract_axis = Global.thisscan_extract_axis * Global.scan_axis[2];
+	}
+}
+
+rule("reset axis")
+{
+	event
+	{
+		Subroutine;
+		reset_axis;
+	}
+
+	actions
+	{
+		Global.scan_axis = Array(Left, Up, Forward);
+	}
+}
+
+rule("raw to int")
+{
+	event
+	{
+		Subroutine;
+		limit_raw_to_int;
+	}
+
+	actions
+	{
+		Global.thisscan_limits_int[0] = Round To Integer(Global.thisscan_limits_raw[0] / Global.thisscan_resolution, Down);
+		Global.thisscan_limits_int[1] = Round To Integer(Global.thisscan_limits_raw[1] / Global.thisscan_resolution, Up);
+		Global.thisscan_limits_int[2] = Round To Integer(Global.thisscan_limits_raw[2] / Global.thisscan_resolution, Down);
+		Global.thisscan_limits_int[3] = Round To Integer(Global.thisscan_limits_raw[3] / Global.thisscan_resolution, Up);
+	}
+}
+
+rule("effects")
+{
+	event
+	{
+		Subroutine;
+		effects;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[0], Color(
+			Red), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[1], Color(
+			Green), Visible To Position and Radius);
+		Create Beam Effect(All Players(All Teams), Good Beam, Evaluate Once(2 * Up), Evaluate Once(2 * Up) + Global.scan_axis[2], Color(
+			Blue), Visible To Position and Radius);
+		Create In-World Text(All Players(All Teams), Custom String("X"), Evaluate Once(2 * Up) + Global.scan_axis[0], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Red), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Y"), Evaluate Once(2 * Up) + Global.scan_axis[1], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Green), Default Visibility);
+		Create In-World Text(All Players(All Teams), Custom String("Z"), Evaluate Once(2 * Up) + Global.scan_axis[2], 1,
+			Clip Against Surfaces, Visible To Position and String, Color(Blue), Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Scanning x:{0} y:{1}", Global.thisscan_cur_x, Global.thisscan_cur_y), Null,
+			Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Entry {0}", Global.entry), Null, Null, Left, 0, Color(White), Color(White),
+			Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Rule 10")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Ray Cast Hit Position(Eye Position(Local Player),
+			Eye Position(Local Player) + 10 * Facing Direction Of(Local Player), All Players(All Teams), Local Player, True),
+			Ray Cast Hit Position(Eye Position(Local Player), Eye Position(Local Player) + 10 * Facing Direction Of(Local Player),
+			All Players(All Teams), Local Player, True) + Ray Cast Hit Normal(Eye Position(Local Player), Eye Position(Local Player)
+			+ 10 * Facing Direction Of(Local Player), All Players(All Teams), Local Player, True), Color(White),
+			Visible To Position and Radius);
+		Create HUD Text(All Players(All Teams), 100000 * Ray Cast Hit Normal(Eye Position(Local Player), Eye Position(Local Player)
+			+ 10 * Facing Direction Of(Local Player), All Players(All Teams), Local Player, True), Null, Null, Right, 0, Color(White), Color(White), Color(White),
+			Visible To and String, Default Visibility);
+	}
+}

@@ -58,26 +58,6 @@ settings
 	}
 }
 
-variables
-{
-	global:
-		0: right
-}
-
-rule("global_init")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-
-	actions
-	{
-		Create Dummy Bot(Hero(Wrecking Ball), Team 2, 0, Vector(0, 0, 0), Vector(0, 0, 0));
-		Global.right = 0.001 / 1 * Left;
-	}
-}
-
 rule("player_init_once")
 {
 	event
@@ -94,17 +74,19 @@ rule("player_init_once")
 
 	actions
 	{
+		Set Gravity(Event Player, 0);
 		Set Projectile Gravity(Event Player, 0);
-		Set Projectile Speed(Event Player, 0);
 		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
-		Start Camera(Event Player, Eye Position(Event Player) + Vector(0, 0, 2), Eye Position(Event Player), 0);
+		Start Camera(Event Player, Eye Position(Event Player) + Vector(0, 0, -2), Eye Position(Event Player), 0);
 		Create Effect(All Players(All Teams), Sphere, Color(White), Eye Position(Event Player), 0.100, Visible To Position and Radius);
 		Set Invisible(Event Player, All);
-		disabled Set Slow Motion(50);
 		Start Heal Over Time(Event Player, Event Player, 9999, 500);
 		Create HUD Text(All Players(All Teams), Custom String("Eye Position: {0}", 100000 * Eye Position(Event Player)), Null, Null, Left, 1, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Custom String("Distance to Ball Hitbox (x100000): {0}", 100000 * (Distance Between(Eye Position(Event Player), Vector(0, 79085.484 / 100000, 0)) - 0.835)), Null, Null, Left, 0, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
-		Create HUD Text(All Players(All Teams), Custom String("Distance to Ball Hitbox (x1): {0}", 1 * (Distance Between(Eye Position(Event Player), Vector(0, 79085.484 / 100000, 0)) - 0.835)), Null, Null, Left, 0.100, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Wall (x100000): {0}", 100000 * (X Component Of(Eye Position(Event Player)) - X Component Of(Evaluate Once(Ray Cast Hit Position(Vector(30, 20, 0), Vector(0, 20, 0), Null, Event Player, False))))), Null, Null, Left, 0, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Wall (x1): {0}", 1 * (X Component Of(Eye Position(Event Player)) - X Component Of(Evaluate Once(Ray Cast Hit Position(Vector(30, 20, 0), Vector(0, 20, 0), Null, Event Player, False))))), Null, Null, Left, 1, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Wall 21.25 (x100000): {0}", 100000 * (X Component Of(Eye Position(Event Player)) - X Component Of(Evaluate Once(Ray Cast Hit Position(Vector(30, -0.700, 0), Vector(0, -0.700, 0), Null, Event Player, False))))), Null, Null, Left, 2, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Distance to Wall 21.25 (x1): {0}", 1 * (X Component Of(Eye Position(Event Player)) - X Component Of(Evaluate Once(Ray Cast Hit Position(Vector(30, -0.700, 0), Vector(0, -0.700, 0), Null, Event Player, False))))), Null, Null, Left, 3, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("ray cast pos {0}", Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + 100 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)), Null, Null, Right, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
 	}
 }
 
@@ -125,9 +107,11 @@ rule("player_reset")
 
 	actions
 	{
-		Teleport(Event Player, Vector(-0.700, 0, 0));
+		"wrecking ball"
+		disabled Teleport(Event Player, Vector(21, -5, 0));
+		Teleport(Event Player, Vector(21, 20, -24));
 		Set Move Speed(Event Player, 0);
-		Start Facing(Event Player, Vector(-1, 0, 0), 10000, To World, Direction and Turn Rate);
+		Start Facing(Event Player, Vector(0, 0, 1), 10000, To World, Direction and Turn Rate);
 	}
 }
 
@@ -153,53 +137,6 @@ rule("give ult")
 	}
 }
 
-rule("set proj speed to 0")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Has Spawned(Event Player) == True;
-		Is Dummy Bot(Event Player) != True;
-	}
-
-	actions
-	{
-		Set Projectile Speed(Event Player, 0);
-		Wait(0.016, Ignore Condition);
-		Loop;
-	}
-}
-
-rule("ball_init")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Is Dummy Bot(Event Player) == True;
-	}
-
-	actions
-	{
-		Wait(2, Ignore Condition);
-		Press Button(Event Player, Button(Ability 1));
-		disabled Start Forcing Player Position(Event Player, Vector(0, 0, 0), False);
-		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
-		Add Health Pool To Player(Event Player, Shields, 9000, True, True);
-	}
-}
-
 rule("teleport_right")
 {
 	event
@@ -216,10 +153,10 @@ rule("teleport_right")
 
 	actions
 	{
-		Teleport(Event Player, Position Of(Event Player) + Global.right);
+		Teleport(Event Player, Position Of(Event Player) + 0.001 * Right);
 		Wait(0.250, Abort When False);
 		While(True);
-			Teleport(Event Player, Position Of(Event Player) + Global.right);
+			Teleport(Event Player, Position Of(Event Player) + 0.001 * Right);
 			Wait(0.016, Abort When False);
 		End;
 	}
@@ -241,10 +178,10 @@ rule("teleport_left")
 
 	actions
 	{
-		Teleport(Event Player, Position Of(Event Player) - Global.right);
+		Teleport(Event Player, Position Of(Event Player) + 0.001 * Left);
 		Wait(0.250, Abort When False);
 		While(True);
-			Teleport(Event Player, Position Of(Event Player) - Global.right);
+			Teleport(Event Player, Position Of(Event Player) + 0.001 * Left);
 			Wait(0.016, Abort When False);
 		End;
 	}
@@ -285,28 +222,5 @@ rule("change hero")
 	{
 		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
 		Set Player Allowed Heroes(Event Player, All Heroes);
-	}
-}
-
-rule("Rule 11")
-{
-	event
-	{
-		Ongoing - Each Player;
-		All;
-		All;
-	}
-
-	conditions
-	{
-		Has Status(Event Player, Asleep) == True;
-	}
-
-	actions
-	{
-		Wait(1, Ignore Condition);
-		Clear Status(Event Player, Asleep);
-		Wait(0.512, Ignore Condition);
-		Press Button(Event Player, Button(Ability 1));
 	}
 }

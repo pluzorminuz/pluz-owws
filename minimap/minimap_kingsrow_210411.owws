@@ -1,0 +1,320 @@
+settings
+{
+	main
+	{
+		Description: "minimap kings row maxbeam sector"
+	}
+
+	lobby
+	{
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				King's Row
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Play More Effects
+	}
+}
+
+variables
+{
+	global:
+		0: v
+		1: e
+		2: loop_i
+		3: count
+		4: e_c
+		5: c
+		6: maxbeams
+		7: sector_v
+		9: temp_arr
+		10: loop_j
+		11: temp_arr_v
+		12: temp_index
+
+	player:
+		0: loop_i
+		1: v
+		2: cur_sector
+		3: v_pre
+		4: nearest_sector
+		5: temp_arr
+		6: p1d
+		7: p2d
+}
+
+subroutines
+{
+	0: init_beams
+	1: calc_local
+	2: calc_e_c
+	3: init_v_e_data
+	4: calc_sectors
+	5: clipper
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.maxbeams = 64;
+		Global.c = Array(Vector(-79.685, 0, -36.173), Vector(-2.451, 0, 28.389), Vector(-36.955, 0, -30.569), Vector(4.506, 0, -10.165), Vector(-90.926, 0, 0.742), Vector(-151.516, 0, 27.221), Vector(-2.633, 0, -37.812), Vector(-126.750, 0, 8.530));
+		Call Subroutine(init_v_e_data);
+		Global.count = Count Of(Global.v);
+		Wait(0.016, Ignore Condition);
+		Call Subroutine(calc_e_c);
+		Wait(0.048, Ignore Condition);
+		Call Subroutine(calc_sectors);
+		Wait(0.048, Ignore Condition);
+		Call Subroutine(init_beams);
+		Create HUD Text(All Players(All Teams), Custom String("{0} {1} {2}", Server Load, Server Load Average, Custom String("{0} {1} {2}", Server Load Peak, Entity Count, Text Count)), Null, Null, Right, 0, Color(Gray), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Local Player.nearest_sector, Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("create_e_c")
+{
+	event
+	{
+		Subroutine;
+		calc_e_c;
+	}
+
+	actions
+	{
+		Global.e_c = Empty Array;
+		For Global Variable(loop_i, 0, Count Of(Global.e), 2);
+			Modify Global Variable(e_c, Append To Array, 0.500 * (Global.v[Global.e[Global.loop_i]] + Global.v[Global.e[Global.loop_i + 1]]));
+		End;
+	}
+}
+
+rule("beams")
+{
+	event
+	{
+		Subroutine;
+		init_beams;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Vector(0, 0, 1.200), Local Player, Rotation And Translation), Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Vector(0, 0, 1.200), Local Player, Rotation And Translation), Team Of(Local Player), Visible To Position Radius and Color);
+		For Global Variable(loop_i, 0, Global.maxbeams * 2, 2);
+			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Local Player.v[Evaluate Once(Global.loop_i)], Local Player, Rotation And Translation), Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Local Player.v[Evaluate Once(Global.loop_i + 1)], Local Player, Rotation And Translation), Team Of(Local Player), Visible To Position Radius and Color);
+		End;
+		For Global Variable(loop_i, 0, 16, 1);
+			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Evaluate Once(Vector(Cosine From Degrees(Global.loop_i * 360 / 16), Sine From Degrees(Global.loop_i * 360 / 16), 2)), Local Player, Rotation And Translation), Eye Position(Local Player) - Position Of(Local Player) + World Vector Of(Evaluate Once(Vector(Cosine From Degrees((Global.loop_i + 1) * 360 / 16), Sine From Degrees((Global.loop_i + 1) * 360 / 16), 2)), Local Player, Rotation And Translation), Team Of(Local Player), Visible To Position Radius and Color);
+		End;
+	}
+}
+
+rule("calc_local_vector")
+{
+	event
+	{
+		Subroutine;
+		calc_local;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_i, 0, Count Of(Event Player.v_pre), 1);
+			Event Player.v[Event Player.loop_i] = 0.050 * Local Vector Of(Event Player.v_pre[Event Player.loop_i], Event Player, Rotation And Translation);
+			Event Player.v[Event Player.loop_i] = Vector(X Component Of(Event Player.v[Event Player.loop_i]), Z Component Of(Event Player.v[Event Player.loop_i]), 2);
+		End;
+	}
+}
+
+rule("player_first_spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.cur_sector = 0 * Up;
+	}
+}
+
+rule("player_load_sectors")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.temp_arr = Sorted Array(Global.c, Distance Between(Vector(X Component Of(Position Of(Event Player)), 0, Z Component Of(Position Of(Event Player))), Current Array Element));
+		Event Player.nearest_sector = Index Of Array Value(Global.c, First Of(Event Player.temp_arr));
+		If(Event Player.nearest_sector != Event Player.cur_sector);
+			Event Player.cur_sector = Event Player.nearest_sector;
+			Event Player.v_pre = Global.sector_v[Event Player.cur_sector];
+		End;
+		Wait(0.512, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("player_local_calcloop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(calc_local);
+		Call Subroutine(clipper);
+		Wait(0.064, Ignore Condition);
+		Enable Inspector Recording;
+		Disable Inspector Recording;
+		Loop If Condition Is True;
+	}
+}
+
+disabled rule("Rule 5")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Enable Inspector Recording;
+		Log To Inspector(Custom String("Vector{0}{1}", Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + 100 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, False), Global.count));
+		Disable Inspector Recording;
+		Global.count += 1;
+	}
+}
+
+rule("init_v_e_data")
+{
+	event
+	{
+		Subroutine;
+		init_v_e_data;
+	}
+
+	actions
+	{
+		disabled Global.v = Array(Vector(20, 0, 20), Vector(-20, 0, 20), Vector(-20, 0, -20), Vector(20, 0, -20));
+		disabled Global.e = Array(0, 1, 1, 2, 2, 3, 3, 0);
+		Global.v = Array(Vector(-69.830, 0, -37.745), Vector(-69.149, 0, -39.836), Vector(-86.455, 0, -31.341), Vector(-81.660, 0, -44.423), Vector(-65.924, 0, -36.061), Vector(-70.118, 0, -24.089), Vector(-84.356, 0, -29.297), Vector(-81.245, 0, -37.888), Vector(-67.243, 0, -32.612), Vector(-89.499, 0, -33.505), Vector(-95.181, 0, -36.042), Vector(-93.794, 0, -39.931), Vector(-90.209, 0, -37.766), Vector(-85.170, 0, -45.579), Vector(-86.015, 0, -46.086), Vector(-83.885, 0, -49.232), Vector(-74.009, 0, -45.342), Vector(-67.583, 0, -47.947), Vector(-65.588, 0, -52.749), Vector(-93.727, 0, -23.460), Vector(-99.814, 0, -25.828), Vector(-102.590, 0, -22.009), Vector(-99.305, 0, -3.397), Vector(-99.362, 0, -3.453), Vector(-116.377, 0, -0.892), Vector(-113.498, 0, 24.370), Vector(-117.047, 0, 2.551), Vector(-156, 0, 50.423), Vector(-124.850, 0, 44.608), Vector(-126.609, 0, 33.610), Vector(-108.593, 0, 30.368), Vector(-111.085, 0, 14.586), Vector(-114.910, 0, 15.238), Vector(-59.963, 0, -50.409), Vector(-52.982, 0, -47.067), Vector(-53.284, 0, -39.043), Vector(-44.217, 0, -38.582), Vector(-44.252, 0, -39.304), Vector(-40.220, 0, -39.019), Vector(-39.563, 0, -47.922), Vector(-43.112, 0, -47.921), Vector(-42.875, 0, -53.514), Vector(-33.154, 0, -51.989), Vector(-23.324, 0, -14.813), Vector(-39.015, 0, -20.233), Vector(-50.621, 0, -23.911), Vector(-49.505, 0, -27.814), Vector(-57.919, 0, -30.282), Vector(-61.155, 0, -19.628), Vector(-39.433, 0, -15.728), Vector(-28.515, 0, -8.934), Vector(-74.284, 0, -16.638), Vector(-63.128, 0, -46.254), Vector(-59.260, 0, -43.910), Vector(-57.434, 0, -38.720), Vector(-74.072, 0, -17.899), Vector(-84.652, 0, -19.693), Vector(-87.570, 0, -2.083), Vector(-77.263, 0, -0.179), Vector(-74.969, 0, -12.352), Vector(-58.428, 0, -9.300), Vector(-59.652, 0, -2.522), Vector(-68.499, 0, -4.200), Vector(-69.994, 0, 5.144), Vector(-80.640, 0, 8.701), Vector(-89.515, 0, 8.305), Vector(-95.966, 0, 6.565), Vector(-95.351, 0, 10.584), Vector(-93.898, 0, 13.186), Vector(-89.257, 0, 11.584), Vector(-28.634, 0, -51.235), Vector(-35.429, 0, -12.381), Vector(-24.164, 0, -10.384), Vector(-21.751, 0, -23.997), Vector(-19.446, 0, -25.672), Vector(-15.109, 0, -24.905), Vector(-13.441, 0, -22.612), Vector(-15.875, 0, -8.526), Vector(-21.739, 0, -8.507), Vector(-20.866, 0, -1.361), Vector(-22.606, 0, -19.201), Vector(-28.528, 0, 12.606), Vector(-34.870, 0, 13.781), Vector(-34.238, 0, 23.575), Vector(-22.889, 0, 22.642), Vector(-22.148, 0, 26.985), Vector(-14.844, 0, 25.458), Vector(-16.371, 0, 19.840), Vector(8.389, 0, 14.869), Vector(8.996, 0, 20.926), Vector(20.645, 0, 18.583), Vector(-4.528, 0, -41.284), Vector(15.951, 0, 6.898), Vector(-13.208, 0, -42.760), Vector(3.900, 0, 4.982), Vector(-9.538, 0, -45.867), Vector(6.926, 0, -15.400), Vector(-1.773, 0, -64.752), Vector(19.055, 0, -13.551), Vector(12.123, 0, -62.319), Vector(20.974, 0, -18.600), Vector(11.536, 0, -59.104), Vector(18.649, 0, -34.258), Vector(8.880, 0, -59.663), Vector(22.683, 0, -34.942), Vector(7.202, 0, -51.275), Vector(21.505, 0, -40.271), Vector(-3.926, 0, -53.148), Vector(6.957, 0, -37.471), Vector(-7.810, 0, -55.905), Vector(5.765, 0, -45.599), Vector(-6.390, 0, -39.251), Vector(-3.982, 0, -47.472), Vector(-13.594, 0, -40.630), Vector(-4.428, 0, -44.982), Vector(-13.982, 0, -38.494), Vector(-22.431, 0, -48.236), Vector(-23.593, 0, -40.183), Vector(-22.139, 0, -50.030), Vector(-37.494, 0, -28.323), Vector(-127.596, 0, 27.117), Vector(-32.801, 0, -27.547), Vector(-101.112, 0, -14.010), Vector(-137.780, 0, -7.618), Vector(-23.263, 0, -42.435), Vector(-29.943, 0, -43.538), Vector(-134.257, 0, 15.924), Vector(-33.901, 0, -21.236), Vector(-135.687, 0, 7.064), Vector(-39.338, 0, -22.223), Vector(-128.075, 0, 5.810), Vector(-53.171, 0, -41.579), Vector(-126.697, 0, 14.594), Vector(-46.954, 0, -41.390), Vector(-139.130, 0, 16.701), Vector(-46.604, 0, -48.780), Vector(1.228, 0, -4.361), Vector(-43.085, 0, -48.658), Vector(-143.160, 0, 13.137), Vector(-42.950, 0, -52.178), Vector(-144.573, 0, 4.561), Vector(-49.800, 0, -52.393), Vector(-147.564, 0, 5.042), Vector(-50.110, 0, -44.465), Vector(-148.330, 0, -0.154), Vector(-53.049, 0, -44.573), Vector(-164.237, 0, 2.546), Vector(-20.450, 0, -14.444), Vector(-162.174, 0, 15.568), Vector(-40.997, 0, -16.523), Vector(-5.454, 0, 4.782), Vector(-60.220, 0, -22.628), Vector(-156.571, 0, 19.568), Vector(-60.243, 0, -19.459), Vector(-154.564, 0, 31.899), Vector(-61.291, 0, -14.496), Vector(-2.630, 0, 5.844), Vector(-67.746, 0, -7.249), Vector(-158.365, 0, 36.479), Vector(-61.897, 0, -6.201), Vector(-156.033, 0, 50.449), Vector(-61.222, 0, -9.836), Vector(-158.842, 0, 7.151), Vector(-155.800, 0, 6.601), Vector(-154.684, 0, 12.459), Vector(-152.488, 0, 44.046), Vector(-133.289, 0, 40.718), Vector(-133.736, 0, 37.767), Vector(-150.609, 0, 37.101), Vector(-149.468, 0, 43.510), Vector(-84.848, 0, -18.518), Vector(-87.895, 0, -18.994), Vector(-89.992, 0, -6.411), Vector(-100.590, 0, -8.117), Vector(-103.083, 0, -7.740), Vector(-104.625, 0, -6.029), Vector(-137.035, 0, -1.874), Vector(-101.278, 0, -5.188), Vector(-87.418, 0, -3.062), Vector(-29.281, 0, 0.008), Vector(-15.065, 0, -2.829), Vector(-21.137, 0, 1.855), Vector(-11.691, 0, 0.578), Vector(-10.381, 0, 9.940), Vector(-23.103, 0, 11.571), Vector(-24.268, 0, 2.298), Vector(-14.561, 0, 1.030), Vector(-21.752, 0, -2.004), Vector(-29.633, 0, 6.162), Vector(-28.696, 0, 11.404), Vector(-23.299, 0, 10.705), Vector(-28.967, 0, -8.539), Vector(-19.713, 0, -18.696), Vector(-5.576, 0, -12.370), Vector(1.950, 0, -12.790), Vector(6.423, 0, -12.207), Vector(0.004, 0, -23.895), Vector(-1.439, 0, -20.674), Vector(-5.566, 0, -20.540), Vector(-7.613, 0, -23.392), Vector(-5.801, 0, -27.083), Vector(-1.976, 0, -27.150), Vector(-0.365, 0, -46.758), Vector(1.607, 0, -33.069), Vector(6.150, 0, -33.760), Vector(6.039, 0, -34.459), Vector(7.912, 0, -21.625), Vector(16.747, 0, -23.079), Vector(14.986, 0, -35.829), Vector(17.363, 0, -19.640), Vector(4.550, 0, 0.627), Vector(16.797, 0, 2.528), Vector(17.412, 0, -1.442), Vector(21.886, 0, -0.743), Vector(25.017, 0, -2.029), Vector(25.688, 0, -6.195), Vector(22.640, 0, -8.572), Vector(18.558, 0, -9.131), Vector(18.838, 0, -11.200), Vector(10.869, 0, -12.375), Vector(11.205, 0, -14.751), Vector(18.027, 0, -5.245), Vector(22.025, 0, -4.630), Vector(4.382, 0, 1.667), Vector(1.430, 0, 1.197), Vector(3.577, 0, -12.526), Vector(-2.882, 0, -58.997), Vector(-14.671, 0, -60.930), Vector(-16.690, 0, -49.713), Vector(-15.395, 0, -57.306), Vector(-25.493, 0, -59.239), Vector(-26.266, 0, -55.181), Vector(-37.282, 0, -57.113), Vector(-38.104, 0, -52.765), Vector(-26.591, 0, -50.889), Vector(-27.909, 0, -43.150), Vector(-24.382, 0, -42.618), Vector(-22.933, 0, -50.735), Vector(-12.171, 0, -48.862), Vector(-104.535, 0, -13.440), Vector(-106.447, 0, -24.177), Vector(-120.640, 0, -21.694), Vector(-120.036, 0, -18.104), Vector(-138.960, 0, -14.916), Vector(-129.953, 0, -8.971), Vector(-126.175, 0, 15.013), Vector(-128.407, 0, 0.982), Vector(-136.331, 0, 2.286), Vector(-140.925, 0, 17.700), Vector(-1.456, 0, -5.536), Vector(-148.626, 0, 13.855), Vector(-157.323, 0, 15.594), Vector(-151.832, 0, 5.882), Vector(-150.389, 0, 14.203), Vector(-127.503, 0, 27.606), Vector(-139.596, 0, 29.680), Vector(-138.058, 0, 38.510), Vector(-126.198, 0, 36.460), Vector(-114.077, 0, -1.222), Vector(-111.980, 0, 1.742), Vector(-108.187, 0, -2.105), Vector(-110.186, 0, 12.507), Vector(-98.675, 0, 10.549), Vector(-143.612, 0, 2.152), Vector(-102.590, 0, 7.031), Vector(-108.158, 0, 8.010), Vector(-108.461, 0, 5.796), Vector(-106.760, 0, 4.654), Vector(-102.566, 0, 3.979), Vector(-101.311, 0, 11.032), Vector(-95.460, 0, 10.130), Vector(-107.582, 0, 1.227), Vector(-99.380, 0, -0.264), Vector(-98.075, 0, 7.146), Vector(-95.978, 0, 6.843), Vector(-107.908, 0, -0.730), Vector(-113.034, 0, 0.179), Vector(-141.968, 0, 11.480), Vector(-137.975, 0, 14.130), Vector(-134.687, 0, 13.526), Vector(-141.028, 0, -1.438), Vector(-154.756, 0, 30.431), Vector(-158.078, 0, 31.169), Vector(-161.097, 0, 29.055), Vector(-162.037, 0, 24.257), Vector(-160.259, 0, 20.969), Vector(-156.568, 0, 20.331), Vector(-40.359, 0, -11.047), Vector(-27.039, 0, -17.188), Vector(-23.097, 0, -16.489), Vector(-34.398, 0, -18.353));
+		Global.e = Array(4, 0, 0, 1, 1, 3, 3, 2, 5, 4, 6, 5, 7, 6, 8, 7, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 19, 9, 20, 19, 21, 20, 22, 21, 258, 24, 26, 25, 24, 26, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 18, 33, 33, 34, 34, 35, 35, 36, 36, 37, 37, 38, 38, 39, 39, 40, 40, 41, 41, 42, 249, 136, 45, 44, 46, 45, 47, 46, 48, 47, 49, 48, 287, 49, 51, 50, 52, 1, 53, 52, 54, 53, 4, 54, 55, 51, 56, 55, 57, 56, 58, 57, 59, 58, 60, 59, 61, 60, 62, 61, 63, 62, 64, 63, 65, 64, 66, 22, 67, 66, 68, 67, 69, 68, 65, 69, 70, 71, 71, 72, 72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 79, 179, 78, 79, 147, 43, 188, 81, 81, 82, 82, 83, 83, 84, 84, 85, 85, 86, 86, 87, 87, 88, 88, 89, 89, 90, 90, 92, 92, 94, 94, 96, 96, 98, 98, 100, 100, 102, 102, 104, 104, 106, 106, 108, 108, 110, 110, 112, 112, 114, 114, 116, 116, 118, 70, 118, 25, 120, 29, 120, 123, 122, 126, 243, 109, 95, 130, 128, 113, 238, 132, 130, 91, 93, 42, 70, 134, 132, 116, 124, 99, 97, 156, 150, 97, 107, 103, 101, 138, 134, 101, 99, 107, 105, 140, 138, 105, 103, 113, 111, 142, 140, 107, 111, 117, 115, 144, 142, 115, 113, 124, 117, 146, 144, 121, 119, 129, 127, 148, 146, 125, 124, 133, 131, 42, 44, 137, 135, 158, 154, 135, 133, 143, 141, 141, 139, 129, 149, 145, 143, 155, 153, 162, 165, 151, 149, 161, 159, 160, 158, 159, 157, 152, 148, 142, 162, 163, 164, 150, 249, 165, 166, 166, 167, 168, 169, 170, 171, 171, 172, 172, 173, 173, 174, 174, 175, 175, 264, 177, 262, 177, 178, 180, 187, 196, 197, 182, 183, 183, 184, 184, 185, 194, 195, 77, 193, 192, 147, 189, 190, 80, 192, 77, 191, 188, 191, 187, 181, 180, 186, 182, 185, 197, 198, 198, 199, 199, 200, 200, 201, 196, 201, 202, 203, 203, 204, 205, 206, 206, 207, 208, 205, 209, 208, 210, 211, 211, 212, 212, 213, 213, 214, 214, 215, 215, 216, 216, 217, 217, 218, 218, 219, 219, 220, 212, 221, 221, 222, 223, 224, 224, 225, 226, 227, 227, 228, 229, 230, 230, 231, 231, 232, 232, 233, 234, 235, 236, 237, 237, 238, 239, 240, 240, 241, 241, 242, 242, 243, 244, 245, 246, 247, 245, 248, 136, 156, 248, 250, 250, 251, 252, 253, 254, 255, 255, 256, 256, 257, 259, 261, 258, 259, 23, 260, 261, 262, 280, 263, 264, 265, 265, 266, 266, 267, 267, 268, 268, 269, 269, 270, 260, 271, 271, 272, 272, 273, 273, 274, 275, 276, 263, 277, 277, 278, 278, 279, 176, 280, 281, 282, 282, 283, 283, 284, 284, 285, 285, 286, 50, 288, 289, 290);
+	}
+}
+
+rule("calc_sectors")
+{
+	event
+	{
+		Subroutine;
+		calc_sectors;
+	}
+
+	actions
+	{
+		Global.sector_v = Empty Array;
+		"for each center point Global.c[loop_i]"
+		For Global Variable(loop_i, 0, Count Of(Global.c), 1);
+			Global.temp_arr = Sorted Array(Global.e_c, Distance Between(Global.c[Global.loop_i], Current Array Element));
+			Wait(0.128, Ignore Condition);
+			"edge centers that are closest to center"
+			Global.temp_arr = Array Slice(Global.temp_arr, 0, Global.maxbeams);
+			Global.temp_arr_v = Empty Array;
+			For Global Variable(loop_j, 0, Count Of(Global.temp_arr), 1);
+				"index of the edge center in the list of edge centers"
+				Global.temp_index = Index Of Array Value(Global.e_c, Global.temp_arr[Global.loop_j]);
+				Modify Global Variable(temp_arr_v, Append To Array, Global.v[Global.e[2 * Global.temp_index]]);
+				Modify Global Variable(temp_arr_v, Append To Array, Global.v[Global.e[2 * Global.temp_index + 1]]);
+				Wait(0.016, Ignore Condition);
+			End;
+			Modify Global Variable(sector_v, Append To Array, Array(Global.temp_arr_v));
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("calc_clipper")
+{
+	event
+	{
+		Subroutine;
+		clipper;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_i, 0, Count Of(Event Player.v), 2);
+			Event Player.p1d = Vector(X Component Of(Event Player.v[Event Player.loop_i]), Y Component Of(Event Player.v[Event Player.loop_i]), 0);
+			Event Player.p1d = Dot Product(Event Player.p1d, Event Player.p1d);
+			Event Player.p2d = Vector(X Component Of(Event Player.v[Event Player.loop_i + 1]), Y Component Of(Event Player.v[Event Player.loop_i + 1]), 0);
+			Event Player.p2d = Dot Product(Event Player.p2d, Event Player.p2d);
+			If(Event Player.p1d < 1 && Event Player.p2d < 1);
+				Continue;
+			Else If(Event Player.p1d >= 1 && Event Player.p2d >= 1);
+				Event Player.v[Event Player.loop_i] = 9999 * Down;
+				Event Player.v[Event Player.loop_i + 1] = 9999 * Down;
+			Else;
+				If(Event Player.p1d >= 1);
+					Event Player.v[Event Player.loop_i] = Event Player.v[Event Player.loop_i + 1] + (1 - Event Player.p2d) / (Event Player.p1d - Event Player.p2d) * (Event Player.v[Event Player.loop_i] - Event Player.v[Event Player.loop_i + 1]);
+				Else;
+					Event Player.v[Event Player.loop_i + 1] = Event Player.v[Event Player.loop_i] + (1 - Event Player.p1d) / (Event Player.p2d - Event Player.p1d) * (Event Player.v[Event Player.loop_i + 1] - Event Player.v[Event Player.loop_i]);
+				End;
+			End;
+		End;
+	}
+}

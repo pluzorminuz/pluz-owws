@@ -1,0 +1,265 @@
+settings
+{
+	main
+	{
+		Description: "projectile spin test 1 210417"
+	}
+
+	modes
+	{
+		Skirmish
+		{
+			enabled maps
+			{
+				Workshop Expanse Night
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+
+			enabled heroes
+			{
+				Ana
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Kinetic Explosion Effects
+		Explosion Sounds
+		Play More Effects
+	}
+}
+
+variables
+{
+	player:
+		0: proj_vel
+		1: proj_g
+		2: proj_init_vel
+		3: proj_pos
+		4: proj_del
+		5: proj_cast_time
+		6: proj_inverse_mass
+		7: proj_spin_direction
+		8: proj_vel_fixed
+		9: proj_spin_power
+		10: camera_relative_motion
+		11: camera_facing_prev
+		12: camera_facing_delta
+		13: flying
+		14: pos_array
+		15: fx_array
+		16: fx_index
+}
+
+rule("init")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+	}
+}
+
+rule("Set up variables")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		"projectile initial speed"
+		Event Player.proj_init_vel = 30;
+		"acceleration per frame"
+		Event Player.proj_g = -9.840 * Up * 0.016;
+		"delta term for initial velocity correction, 0 for torb turret for example"
+		Event Player.proj_del = 0;
+		"projectile cast time"
+		Event Player.proj_cast_time = 0;
+		"inverse mass"
+		Event Player.proj_inverse_mass = 1 / 0.350;
+		disabled Event Player.proj_spin_direction = 0;
+		Create HUD Text(All Players(All Teams), Custom String("spin power {0}", Event Player.proj_spin_power), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("camera {0}", Event Player.camera_relative_motion), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("entity count {0}", Entity Count), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Event Player.pos_array = Empty Array;
+		Event Player.fx_array = Empty Array;
+		disabled Disallow Button(Event Player, Button(Ability 2));
+	}
+}
+
+rule("Launch projectile + update projecile")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ability 2)) == True;
+	}
+
+	actions
+	{
+		"first set the initial position to the player's eye"
+		Event Player.proj_pos = Eye Position(Event Player);
+		"then set the initial velocity of the projectile. if facing straight up, return up, else if facing straight down, return down, else, return the corrected velocity against delta"
+		Event Player.proj_vel = (Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up))) * Event Player.proj_init_vel + Velocity Of(Event Player);
+		"if the projectile have a cast time, wait the duration, and get the position again"
+		If(Event Player.proj_cast_time > 0);
+			Wait(Event Player.proj_cast_time, Ignore Condition);
+			Event Player.proj_pos = Eye Position(Event Player);
+			Event Player.proj_vel = (Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up))) * Event Player.proj_init_vel + Velocity Of(Event Player);
+		End;
+		Event Player.proj_spin_power = Distance Between(0 * Up, Event Player.camera_relative_motion);
+		disabled If(Event Player.proj_spin_direction == 0 * Up);
+		disabled Event Player.proj_spin_direction = 0 * Up;
+		disabled Else;
+		Event Player.proj_spin_direction = Normalize(-1 * Event Player.camera_relative_motion);
+		disabled End;
+		Event Player.flying = True;
+		"then for each frame"
+		While(True);
+			Wait(0.016, Ignore Condition);
+			Event Player.proj_vel_fixed = Event Player.proj_vel;
+			"update the velocity using the acceleration per frame"
+			Event Player.proj_vel += Event Player.proj_g;
+			"drag, assume drag coefficient is 0.015"
+			Event Player.proj_vel -= Dot Product(Event Player.proj_vel_fixed, Event Player.proj_vel_fixed) * Event Player.proj_inverse_mass * 0.002 * 0.080 * 0.016 * Event Player.proj_vel_fixed;
+			"horizontal spin"
+			Event Player.proj_vel += X Component Of(Event Player.proj_spin_direction) * Direction From Angles(Horizontal Angle From Direction(Event Player.proj_vel_fixed) + 90, 0) * Event Player.proj_spin_power * 0.016;
+			"vertical spin"
+			Event Player.proj_vel += Y Component Of(Event Player.proj_spin_direction) * Direction From Angles(Horizontal Angle From Direction(Event Player.proj_vel_fixed), Vertical Angle From Direction(Event Player.proj_vel_fixed) - 90) * Event Player.proj_spin_power * 0.016;
+			"spin decay mult"
+			Event Player.proj_spin_power *= 0.976;
+			"spin decay addi"
+			disabled Event Player.proj_spin_power = Max(0, Event Player.proj_spin_power - 0.050);
+			"check to see if the projectile will hit something. in general i found rayCast() is more accurate than ifInLineOfSight()"
+			If(Ray Cast Hit Position(Event Player.proj_pos, Event Player.proj_pos + Event Player.proj_vel * 0.016, Null, Event Player, False) == Event Player.proj_pos + Event Player.proj_vel * 0.016);
+				"if hit nothing, update position"
+				Event Player.proj_pos += Event Player.proj_vel * 0.016;
+			Else;
+				"if not, check where it hits"
+				Event Player.proj_pos = Ray Cast Hit Position(Event Player.proj_pos, Event Player.proj_pos + Event Player.proj_vel, Null, Event Player, False);
+				"and break out the loop"
+				Break;
+			End;
+		"done"
+		End;
+		Play Effect(All Players(All Teams), Ana Biotic Grenade Explosion Effect, Team Of(Event Player), Event Player.proj_pos, 1);
+		Play Effect(All Players(All Teams), Ana Biotic Grenade Explosion Sound, Team Of(Event Player), Event Player.proj_pos, 255);
+		Event Player.flying = False;
+		Wait(0.016, Ignore Condition);
+	}
+}
+
+rule("Effects")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(Local Player.proj_pos), 0.300, Visible To Position and Radius);
+		Create HUD Text(All Players(All Teams), Custom String("pos {0}, vel {1}", Local Player.proj_pos, Local Player.proj_vel), Null, Null, Left, 0, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("Camera Relative Motion")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.camera_facing_delta = Facing Direction Of(Event Player) - Event Player.camera_facing_prev;
+		Event Player.camera_relative_motion = 180 * (Dot Product(Event Player.camera_facing_delta, Direction From Angles(Horizontal Angle From Direction(Event Player.camera_facing_prev) + 90, 0)) * Left + Dot Product(Event Player.camera_facing_delta, Direction From Angles(Horizontal Facing Angle Of(Event Player.camera_facing_prev), Vertical Facing Angle Of(Event Player.camera_facing_prev) - 90)) * Up);
+		Event Player.camera_facing_prev = Facing Direction Of(Event Player);
+		Wait(0.016, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("Record Trjectory")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.flying == True;
+	}
+
+	actions
+	{
+		Modify Player Variable(Event Player, pos_array, Append To Array, Event Player.proj_pos);
+		Event Player.fx_index += 1;
+		While(Event Player.flying == True);
+			Wait(0.048, Ignore Condition);
+			Modify Player Variable(Event Player, pos_array, Append To Array, Event Player.proj_pos);
+			Event Player.fx_index += 1;
+			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Evaluate Once(Event Player.pos_array[Event Player.fx_index - 1]), Evaluate Once(Event Player.pos_array[Event Player.fx_index - 2]), Color(White), Visible To Position and Radius);
+			Modify Player Variable(Event Player, fx_array, Append To Array, Last Created Entity);
+		End;
+		Wait(0.048, Ignore Condition);
+		Modify Player Variable(Event Player, pos_array, Append To Array, Event Player.proj_pos);
+		Event Player.fx_index += 1;
+		Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Evaluate Once(Event Player.pos_array[Event Player.fx_index - 1]), Evaluate Once(Event Player.pos_array[Event Player.fx_index - 2]), Color(White), Visible To Position and Radius);
+		Modify Player Variable(Event Player, fx_array, Append To Array, Last Created Entity);
+	}
+}
+
+rule("Remove trajectory")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+		Event Player.flying == False;
+	}
+
+	actions
+	{
+		While(Event Player.fx_array != Empty Array);
+			Destroy Effect(First Of(Event Player.fx_array));
+			Modify Player Variable(Event Player, fx_array, Remove From Array By Index, 0);
+		End;
+		Event Player.pos_array = Empty Array;
+		Event Player.fx_index = 0;
+	}
+}
