@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: Quick Melee, Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor, Hook. Reddit: u/spadler097, Last Update: 2021 Mar 17. Discord: pluzorminuz#2542."
+		Description: "Melee Hitbox (MHB) Playground by pluzorminuz. Supported Abilities: Quick Melee, Blade, Charge, Tesla Cannon, Dragon, Flux, Shatter, Soundwave, Primal, Uppercut, Meteor, Hook. Reddit: u/spadler097, Last Update: 2021 Apr 19. Discord: pluzorminuz#2542."
 	}
 
 	lobby
@@ -577,6 +577,10 @@ rule("[sub] all hero body melee hurtbox")
 			Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"end create melee hurtbox"
 		End;
+		"player origin"
+		Create Effect(All Players(All Teams), Sphere, Color(White), Update Every Frame(Position Of(Event Player)), 0.100,
+			Visible To Position and Radius);
+		Modify Player Variable(Event Player, temp_arr, Append To Array, Last Created Entity);
 		"player_effect_id[0] for mhb body"
 		Event Player.player_effect_id[0] = Event Player.temp_arr;
 		Event Player.player_hudtext_id[0] = Event Player.temp_arr2;
@@ -2431,7 +2435,7 @@ rule("[sub] init_global_hud")
 	actions
 	{
 		"code"
-		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.4.210317)"),
+		Create HUD Text(All Players(All Teams), Custom String("Code: YASRJ"), Custom String("The MHB Playground (v1.0.5.210419)"),
 			Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
 		"debug"
 		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Entity Count, Text Count), String("{0} {1} {2}", Server Load,

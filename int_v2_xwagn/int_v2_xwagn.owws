@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Apr 07"
+		Description: "SINGLEPLAYER ONLY. by pluzorminuz. Last Update: 2021 Apr 19"
 	}
 
 	lobby
@@ -143,7 +143,7 @@ rule("init")
 			0.500, False), Array(-9.840, 25, 0.100, 7, 0, 0, 0.500, False), Null, Null), 1, Array(2.500, 6, 0), False), Array(Array(Null,
 			Null, Null, Null, Array(-20.200, 25, 0.090, 5, 0, 0.096, 0.200, False)), 4, Array(15, 0, 0), True), Array(Array(Null, Null,
 			Null, Null, Array(-8.030, 25, 0.070, 7, 0, 0.140, 0.400, False)), 4, Array(5, 0, 0), True), Array(Array(Null, Null, Array(
-			-30.800, 15, 0.190, 2, 0, 0.144, 0.150, False), Null, Null), 2, Array(5, 0, 0), True), Array(Array(Null, Null, Array(-10,
+			-30.800, 15, 0.190, 2, 0, 0.144, 0.150, False), Null, Null), 2, Array(5, 0, 0), False), Array(Array(Null, Null, Array(-10,
 			4.200, 0.577, 4, 0, 0, 0.300, False), Null, Array(-9.840, 30, 0, 7 / 30, 0, 0, 0.100, False)), 4, Array(3, 0, 0), False),
 			Array(Array(Null, Null, Array(-9.900, 20, 0.090, 7, 0, 0.484, 0.600, False), Null, Null), 2, Array(10, 0, 0), False), Array(
 			Array(Array(-9.810, 70, 0.015, 15, 0, 0, 0.100, True), Null, Array(-30.050, 40, 0, 5, 0, 0, 0.100, True), Array(-20, 17, 0, 4,
@@ -1244,9 +1244,9 @@ rule("[sub] final hud")
 	actions
 	{
 		Create HUD Text(Local Player.hudhide_bool ? Null : Local Player, Custom String("Code: XWAGN"), Custom String(
-			"Improved Nade Tool (v2.3.2.210407)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
+			"Improved Nade Tool (v2.3.3.210419)"), Custom String("by pluzorminuz"), Left, -2, Color(Yellow), Color(White), Color(Aqua),
 			Visible To, Default Visibility);
-		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.3.2.210407"), Left, -2, Color(
+		Create HUD Text(Local Player.hudhide_bool ? Local Player : Null, Null, Null, Custom String("XWAGN v2.3.3.210419"), Left, -2, Color(
 			White), Color(White), Color(Yellow), Visible To, Default Visibility);
 		Create HUD Text(All Players(All Teams), Null, String("{0} - {1}", Entity Count, Text Count), String("{0} - {1} - {2}", Server Load,
 			Server Load Average, Server Load Peak), Right, -1, Color(White), Color(Gray), Color(Gray), Visible To and String,
